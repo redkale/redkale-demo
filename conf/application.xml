@@ -1,33 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<application port="5050">     
-    <resources>       
-        <!-- 
+<application port="5001" lib="${APP_HOME}/dist/*" address="127.0.0.1">   
+    
+    <resources>  
+        <group name="GROUP-A">
+            <node addr="127.0.0.1" port="7001"/>
+            <node addr="127.0.0.1" port="7002"/>
+        </group>
+        <group name="GROUP-B">
+            <node addr="127.0.0.1" port="7011"/>
+            <node addr="127.0.0.1" port="7012"/>
+        </group>
+        <group name="USERSESSION">
+            <node addr="127.0.0.1" port="4001"/>
+        </group>
         <properties>
             <property name="system.property.convert.json.tiny" value="true"/>
         </properties>
-        -->
     </resources> 
 
-    <server protocol="HTTP" host="0.0.0.0" port="6060" root="root">         
-        <!--
+    <server protocol="HTTP" host="0.0.0.0" port="6001"> 
         <request>
             <remoteaddr value="request.headers.X-RemoteAddress"/>
         </request>
         <response>
-            <addheader name="X-Node" value="system.property.APP_NODE" />             
-            <addheader name="Access-Control-Allow-Origin" value="request.headers.Origin" /> 
-            <setheader name="Access-Control-Allow-Credentials" value="true"/> 
+            <addheader name="X-Node" value="system.property.APP_NODE" /> 
         </response>
-        -->
         <services autoload="true"/>
-        <servlets prefix="/pipes" autoload="true" >
-            <!--
-            <resource-servlet>
-                <caches  limit="0"/>
+        <servlets prefix="/pipes" autoload="true">          
+            <resource-servlet>			
                 <rewrite type="location" match="^/([^-]+)(-[^-\.]+)+\.html(.*)" forward="/$1.html"/>
-            </resource-servlet>            
-            -->
+            </resource-servlet>
         </servlets>
     </server>
+    <!-- SNCP 监听 Server -->
+    <server protocol="SNCP" host="0.0.0.0" port="7001"> 
+        <services autoload="true" groups="GROUP-A;GROUP-B">
+            <!--
+            <service name="usersessions" value="org.redkale.service.CacheSourceService" groups="USERSESSION">
+                <property name="key-type" value="java.lang.String"/>
+                <property name="value-type" value="java.lang.Integer"/>
+            </service>
+            -->
+        </services>
+    </server>
+    
 </application>
