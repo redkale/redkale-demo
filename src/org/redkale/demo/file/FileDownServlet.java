@@ -18,7 +18,7 @@ import org.redkale.util.*;
  *
  * @author zhangjx
  */
-@WebServlet(value = {"/dir/*"}, fillurl = false)
+@WebServlet(value = {"/dir/*"}, repair = false)
 public class FileDownServlet extends BaseServlet {
 
     @Resource(name = "APP_HOME")

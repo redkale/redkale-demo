@@ -5,9 +5,9 @@
  */
 package org.redkale.demo.user;
 
+import javax.persistence.*;
 import org.redkale.demo.base.*;
 import org.redkale.source.*;
-import org.redkale.util.*;
 
 /**
  *
@@ -31,7 +31,7 @@ public final class LoginBean extends BaseBean implements FilterBean {
 
     private int cacheday;
 
-    @Ignore
+    @Transient
     private String sessionid = "";
 
     public boolean emptyAccount() {
