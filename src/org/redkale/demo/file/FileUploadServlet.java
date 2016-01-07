@@ -16,7 +16,6 @@ import javax.imageio.*;
 
 import org.redkale.demo.base.*;
 import org.redkale.net.*;
-import org.redkale.net.http.BasedHttpServlet.WebAction;
 import org.redkale.net.http.*;
 import org.redkale.util.*;
 

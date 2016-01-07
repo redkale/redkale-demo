@@ -12,8 +12,6 @@ import javax.annotation.*;
 import org.redkale.convert.json.*;
 import org.redkale.demo.base.*;
 import org.redkale.net.*;
-import org.redkale.net.http.BasedHttpServlet.AuthIgnore;
-import org.redkale.net.http.BasedHttpServlet.WebAction;
 import org.redkale.net.http.*;
 import org.redkale.service.*;
 import org.redkale.service.weixin.*;
