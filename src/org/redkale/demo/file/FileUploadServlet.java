@@ -156,7 +156,7 @@ public class FileUploadServlet extends BaseServlet {
             if (fine) {
                 final String fid = fileid;
                 final long s = System.currentTimeMillis() - req.getCreatetime();
-                if (s >= 1000) resp.setRecycleListener(() -> logger.finer("upload-cost-time " + s / 1000.0 + " seconds, request = " + req + ", limit = " + max / (1024 * 1024) + "M, fileid = " + fid));
+                if (s >= 1000) resp.setRecycleListener((req0, resp0) -> logger.finer("upload-cost-time " + s / 1000.0 + " seconds, request = " + req + ", limit = " + max / (1024 * 1024) + "M, fileid = " + fid));
             }
             if (fileid.isEmpty()) {
                 resp.finish("{\"success\":false,\"retcode\":2010001,\"retinfo\":\"file too long or io error\"}");

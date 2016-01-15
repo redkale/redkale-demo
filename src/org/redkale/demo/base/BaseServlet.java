@@ -53,9 +53,9 @@ public class BaseServlet extends org.redkale.net.http.BasedHttpServlet {
 
     @Override
     public boolean preExecute(final HttpRequest request, final HttpResponse response) throws IOException {
-        if (finer) response.setRecycleListener(() -> {  //记录处理时间比较长的请求
-                long e = System.currentTimeMillis() - request.getCreatetime();
-                if (e > 200) logger.finer("http-execute-cost-time: " + e + " ms. request = " + request);
+        if (finer) response.setRecycleListener((req, resp) -> {  //记录处理时间比较长的请求
+                long e = System.currentTimeMillis() - ((HttpRequest)req).getCreatetime();
+                if (e > 200) logger.finer("http-execute-cost-time: " + e + " ms. request = " + req);
             });
         return true;
     }
