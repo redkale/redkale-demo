@@ -57,7 +57,7 @@ public class FileUploadServlet extends BaseServlet {
     @WebAction(url = "/upload/face") // 上传头像
     public void face(HttpRequest req, HttpResponse resp) throws IOException {
         UserInfo user = currentUser(req);
-        for (MultiPart part : req.getMultiContext().listMultiPart()) {
+        for (MultiPart part : req.multiParts()) {
             byte[] byts = part.getContentBytes(10 * 1024 * 1024L);
             if (byts == null) {
                 resp.finish("{\"success\":false,\"retcode\":2010001,\"retinfo\":\"file too long or io error\"}");
@@ -108,7 +108,7 @@ public class FileUploadServlet extends BaseServlet {
     protected void upload(final HttpRequest req, HttpResponse resp, String dir, final int size, final float rate, final boolean sync, final long max) throws IOException {
         String fileid = "";
         File file = null;
-        for (MultiPart part : req.getMultiContext().listMultiPart()) {
+        for (MultiPart part : req.multiParts()) {
             final String mime = MimeType.getByFilename(part.getFilename());
             if (mime.contains("image/")) { //需要剪切图片                
                 byte[] bytes = part.getContentBytes(max);
