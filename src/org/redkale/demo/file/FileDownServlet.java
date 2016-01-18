@@ -8,7 +8,6 @@ package org.redkale.demo.file;
 import java.io.*;
 import javax.annotation.*;
 import org.redkale.demo.base.*;
-import org.redkale.net.*;
 import org.redkale.net.http.*;
 import org.redkale.util.*;
 
@@ -27,7 +26,7 @@ public class FileDownServlet extends BaseServlet {
     private File dface;
 
     @Override
-    public void init(Context context, AnyValue config) {
+    public void init(HttpContext context, AnyValue config) {
         super.init(context, config);
         this.files = new File(home, "files");
         this.files.mkdirs();

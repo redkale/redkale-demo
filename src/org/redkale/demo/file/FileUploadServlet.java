@@ -15,7 +15,6 @@ import javax.annotation.*;
 import javax.imageio.*;
 
 import org.redkale.demo.base.*;
-import org.redkale.net.*;
 import org.redkale.net.http.*;
 import org.redkale.util.*;
 
@@ -38,7 +37,7 @@ public class FileUploadServlet extends BaseServlet {
     protected FileService service;
 
     @Override
-    public void init(Context context, AnyValue config) {
+    public void init(HttpContext context, AnyValue config) {
         super.init(context, config);
     }
 

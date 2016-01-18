@@ -11,7 +11,6 @@ import java.util.*;
 import javax.annotation.*;
 import org.redkale.convert.json.*;
 import org.redkale.demo.base.*;
-import org.redkale.net.*;
 import org.redkale.net.http.*;
 import org.redkale.service.*;
 import org.redkale.service.weixin.*;
@@ -41,7 +40,7 @@ public class UserServlet extends BaseServlet {
     private JsonConvert userConvert;
 
     @Override
-    public void init(Context context, AnyValue config) {
+    public void init(HttpContext context, AnyValue config) {
         JsonFactory factory = JsonFactory.root().createChild();
         factory.register(UserDetail.class, false, "mobile", "email", "wxunionid", "qqopenid", "apptoken");
         userConvert = factory.getConvert();

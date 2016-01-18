@@ -11,7 +11,6 @@ import javax.annotation.*;
 
 import org.redkale.convert.json.*;
 import org.redkale.demo.user.*;
-import org.redkale.net.*;
 import org.redkale.net.http.*;
 import org.redkale.service.*;
 import org.redkale.source.*;
@@ -47,7 +46,7 @@ public class BaseServlet extends org.redkale.net.http.BasedHttpServlet {
     private UserService service;
 
     @Override
-    public void init(Context context, AnyValue config) {
+    public void init(HttpContext context, AnyValue config) {
         super.init(context, config);
     }
 
