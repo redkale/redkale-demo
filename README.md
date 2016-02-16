@@ -11,7 +11,7 @@
 <li>提供类似JPA功能，并包含数据缓存自动同步与简洁的数据层操作接口</li>
 <li>可以动态修改已依赖注入的资源</li>
 </ol>
-&nbsp;&nbsp;&nbsp;本工程项目依赖 redkale-plugins 项目。
+&nbsp;&nbsp;&nbsp;本工程项目依赖 <strong>redkale-plugins</strong> 项目。
 
 &nbsp;&nbsp;&nbsp;由于RedKale使用了JDK 8 内置的ASM包，所以需要在源码工程中的编译器选项中加入： <b>-XDignore.symbol.file=true</b>
 
