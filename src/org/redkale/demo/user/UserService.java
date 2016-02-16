@@ -21,7 +21,6 @@ import org.redkale.service.*;
 import org.redkale.source.*;
 import org.redkale.util.*;
 
-import static org.redkale.demo.base.UserInfo.*;
 import org.redkale.demo.file.*;
 import static org.redkale.demo.user.UserDetail.*;
 import org.redkale.service.email.*;
@@ -405,7 +404,7 @@ public class UserService extends BaseService {
         boolean emailkind = (bean.getAccount() != null && bean.getAccount().indexOf('@') > 0);
         if (user == null) user = (emailkind ? this.emailUserInfos : this.mobileUserInfos).get(bean.getAccount());
         if (user == null) {
-            UserDetail detail = source.findByColumn(UserDetail.class, emailkind ? "email" : "mobile", bean.getAccount());
+            UserDetail detail = source.find(UserDetail.class, emailkind ? "email" : "mobile", bean.getAccount());
             if (detail == null || !detail.checkPassword(bean.getPassword())) {
                 result.setRetcode(1010002); //用户或密码错误                
                 result.setRetinfo("login " + (emailkind ? "email" : "mobile") + "(" + bean.getAccount() + ") or password incorrect");
