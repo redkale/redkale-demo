@@ -41,8 +41,6 @@ public class UserService extends BaseService {
 
     public static final int RETCODE_ILLPARAM = 20100021; //参数错误  
 
-    protected final int sessionExpireSecond = 900; //15分钟
-
     protected final Map<String, UserInfo> wxunionidUserInfos = new ConcurrentHashMap<>();
 
     protected final Map<String, UserInfo> qqopenidUserInfos = new ConcurrentHashMap<>();
@@ -59,6 +57,8 @@ public class UserService extends BaseService {
 
     @Resource(name = "reduser")
     private DataSource source;
+
+    private int sessionExpireSeconds = 30 * 60;
 
     @Resource(name = "usersessions")
     protected CacheSource<String, Integer> sessions;
@@ -218,7 +218,7 @@ public class UserService extends BaseService {
     }
 
     public UserInfo current(String sessionid) {
-        Integer userid = sessions.getAndRefresh(sessionid);
+        Integer userid = sessions.getAndRefresh(sessionid, sessionExpireSeconds);
         return userid == null ? null : userInfos.get(userid);
     }
 
@@ -297,7 +297,7 @@ public class UserService extends BaseService {
                 rr.setRetinfo(jsonmap.get(bean.getOpenid()));
             }
             if (rr.isSuccess()) {
-                this.sessions.set(sessionExpireSecond, bean.getSessionid(), rr.getResult().getUserid());
+                this.sessions.set(sessionExpireSeconds, bean.getSessionid(), rr.getResult().getUserid());
             }
             return rr;
         } catch (Exception e) {
@@ -357,7 +357,7 @@ public class UserService extends BaseService {
                 }
             }
             if (rr.isSuccess()) {
-                this.sessions.set(sessionExpireSecond, bean.getSessionid(), rr.getResult().getUserid());
+                this.sessions.set(sessionExpireSeconds, bean.getSessionid(), rr.getResult().getUserid());
             }
             return rr;
         } catch (Exception e) {
@@ -437,7 +437,7 @@ public class UserService extends BaseService {
                 updateUserInfo(user, true);
             }
         }
-        this.sessions.set(sessionExpireSecond, bean.getSessionid(), result.getResult().getUserid());
+        this.sessions.set(sessionExpireSeconds, bean.getSessionid(), result.getResult().getUserid());
         return result;
     }
 
