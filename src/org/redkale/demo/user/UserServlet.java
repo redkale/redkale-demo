@@ -5,6 +5,7 @@
  */
 package org.redkale.demo.user;
 
+import org.redkale.plugins.weixin.WeiXinMPService;
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -13,7 +14,6 @@ import org.redkale.convert.json.*;
 import org.redkale.demo.base.*;
 import org.redkale.net.http.*;
 import org.redkale.service.*;
-import org.redkale.service.weixin.*;
 import org.redkale.util.*;
 
 /**

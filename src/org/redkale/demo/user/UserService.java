@@ -5,6 +5,9 @@
  */
 package org.redkale.demo.user;
 
+import org.redkale.plugins.weixin.WeiXinMPService;
+import org.redkale.plugins.email.EmailService;
+import org.redkale.plugins.email.EmailMessage;
 import java.awt.image.*;
 import java.io.*;
 import java.util.*;
@@ -23,8 +26,6 @@ import org.redkale.util.*;
 
 import org.redkale.demo.file.*;
 import static org.redkale.demo.user.UserDetail.*;
-import org.redkale.service.email.*;
-import org.redkale.service.weixin.*;
 
 /**
  *
