@@ -27,7 +27,7 @@
             <addheader name="X-Node" value="system.property.APP_NODE" /> 
         </response>
         <services autoload="true"/>
-        <servlets prefix="/pipes" autoload="true">          
+        <servlets path="/pipes" autoload="true">          
             <resource-servlet>			
                 <rewrite type="location" match="^/([^-]+)(-[^-\.]+)+\.html(.*)" forward="/$1.html"/>
             </resource-servlet>
