@@ -15,24 +15,24 @@ import org.redkale.source.*;
  */
 public final class LoginBean extends BaseBean implements FilterBean {
 
-    private String account;
+    private String account;  //登录账号: 用户名、邮箱或者手机号码(为便于区别，用户名规则：不能以数字开头或者包含@)
 
-    private String password;
+    private String password; //明文密码一次MD5值
 
-    private String apptoken = "";
+    private String apptoken = ""; //APP设备唯一标识
 
-    private String cookieinfo;
+    private String cookieinfo; //自动登录Cookie值
 
-    private String loginagent = "";
+    private String loginagent = ""; //User-Agent
 
-    private String loginip = "";
+    private String loginip = ""; //客户端IP地址
 
-    private String vercode = "";
+    private String vercode = ""; //验证码
 
-    private int cacheday;
+    private int cacheday; //COOKIE缓存天数
 
     @Transient
-    private String sessionid = "";
+    private String sessionid = ""; // session ID
 
     public boolean emptyAccount() {
         return this.account == null || this.account.isEmpty();

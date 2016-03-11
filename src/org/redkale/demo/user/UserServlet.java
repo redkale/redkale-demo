@@ -5,7 +5,6 @@
  */
 package org.redkale.demo.user;
 
-import org.redkale.plugins.weixin.WeiXinMPService;
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -13,6 +12,7 @@ import javax.annotation.*;
 import org.redkale.convert.json.*;
 import org.redkale.demo.base.*;
 import org.redkale.net.http.*;
+import org.redkale.plugins.weixin.WeiXinMPService;
 import org.redkale.service.*;
 import org.redkale.util.*;
 
@@ -42,23 +42,13 @@ public class UserServlet extends BaseServlet {
     @Override
     public void init(HttpContext context, AnyValue config) {
         JsonFactory factory = JsonFactory.root().createChild();
+        //当前用户查看自己的用户信息时允许输出隐私信息
         factory.register(UserDetail.class, false, "mobile", "email", "wxunionid", "qqopenid", "apptoken");
         userConvert = factory.getConvert();
         super.init(context, config);
     }
 
-    @WebAction(url = "/user/mytoken")
-    public void mytoken(HttpRequest req, HttpResponse resp) throws IOException {
-        resp.finish("{\"key\":\"" + req.getSessionid(false) + "\"}");
-    }
-
-    /**
-     * 用户注销
-     *
-     * @param req
-     * @param resp
-     * @throws IOException
-     */
+    //用户注销
     @AuthIgnore
     @WebAction(url = "/user/logout")
     public void logout(HttpRequest req, HttpResponse resp) throws IOException {
@@ -71,25 +61,21 @@ public class UserServlet extends BaseServlet {
         resp.finish("{\"success\":true}");
     }
 
+    //检查用户名的合法性
     @AuthIgnore
     @WebAction(url = "/user/checkusername/")
     public void checkUserName(HttpRequest req, HttpResponse resp) throws IOException {
         sendRetcode(resp, service.checkUsername(req.getRequstURILastPath()) ? 0 : 1010014);
     }
 
-    /**
-     * 检测邮箱地址是否有效, 返回true表示邮箱地址可用.给新用户注册使用
-     *
-     * @param req
-     * @param resp
-     * @throws IOException
-     */
+    //检测邮箱地址是否有效, 返回true表示可用.给新用户注册使用
     @AuthIgnore
     @WebAction(url = "/user/checkemail/")
     public void checkEmail(HttpRequest req, HttpResponse resp) throws IOException {
         sendRetcode(resp, service.checkEmail(req.getRequstURILastPath()) ? 0 : 1010015);
     }
 
+    //检测手机号码是否有效, 返回true表示可用.给新用户注册使用
     @AuthIgnore
     @WebAction(url = "/user/checkmobile/")
     public void checkMobile(HttpRequest req, HttpResponse resp) throws IOException {
@@ -135,7 +121,7 @@ public class UserServlet extends BaseServlet {
         String openid = req.getParameter("openid");
         if (finest) logger.finest("/user/qqlogin :  " + openid + "," + access_token);
         final boolean wxbrowser = req.getHeader("User-Agent", "").contains("MicroMessenger");
-        QQLoginBean bean = new QQLoginBean();
+        LoginQQBean bean = new LoginQQBean();
         bean.setAccesstoken(access_token);
         bean.setApptoken(req.getParameter("apptoken", ""));
         bean.setOpenid(openid);
@@ -175,8 +161,7 @@ public class UserServlet extends BaseServlet {
     }
 
     /**
-     * 微信登陆
-     * https://open.weixin.qq.com/connect/qrconnect?appid=wx64ae61c939bdf906&redirect_uri=xxxxx&response_type=code&scope=snsapi_login&state=wx64ae61c939bdf906_1#wechat_redirect
+     * 微信登陆 https://open.weixin.qq.com/connect/qrconnect?appid=wx64ae61c939bdf906&redirect_uri=xxxxx&response_type=code&scope=snsapi_login&state=wx64ae61c939bdf906_1#wechat_redirect
      * <p>
      * @param req
      * @param resp
@@ -195,7 +180,7 @@ public class UserServlet extends BaseServlet {
         if (appid.length() < 2) appid = "";
         boolean autoreg = (pos > 0 || "1".equals(state)) ? (state.charAt(pos + 1) == '1') : true;
         final boolean wxbrowser = req.getHeader("User-Agent", "").contains("MicroMessenger");
-        WxLoginBean bean = new WxLoginBean();
+        LoginWXBean bean = new LoginWXBean();
         { //web方式
             bean.setAppid(appid);
             bean.setCode(code);
@@ -432,34 +417,6 @@ public class UserServlet extends BaseServlet {
     @WebAction(url = "/user/myinfo")
     public void myinfo(HttpRequest req, HttpResponse resp) throws IOException {
         resp.finishJson(currentUser(req));
-    }
-
-    /**
-     * 获取个人基本信息
-     *
-     * @param req
-     * @param resp
-     * @throws IOException
-     */
-    @AuthIgnore
-    @WebAction(url = "/user/js/myinfo")
-    public void myjsinfo(HttpRequest req, HttpResponse resp) throws IOException {
-        UserInfo user = currentUser(req);
-        resp.setContentType("application/javascript; charset=utf-8");
-        if (user == null) {
-            resp.finish("var userself = null;");
-        } else {
-            String userjson = convert.convertTo(user);
-            String token = "";
-            String sessionid = req.getSessionid(false);
-            if (sessionid != null && !sessionid.isEmpty()) {
-                token = "userself.token=\"" + sessionid + "\";var MYTOKEN=\"" + sessionid + "\";";
-                if (req.getHeader("User-Agent", "").contains("MicroMessenger")) {
-                    token += "userself.wxunionid=\"" + user.getWxunionid() + "\";";
-                }
-            }
-            resp.finish("var userself=" + userjson + ";" + token);
-        }
     }
 
     /**

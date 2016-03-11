@@ -6,12 +6,12 @@
 package org.redkale.demo.user;
 
 /**
+ * 微信登录参数
  *
  * @author zhangjx
  */
-public class WxLoginBean extends QQLoginBean {
+public class LoginWXBean extends LoginQQBean {
 
-    private short study;
 
     private String appid;
 
@@ -27,13 +27,6 @@ public class WxLoginBean extends QQLoginBean {
         this.appid = appid;
     }
 
-    public short getStudy() {
-        return study;
-    }
-
-    public void setStudy(short study) {
-        this.study = study;
-    }
 
     public String getCode() {
         return code;

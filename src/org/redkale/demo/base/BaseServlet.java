@@ -8,7 +8,6 @@ package org.redkale.demo.base;
 import java.io.*;
 import java.util.logging.*;
 import javax.annotation.*;
-
 import org.redkale.convert.json.*;
 import org.redkale.demo.user.*;
 import org.redkale.net.http.*;
@@ -36,12 +35,6 @@ public class BaseServlet extends org.redkale.net.http.BasedHttpServlet {
     protected JsonConvert convert;
 
     //protected static httl.Engine engine;
-    @Resource(name = "APP_HOME")
-    private File home;
-
-    @Resource(name = "APP_ADDR")
-    private String nodeAddress;
-
     @Resource
     private UserService service;
 
@@ -50,15 +43,33 @@ public class BaseServlet extends org.redkale.net.http.BasedHttpServlet {
         super.init(context, config);
     }
 
+    /**
+     * Servlet的入口判断，一般用于全局的基本校验和预处理
+     *
+     * @param request HTTP请求对象
+     * @param response HTTP响应对象
+     * @return
+     * @throws IOException
+     */
     @Override
     public boolean preExecute(final HttpRequest request, final HttpResponse response) throws IOException {
         if (finer) response.setRecycleListener((req, resp) -> {  //记录处理时间比较长的请求
-                long e = System.currentTimeMillis() - ((HttpRequest)req).getCreatetime();
+                long e = System.currentTimeMillis() - ((HttpRequest) req).getCreatetime();
                 if (e > 200) logger.finer("http-execute-cost-time: " + e + " ms. request = " + req);
             });
         return true;
     }
 
+    /**
+     * 校验用户的登录态
+     *
+     * @param module 模块ID，为0通常无需判断
+     * @param actionid 操作ID，为0通常无需判断
+     * @param request HTTP请求对象
+     * @param response HTTP响应对象
+     * @return
+     * @throws IOException
+     */
     @Override
     public final boolean authenticate(int module, int actionid, HttpRequest request, HttpResponse response) throws IOException {
         UserInfo info = currentUser(request);
@@ -77,18 +88,33 @@ public class BaseServlet extends org.redkale.net.http.BasedHttpServlet {
         return false;
     }
 
+    /**
+     * 获取当前用户对象，没有返回null
+     *
+     * @param req HTTP请求对象
+     * @return
+     * @throws IOException
+     */
     protected final UserInfo currentUser(HttpRequest req) throws IOException {
         return currentUser(service, req);
     }
 
+    /**
+     * 获取当前用户对象，没有返回null, 提供static方法便于WebSocket进行用户态判断
+     *
+     * @param service UserService
+     * @param req HTTP请求对象
+     * @return
+     * @throws IOException
+     */
     public static final UserInfo currentUser(UserService service, HttpRequest req) throws IOException {
-        UserInfo user = (UserInfo) req.getAttribute("CurrentUserInfo");
+        UserInfo user = (UserInfo) req.getAttribute("$_CURRENT_USER");
         if (user != null) return user;
         String sessionid = req.getSessionid(false);
         if (sessionid == null || sessionid.isEmpty()) sessionid = req.getParameter("token");
         if (sessionid != null && !sessionid.isEmpty()) user = service.current(sessionid);
         if (user != null) {
-            req.setAttribute("CurrentUserInfo", user);
+            req.setAttribute("$_CURRENT_USER", user);
             return user;
         }
         String autologin = req.getCookie(UserServlet.COOKIE_AUTOLOGIN);
@@ -101,78 +127,61 @@ public class BaseServlet extends org.redkale.net.http.BasedHttpServlet {
         bean.setSessionid(req.changeSessionid());
         RetResult<UserInfo> result = service.login(bean);
         user = result.getResult();
-        if (result.isSuccess()) {
-            req.setAttribute("CurrentUserInfo", user);
-        }
+        if (result.isSuccess()) req.setAttribute("$_CURRENT_USER", user);
         return user;
     }
 
+    /**
+     * 将对象以js方式输出
+     *
+     * @param resp HTTP响应对象
+     * @param var 对象名
+     * @param result 对象
+     */
     protected void sendJsResult(HttpResponse resp, String var, Object result) {
         resp.setContentType("application/javascript; charset=utf-8");
         resp.finish("var " + var + " = " + convert.convertTo(result) + ";");
     }
 
+    /**
+     * 将结果对象输出， 异常的结果在HTTP的header添加retcode值
+     *
+     * @param resp HTTP响应对象
+     * @param ret 结果对象
+     */
     protected void sendRetResult(HttpResponse resp, RetResult ret) {
         if (!ret.isSuccess()) resp.addHeader("retcode", ret.getRetcode());
         resp.finishJson(ret);
     }
 
+    /**
+     * 将结果对象输出， 异常的结果在HTTP的header添加retcode值
+     *
+     * @param resp HTTP响应对象
+     * @param retcode 结果码
+     */
     protected void sendRetcode(HttpResponse resp, int retcode) {
         if (retcode != 0) resp.addHeader("retcode", retcode);
         resp.finish("{\"retcode\":" + retcode + ", \"success\": " + (retcode == 0) + "}");
     }
 
+    /**
+     * 获取翻页对象 http://demo.redkale.org/pipes/records/list/page:1/size:20  <br>
+     * http://demo.redkale.org/pipes/records/list?flipper={'page':1,'size':20}  <br>
+     * 以上两种接口都可以获取到翻页对象
+     *
+     * @param request HTTP请求对象
+     * @return
+     */
     protected Flipper findFlipper(HttpRequest request) {
         Flipper flipper = request.getJsonParameter(Flipper.class, "flipper");
+        if (flipper == null) {
+            int size = request.getRequstURIPath("size:", 0);
+            int page = request.getRequstURIPath("page:", 0);
+            if (size > 0) flipper = page > 0 ? new Flipper(size, page) : new Flipper(size);
+        }
         if (flipper == null) flipper = new Flipper();
-        if (flipper.getSize() > 20) flipper.setSize(20);
         return flipper;
     }
 
-    protected final long referFirst36id(HttpRequest req) throws IOException {
-        try {
-            String[] refs = refer(req.getHeader("Referer", ""));
-            if (refs.length < 1) return 0;
-            return Long.parseLong(refs[0], 36);
-        } catch (Exception e) {
-            logger.log(Level.FINEST, "referFirst36id : " + req, e);
-            return 0;
-        }
-    }
-
-    protected final long referLast36id(HttpRequest req) throws IOException {
-        try {
-            String id = req.getParameter("id");
-            if (id != null) return Long.parseLong(id, 36);
-            String[] refs = refer(req.getHeader("Referer", ""));
-            if (refs.length < 1) return 0;
-            return Long.parseLong(refs[refs.length - 1], 36);
-        } catch (Exception e) {
-            logger.log(Level.FINEST, "referLast36id : " + req, e);
-            return 0;
-        }
-    }
-
-    protected final String[] refer(HttpRequest req) throws IOException {
-        try {
-            String id = req.getParameter("id");
-            if (id != null) return new String[]{id};
-            return refer(req.getHeader("Referer", ""));
-        } catch (Exception e) {
-            logger.log(Level.FINEST, "referLast36id : " + req, e);
-            return new String[0];
-        }
-    }
-
-    private static String[] refer(String referer) {
-        int pos = referer.indexOf('?');
-        if (pos > 0) referer = referer.substring(0, pos);
-        pos = referer.indexOf('#');
-        if (pos > 0) referer = referer.substring(0, pos);
-        int start = referer.indexOf('-');
-        if (start < 0) return new String[0];
-        int end = referer.lastIndexOf('.');
-        if (end < 0) end = referer.length() - 1;
-        return referer.substring(start + 1, end).split("-");
-    }
 }

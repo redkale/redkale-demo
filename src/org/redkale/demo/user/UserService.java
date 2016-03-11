@@ -5,9 +5,6 @@
  */
 package org.redkale.demo.user;
 
-import org.redkale.plugins.weixin.WeiXinMPService;
-import org.redkale.plugins.email.EmailService;
-import org.redkale.plugins.email.EmailMessage;
 import java.awt.image.*;
 import java.io.*;
 import java.util.*;
@@ -20,12 +17,16 @@ import javax.annotation.*;
 import javax.imageio.*;
 import org.redkale.convert.json.*;
 import org.redkale.demo.base.*;
+import static org.redkale.demo.base.UserInfo.GENDER_FEMALE;
+import static org.redkale.demo.base.UserInfo.GENDER_MALE;
+import org.redkale.demo.file.*;
+import static org.redkale.demo.user.UserDetail.*;
+import org.redkale.plugins.email.EmailMessage;
+import org.redkale.plugins.email.EmailService;
+import org.redkale.plugins.weixin.WeiXinMPService;
 import org.redkale.service.*;
 import org.redkale.source.*;
 import org.redkale.util.*;
-
-import org.redkale.demo.file.*;
-import static org.redkale.demo.user.UserDetail.*;
 
 /**
  *
@@ -132,35 +133,35 @@ public class UserService extends BaseService {
     public void destroy(AnyValue conf) {
     }
 
+    //根据邮箱地址查找用户
     public UserInfo findUserInfoByEmail(String email) {
-        return this.emailUserInfos.get(email);
+        return email == null ? null : this.emailUserInfos.get(email);
     }
 
-    /**
-     * 根据手机号码查找用户
-     * <p>
-     * @param mobile
-     * @return
-     */
+    //根据手机号码查找用户
     public UserInfo findUserInfoByMobile(String mobile) {
         return this.mobileUserInfos.get(mobile);
     }
 
+    //根据微信绑定ID查找用户
     public UserInfo findUserInfoByWxunionid(String wxunionid) {
         if (wxunionid == null) return null;
         return this.wxunionidUserInfos.get(wxunionid);
     }
 
+    //根据QQ绑定ID查找用户
     public UserInfo findUserInfoByQqopenid(String qqopenid) {
         if (qqopenid == null) return null;
         return this.qqopenidUserInfos.get(qqopenid);
     }
 
+    //根据APP设备ID查找用户
     public UserInfo findUserInfoByApptoken(String apptoken) {
         if (apptoken == null) return null;
         return this.apptokenUserInfos.get(apptoken);
     }
 
+    //根据用户ID查找用户
     public UserInfo findUserInfo(int userid) {
         if (userid == UserInfo.USERID_SYSTEM) return UserInfo.USER_SYSTEM;
         UserInfo info = userInfos.get(userid);
@@ -257,7 +258,7 @@ public class UserService extends BaseService {
         return rs.length() < 2 ? (defname + rs) : rs;
     }
 
-    public RetResult<UserInfo> qqlogin(QQLoginBean bean) {
+    public RetResult<UserInfo> qqlogin(LoginQQBean bean) {
         try {
             String qqappid = "xxxx";
             String url = "https://graph.qq.com/user/get_user_info?oauth_consumer_key=" + qqappid + "&access_token=" + bean.getAccesstoken() + "&openid=" + bean.getOpenid() + "&format=json";
@@ -312,11 +313,11 @@ public class UserService extends BaseService {
      * @param bean
      * @return
      */
-    public RetResult<UserInfo> wxlogin(WxLoginBean bean) {
+    public RetResult<UserInfo> wxlogin(LoginWXBean bean) {
         try {
             Map<String, String> wxmap = bean.emptyAccesstoken()
-                    ? wxMPService.getMPUserTokenByCode(bean.getAppid(), bean.getCode())
-                    : wxMPService.getMPUserTokenByOpenid(bean.getAccesstoken(), bean.getOpenid());
+                ? wxMPService.getMPUserTokenByCode(bean.getAppid(), bean.getCode())
+                : wxMPService.getMPUserTokenByOpenid(bean.getAccesstoken(), bean.getOpenid());
             final String unionid = wxmap.get("unionid");
             if (unionid == null) return new RetResult(1010011, "unionid is empty.");
             RetResult<UserInfo> rr;
@@ -645,9 +646,9 @@ public class UserService extends BaseService {
         message.setTo(email);
         message.setTitle(bundle.getString("setpwd.email.title"));
         String content = bundle.getString("setpwd.email.html")
-                .replace("{username}", info.getUsername())
-                .replace("{useremail}", info.getEmail())
-                .replace("{randomcode}", code.getRandomcode());
+            .replace("{username}", info.getUsername())
+            .replace("{useremail}", info.getEmail())
+            .replace("{randomcode}", code.getRandomcode());
         message.setContent(content);
         try {
             emailService.sendMessage(message);
@@ -659,25 +660,8 @@ public class UserService extends BaseService {
 
     /**
      *
-     * 1010001	未登陆
-     * 1010002	用户或密码错误
-     * 1010003	用户状态异常
-     * 1010004	验证码错误或失效
-     * 1010005	用户不存在
-     * 1010010	邮箱或手机号码已存在
-     * 1010011	注册参数异常
-     * 1010012	注册类型错误
-     * 1010013	用户姓名错误
-     * 1010014	用户名无效或已存在
-     * 1010015	注册邮箱地址无效或已存在
-     * 1010016	注册手机号码无效或已存在
-     * 1010017	发送激活邮件失败
-     * 1010018	注册激活码无效
-     * 1010019	邮箱地址无效
-     * 1010020	原密码错误
-     * 1010021	激活码无效
-     * 1010022	手机号码无效
-     * 1010023 用户已绑定邮箱
+     * 1010001	未登陆 1010002	用户或密码错误 1010003	用户状态异常 1010004	验证码错误或失效 1010005	用户不存在 1010010	邮箱或手机号码已存在 1010011	注册参数异常 1010012	注册类型错误 1010013	用户姓名错误 1010014	用户名无效或已存在 1010015	注册邮箱地址无效或已存在 1010016
+     * 注册手机号码无效或已存在 1010017	发送激活邮件失败 1010018	注册激活码无效 1010019	邮箱地址无效 1010020	原密码错误 1010021	激活码无效 1010022	手机号码无效 1010023 用户已绑定邮箱
      *
      *
      * @param user

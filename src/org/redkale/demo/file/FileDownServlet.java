@@ -12,6 +12,8 @@ import org.redkale.net.http.*;
 import org.redkale.util.*;
 
 /**
+ * 所有静态资源的请求url的根目录为dir，便于nginx进行静动分离
+ * 请求url为 /dir/{分类目录}/文件名
  *
  * @author zhangjx
  */
@@ -30,7 +32,7 @@ public class FileDownServlet extends BaseServlet {
         super.init(context, config);
         this.files = new File(home, "files");
         this.files.mkdirs();
-        this.dface = new File(files, "/face/my.jpg");
+        this.dface = new File(files, "/face/my.jpg"); //默认头像
     }
 
     @AuthIgnore

@@ -8,10 +8,11 @@ package org.redkale.demo.user;
 import org.redkale.demo.base.*;
 
 /**
+ * QQ登录参数
  *
  * @author zhangjx
  */
-public class QQLoginBean extends BaseBean {
+public class LoginQQBean extends BaseBean {
 
     protected String accesstoken;
 

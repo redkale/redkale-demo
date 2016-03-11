@@ -58,29 +58,29 @@ public class UserInfo extends BaseEntity {
     @Id
     protected int userid;  //用户ID
 
-    protected String username = "";  //用户名
+    protected String username = "";  //用户昵称
 
-    protected String password = ""; //密码（前端不可见）
+    protected String password = ""; //密码（前端不可见） 数据库存放的密码规则为: HEX-SHA1( HEX-MD5( HEX-MD5(明文)+"-REDKALE" ) +"-REDKALE" )
 
     protected String mobile = "";  //手机号码（前端不可见）
 
     protected String email = "";  //邮箱  （前端不可见）
 
-    protected long infotime; //用户可见资料的更新时间
-
     protected String wxunionid = "";  //微信openid （前端不可见）
 
     protected String qqopenid = "";  //QQ openid （前端不可见）
 
-    protected String apptoken = "";  //APP的设备ID （前端不可见）
+    protected String apptoken = "";  //APP的设备ID （前端不可见） 通常用于IOS的APNS推送
 
-    protected short status;    //状态 （前端不可见）
+    protected short status;    //状态 （前端不可见）  值见BaseEntity的STATUS常量
+    
+    protected long infotime; //用户可见资料的更新时间 通常用于客户端判断用户资料是否已修改便于主动拉取新资料
 
-    protected short gender; //性别; 2:男;  4:女;
+    protected short gender; //性别; 2:男;  4:女; 值见BaseEntity的GENDER常量
 
     @Override
     public int hashCode() {
-        return (int) this.userid;
+        return this.userid;
     }
 
     @Override
@@ -100,58 +100,61 @@ public class UserInfo extends BaseEntity {
     /**
      * 校验密码是否正确
      *
-     * @param passwordmd5
+     * @param passwordtwicemd5
      * @return
      */
-    public boolean checkPassword(String passwordmd5) {
-        if (this.password.isEmpty() && passwordmd5.isEmpty()) return true;
-        byte[] bytes = ("REDKALE-" + password.trim()).getBytes();
+    public boolean checkPassword(String passwordtwicemd5) {
+        if (this.password.isEmpty() && passwordtwicemd5.isEmpty()) return true;
+        byte[] bytes = (passwordtwicemd5.trim() + "-REDKALE").getBytes();
         synchronized (sha1) {
             bytes = sha1.digest(bytes);
         }
         return this.password.equals(new String(Utility.binToHex(bytes)));
     }
 
+    //用户是否处于正常状态
     @ConvertColumn(ignore = true, type = ConvertType.BSON)
     public boolean isNormal() {
         return this.status == STATUS_NORMAL;
     }
 
+    //用户是否处于待审批状态
     @ConvertColumn(ignore = true, type = ConvertType.BSON)
     public boolean isPending() {
         return this.status == STATUS_PENDING;
     }
 
+    //用户是否处于禁用状态
     @ConvertColumn(ignore = true, type = ConvertType.BSON)
     public boolean isFrobid() {
         return this.status == STATUS_FREEZE;
     }
 
-    @ConvertColumn(ignore = true, type = ConvertType.BSON)
-    public boolean isMale() {
-        return this.gender == GENDER_MALE;
-    }
-
+    //是否绑定了APP设备
     @ConvertColumn(ignore = true, type = ConvertType.ALL)
     public boolean isHasapptoken() {
         return this.apptoken != null && !this.apptoken.isEmpty();
     }
 
+    //是否绑定了邮箱
     @ConvertColumn(ignore = true, type = ConvertType.BSON)
     public boolean isEm() {
         return this.email != null && !this.email.isEmpty();
     }
 
+    //是否绑定了手机号码
     @ConvertColumn(ignore = true, type = ConvertType.BSON)
     public boolean isMb() {
         return this.mobile != null && !this.mobile.isEmpty();
     }
 
+    //是否绑定了微信
     @ConvertColumn(ignore = true, type = ConvertType.BSON)
     public boolean isWx() {
         return this.wxunionid != null && !this.wxunionid.isEmpty();
     }
 
+    //是否绑定了QQ
     @ConvertColumn(ignore = true, type = ConvertType.BSON)
     public boolean isQq() {
         return this.qqopenid != null && !this.qqopenid.isEmpty();
@@ -185,6 +188,7 @@ public class UserInfo extends BaseEntity {
         this.username = username;
     }
 
+    //密码不允许输出给外部接口
     @ConvertColumn(ignore = true, type = ConvertType.JSON)
     public String getPassword() {
         return password;
@@ -194,6 +198,7 @@ public class UserInfo extends BaseEntity {
         this.password = password;
     }
 
+    //手机号码不允许输出给外部接口
     @ConvertColumn(ignore = true, type = ConvertType.JSON)
     public String getMobile() {
         return mobile;
@@ -203,6 +208,7 @@ public class UserInfo extends BaseEntity {
         if (mobile != null) this.mobile = mobile.trim();
     }
 
+    //邮箱地址不允许输出给外部接口
     @ConvertColumn(ignore = true, type = ConvertType.JSON)
     public String getEmail() {
         return email == null ? "" : email;
@@ -212,6 +218,7 @@ public class UserInfo extends BaseEntity {
         if (email != null) this.email = email.trim().toLowerCase();
     }
 
+    //微信绑定ID不允许输出给外部接口
     @ConvertColumn(ignore = true, type = ConvertType.JSON)
     public String getWxunionid() {
         return wxunionid;
@@ -221,6 +228,7 @@ public class UserInfo extends BaseEntity {
         this.wxunionid = wxunionid;
     }
 
+    //QQ绑定ID不允许输出给外部接口
     @ConvertColumn(ignore = true, type = ConvertType.JSON)
     public String getQqopenid() {
         return qqopenid;
@@ -230,6 +238,7 @@ public class UserInfo extends BaseEntity {
         this.qqopenid = qqopenid;
     }
 
+    //APP设备ID不允许输出给外部接口
     @ConvertColumn(ignore = true, type = ConvertType.JSON)
     public String getApptoken() {
         return apptoken;
@@ -239,6 +248,7 @@ public class UserInfo extends BaseEntity {
         this.apptoken = apptoken;
     }
 
+    //用户状态值不允许输出给外部接口
     @ConvertColumn(ignore = true, type = ConvertType.JSON)
     public short getStatus() {
         return status;

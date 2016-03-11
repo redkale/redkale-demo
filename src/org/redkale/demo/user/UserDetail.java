@@ -6,7 +6,6 @@
 package org.redkale.demo.user;
 
 import javax.persistence.*;
-
 import org.redkale.convert.*;
 import org.redkale.demo.base.*;
 import org.redkale.util.*;
@@ -62,12 +61,12 @@ public class UserDetail extends UserInfo {
         return reproduce.copy(new UserInfo(), this);
     }
 
-    public void digestPassword(String passwordmd5) {
-        if (passwordmd5 == null || passwordmd5.isEmpty()) {
+    public void digestPassword(String passwordtwicemd5) {
+        if (passwordtwicemd5 == null || passwordtwicemd5.isEmpty()) {
             this.password = "";
             return;
         }
-        byte[] bytes = ("REDKALE-" + password.trim()).getBytes();
+        byte[] bytes = (passwordtwicemd5.trim() + "-REDKALE").getBytes();
         synchronized (sha1) {
             bytes = sha1.digest(bytes);
         }

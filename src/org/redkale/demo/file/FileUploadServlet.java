@@ -7,13 +7,12 @@ package org.redkale.demo.file;
 
 import com.sun.image.codec.jpeg.*;
 import java.awt.*;
-import java.awt.image.*;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.*;
 import java.io.*;
 import javax.annotation.*;
 import javax.imageio.*;
-
 import org.redkale.demo.base.*;
 import org.redkale.net.http.*;
 import org.redkale.util.*;
@@ -54,7 +53,7 @@ public class FileUploadServlet extends BaseServlet {
         upload(req, resp, dir, size, true, max);
     }
 
-    @WebAction(url = "/upload/face") // 上传头像
+    @WebAction(url = "/upload/face") // 上传头像 以正方形规格存储
     public void face(HttpRequest req, HttpResponse resp) throws IOException {
         UserInfo user = currentUser(req);
         for (MultiPart part : req.multiParts()) {

@@ -23,8 +23,7 @@ import org.redkale.service.*;
 import org.redkale.util.*;
 
 /**
- * 文件同步流程：
- * 同机房的进程的文件同步通过scp命令同步
+ * 文件同步流程： 同机房的进程的文件同步通过scp命令同步
  * < 不同机房的通过远程FileService调用， 只要另一机房进程有一个能成功同步过去，则结束同步， 如果全都同步不成功，则通过scp命令同步到对方文件下。
  * 不同机房的进程接收到同步命令后通过scp将文件同步到同机房下其他进程文件下。 > <暂未实现>
  *
@@ -132,6 +131,7 @@ public class FileService extends BaseService {
         if (cmds.isEmpty()) return;
         this.groupSyncCmds = cmds.toArray(new String[cmds.size()]);
         logger.finer("asynccmds = " + cmds);
+        //启动文件同步任务队列
         new Thread() {
             {
                 setName("Files-Sync-Thread");
@@ -154,6 +154,7 @@ public class FileService extends BaseService {
         }.start();
     }
 
+    //初始化静态资源的总文件目录
     private void initPath() {
         if (this.files != null) return;
         this.files = new File(home, "files");
@@ -171,6 +172,7 @@ public class FileService extends BaseService {
         if (syncstream != null) syncstream.close();
     }
 
+    //文件同步失败的异常处理，记录日志文件，可在此处添加异常消息上报处理
     private void fail(String command) {
         try {
             if (syncstream == null) {
@@ -189,7 +191,7 @@ public class FileService extends BaseService {
     }
 
     public final String storeFace(int userid, int imgType, Image srcImage) throws IOException {
-        final int[] sizes = {200, 640};
+        final int[] sizes = {200, 640};  //默认头像有两种规格: 200*200、640*640
         final String user36id = Integer.toString(userid, 36);
         final File[] facefiles = {createFile("face", user36id, "jpg_tmp"), createFile("face640", user36id, "jpg_tmp")};
         for (int i = 0; i < sizes.length; i++) {
@@ -283,7 +285,7 @@ public class FileService extends BaseService {
     /**
      * 创建新的文件名， filename =null 则会随机生成一个文件名
      * <p>
-     * @param dir       files下的根目录
+     * @param dir files下的根目录
      * @param filename
      * @param extension 文件名后缀
      * @return
@@ -306,7 +308,8 @@ public class FileService extends BaseService {
         }
         return s;
     }
-
+    
+    //根据文件名生产文件存放的子目录， 如: aabbccddee.png 的存放目录为 aa/bb/cc/dd/aabbccee.png
     public static String hashPath(String filename) {
         int pos = filename.indexOf('.') - 1;
         if (pos < 1) pos = filename.length() - 1;
