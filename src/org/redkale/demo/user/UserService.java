@@ -272,7 +272,7 @@ public class UserService extends BaseService {
                 UserDetail detail = new UserDetail();
                 detail.setUsername(formatUserName(jsonmap.getOrDefault("nickname", "qq-user"), "qq-"));
                 detail.setQqopenid(bean.getOpenid());
-                detail.setRegagent(bean.getReghost());
+                detail.setRegagent(bean.getRegagent());
                 detail.setRegaddr(bean.getRegaddr());
                 String genstr = jsonmap.getOrDefault("gender", "");
                 detail.setGender("男".equals(genstr) ? UserInfo.GENDER_MALE : ("女".equals(genstr) ? UserInfo.GENDER_FEMALE : (short) 0));
@@ -328,7 +328,7 @@ public class UserService extends BaseService {
                 detail.setUsername(formatUserName(wxmap.getOrDefault("nickname", "wx-user"), "wx-"));
                 detail.setWxunionid(unionid);
                 detail.setApptoken(bean.getApptoken());
-                detail.setRegagent(bean.getReghost());
+                detail.setRegagent(bean.getRegagent());
                 detail.setRegaddr(bean.getRegaddr());
                 detail.setGender((short) (Short.parseShort(wxmap.getOrDefault("sex", "0")) * 2));
                 logger.fine(bean + " --wxlogin-->" + convert.convertTo(wxmap));

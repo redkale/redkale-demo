@@ -18,7 +18,7 @@ public class LoginQQBean extends BaseBean {
 
     protected String openid;
 
-    protected String reghost;
+    protected String regagent;
 
     protected String regaddr;
 
@@ -60,12 +60,12 @@ public class LoginQQBean extends BaseBean {
         this.openid = openid;
     }
 
-    public String getReghost() {
-        return reghost;
+    public String getRegagent() {
+        return regagent;
     }
 
-    public void setReghost(String reghost) {
-        this.reghost = reghost;
+    public void setRegagent(String regagent) {
+        this.regagent = regagent;
     }
 
     public String getRegaddr() {

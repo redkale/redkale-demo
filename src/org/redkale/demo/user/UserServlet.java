@@ -126,7 +126,7 @@ public class UserServlet extends BaseServlet {
         bean.setApptoken(req.getParameter("apptoken", ""));
         bean.setOpenid(openid);
         bean.setRegaddr(req.getRemoteAddr());
-        bean.setReghost((wxbrowser ? "wx." : "") + req.getHost());
+        bean.setRegagent((wxbrowser ? "wx." : "") + req.getHost());
         bean.setSessionid(req.changeSessionid());
         RetResult<UserInfo> rr = service.qqlogin(bean);
         if (rr.isSuccess()) {
@@ -192,7 +192,7 @@ public class UserServlet extends BaseServlet {
         bean.setAutoreg(autoreg);
         bean.setApptoken(req.getParameter("apptoken", ""));
         bean.setRegaddr(req.getRemoteAddr());
-        bean.setReghost((wxbrowser ? "wx." : "") + req.getHost());
+        bean.setRegagent((wxbrowser ? "wx." : "") + req.getHost());
         if (autoreg) bean.setSessionid(req.changeSessionid());
         RetResult<UserInfo> rr = service.wxlogin(bean);
         if (autoreg && rr.isSuccess() && (wxbrowser || (access_token != null && !access_token.isEmpty()))) {
