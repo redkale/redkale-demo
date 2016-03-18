@@ -47,6 +47,8 @@ public class UserInfo extends BaseEntity {
 
     protected String username = "";  //用户昵称
 
+    protected short type;    //用户类型 （前端不可见）
+
     protected String password = ""; //密码（前端不可见） 数据库存放的密码规则为: HEX-SHA1( HEX-MD5( HEX-MD5(明文)+"-REDKALE" ) +"-REDKALE" )
 
     protected String account = "";  //用户账号（前端不可见）
@@ -168,6 +170,14 @@ public class UserInfo extends BaseEntity {
 
     public void setAccount(String account) {
         if (account != null) this.account = account.trim();
+    }
+
+    public short getType() {
+        return type;
+    }
+
+    public void setType(short type) {
+        this.type = type;
     }
 
     public String getUsername() {
