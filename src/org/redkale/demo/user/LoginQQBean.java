@@ -18,9 +18,9 @@ public class LoginQQBean extends BaseBean {
 
     protected String openid;
 
-    protected String regagent;
+    protected String loginagent;
 
-    protected String regaddr;
+    protected String loginaddr;
 
     protected String sessionid;
 
@@ -60,20 +60,20 @@ public class LoginQQBean extends BaseBean {
         this.openid = openid;
     }
 
-    public String getRegagent() {
-        return regagent;
+    public String getLoginagent() {
+        return loginagent;
     }
 
-    public void setRegagent(String regagent) {
-        this.regagent = regagent;
+    public void setLoginagent(String loginagent) {
+        this.loginagent = loginagent;
     }
 
-    public String getRegaddr() {
-        return regaddr;
+    public String getLoginaddr() {
+        return loginaddr;
     }
 
-    public void setRegaddr(String regaddr) {
-        this.regaddr = regaddr;
+    public void setLoginaddr(String loginaddr) {
+        this.loginaddr = loginaddr;
     }
 
     public String getSessionid() {

@@ -12,7 +12,6 @@ package org.redkale.demo.user;
  */
 public class LoginWXBean extends LoginQQBean {
 
-
     private String appid;
 
     private String code;
@@ -26,7 +25,6 @@ public class LoginWXBean extends LoginQQBean {
     public void setAppid(String appid) {
         this.appid = appid;
     }
-
 
     public String getCode() {
         return code;

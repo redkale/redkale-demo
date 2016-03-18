@@ -7,6 +7,7 @@ package org.redkale.demo.user;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.security.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
@@ -14,6 +15,8 @@ import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 import javax.annotation.Resource;
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 import javax.imageio.ImageIO;
 import org.redkale.convert.json.JsonConvert;
 import static org.redkale.demo.base.RetCodes.*;
@@ -32,6 +35,49 @@ import org.redkale.util.*;
  * @author zhangjx
  */
 public class UserService extends BaseService {
+
+    private static final MessageDigest sha1;
+
+    private static final MessageDigest md5;
+
+    public static final String AES_KEY = "REDKALE_20160202";
+
+    private static final Cipher aesEncrypter; //加密
+
+    private static final Cipher aesDecrypter; //解密
+
+    static {
+        MessageDigest d = null;
+        try {
+            d = MessageDigest.getInstance("SHA-1");
+        } catch (NoSuchAlgorithmException ex) {
+            ex.printStackTrace();
+        }
+        sha1 = d;
+        try {
+            d = MessageDigest.getInstance("MD5");
+        } catch (NoSuchAlgorithmException ex) {
+            ex.printStackTrace();
+        }
+        md5 = d;
+
+        Cipher cipher = null;
+        final SecretKeySpec aesKey = new SecretKeySpec(AES_KEY.getBytes(), "AES");
+        try {
+            cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.ENCRYPT_MODE, aesKey);
+        } catch (Exception e) {
+            throw new Error(e);
+        }
+        aesEncrypter = cipher;  //加密
+        try {
+            cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.DECRYPT_MODE, aesKey);
+        } catch (Exception e) {
+            throw new Error(e);
+        }
+        aesDecrypter = cipher; //解密
+    }
 
     protected final Map<Integer, UserInfo> userInfos = new ConcurrentHashMap<>();
 
@@ -242,8 +288,8 @@ public class UserService extends BaseService {
                 UserDetail detail = new UserDetail();
                 detail.setUsername(jsonmap.getOrDefault("nickname", "qq-user"));
                 detail.setQqopenid(bean.getOpenid());
-                detail.setRegagent(bean.getRegagent());
-                detail.setRegaddr(bean.getRegaddr());
+                detail.setRegagent(bean.getLoginagent());
+                detail.setRegaddr(bean.getLoginaddr());
                 String genstr = jsonmap.getOrDefault("gender", "");
                 detail.setGender("男".equals(genstr) ? UserInfo.GENDER_MALE : ("女".equals(genstr) ? UserInfo.GENDER_FEMALE : (short) 0));
                 if (finer) logger.fine(bean + " --qqlogin-->" + convert.convertTo(jsonmap));
@@ -293,8 +339,8 @@ public class UserService extends BaseService {
                 detail.setUsername(wxmap.getOrDefault("nickname", "wx-user"));
                 detail.setWxunionid(unionid);
                 detail.setApptoken(bean.getApptoken());
-                detail.setRegagent(bean.getRegagent());
-                detail.setRegaddr(bean.getRegaddr());
+                detail.setRegagent(bean.getLoginagent());
+                detail.setRegaddr(bean.getLoginaddr());
                 detail.setGender((short) (Short.parseShort(wxmap.getOrDefault("sex", "0")) * 2));
                 logger.fine(bean + " --wxlogin-->" + convert.convertTo(wxmap));
                 rr = register(detail);
@@ -337,8 +383,8 @@ public class UserService extends BaseService {
         final RetResult<UserInfo> result = new RetResult();
         UserInfo user = null;
         boolean unok = true;
-        if (bean != null && (bean.getCookieinfo() != null && bean.getCookieinfo().indexOf('$') > 0) && bean.emptyAccount()) {
-            String cookie = bean.getCookieinfo();
+        if (bean != null && !bean.emptyCookieinfo() && bean.emptyAccount()) {
+            String cookie = decryptAES(bean.getCookieinfo());
             int sharp = cookie.indexOf('#');
             if (sharp > 0) bean.setApptoken(cookie.substring(0, sharp));
             int pos = cookie.indexOf('$');
@@ -346,20 +392,17 @@ public class UserService extends BaseService {
             user = this.findUserInfo(userid);
             if (user != null) {
                 char type = cookie.charAt(pos + 1);
-                char[] chars = cookie.substring(pos + 2).toCharArray();
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < chars.length; i += 2) {
-                    sb.append(chars[i]);
-                }
-                if (type == '0') {
-                    bean.setPassword(sb.toString());
+                int wen = cookie.indexOf('?');
+                String val = wen > 0 ? cookie.substring(pos + 2, wen) : cookie.substring(pos + 2);
+                if (type == '0') { //密码
+                    bean.setPassword(val);
                 } else if (type == '1') { //微信
                     if (!user.getWxunionid().isEmpty()) {
-                        unok = !Objects.equals(sb.toString(), (user.getWxunionid()));
+                        unok = !Objects.equals(val, (user.getWxunionid()));
                     }
                 } else if (type == '2') { //QQ
                     if (!user.getQqopenid().isEmpty()) {
-                        unok = !Objects.equals(sb.toString(), (user.getQqopenid()));
+                        unok = !Objects.equals(val, (user.getQqopenid()));
                     }
                 }
             }
@@ -378,34 +421,25 @@ public class UserService extends BaseService {
                 user = this.accountUserInfos.get(bean.getAccount());
             }
         }
-        if (user == null) {
+        if (user == null) { //不在缓存内
             UserDetail detail = source.find(UserDetail.class, key, bean.getAccount());
-            if (detail == null || !detail.getPassword().equals(UserDetail.digestPassword(bean.getPassword()))) {
-                result.setRetcode(1010002); //用户或密码错误                
-                result.setRetinfo("login " + key + "(" + bean.getAccount() + ") or password incorrect");
-                //super.log(user, optionid, "用户账号或密码错误，登录失败.");
-                return result;
+            if (detail == null) return RetCodes.create(RET_USER_ACCOUNT_PWD_ILLEGAL);
+            if (!detail.getPassword().equals(digestPassword(bean.getPassword()))) {
+                return RetCodes.create(RET_USER_ACCOUNT_PWD_ILLEGAL); //用户或密码错误   
             }
-            result.setRetcode(0);
             user = detail.createUserInfo();
+            if (user.isFrobid()) return RetCodes.create(RET_USER_FREEZED);
 
-            if (user.isFrobid()) {
-                result.setRetcode(1010003);
-                //super.log(user, optionid, "用户被禁用，登录失败.");
-                return result;
-            }
+            result.setRetcode(0);
             result.setResult(user);
             updateUserInfo(user, !user.getApptoken().equals(bean.getApptoken()));
-        } else {
-            if (unok && !Objects.equals(user.getPassword(), bean.getPassword())) {
-                result.setRetcode(1010002); //用户或密码错误
-                result.setRetinfo("login password incorrect");
-                //super.log(user, optionid, "用户账号或密码错误，登录失败.");
-                return result;
+        } else { //在缓存内
+            if (unok && !user.getPassword().equals(digestPassword(bean.getPassword()))) {
+                return RetCodes.create(RET_USER_ACCOUNT_PWD_ILLEGAL); //用户或密码错误   
             }
             result.setRetcode(0);
             result.setResult(user);
-            if (!user.getApptoken().equals(bean.getApptoken())) {
+            if (!user.getApptoken().equals(bean.getApptoken())) { //用户设备变更了
                 user.setApptoken(bean.getApptoken());
                 source.updateColumn(UserDetail.class, user.getUserid(), "apptoken", bean.getApptoken());
                 updateUserInfo(user, true);
@@ -499,7 +533,7 @@ public class UserService extends BaseService {
     public RetResult<UserInfo> updatePwd(UserPwdBean bean) {
         RetResult<UserInfo> result = new RetResult();
         UserInfo user = bean.getSessionid() == null ? null : current(bean.getSessionid());
-        final String newpwd = UserDetail.digestPassword(UserDetail.secondPasswordMD5(bean.getNewpwd())); //HEX-MD5(密码明文)
+        final String newpwd = digestPassword(secondPasswordMD5(bean.getNewpwd())); //HEX-MD5(密码明文)
         if (user == null) {  //表示忘记密码后进行重置密码
             bean.setSessionid(null);
             if (bean.getRandomcode() != null && !bean.getRandomcode().isEmpty()) {
@@ -522,7 +556,7 @@ public class UserService extends BaseService {
             return result;
         }
         //用户或密码错误
-        if (!Objects.equals(user.getPassword(), UserDetail.digestPassword(UserDetail.secondPasswordMD5(bean.getOldpwd())))) {
+        if (!Objects.equals(user.getPassword(), digestPassword(secondPasswordMD5(bean.getOldpwd())))) {
             result.setRetcode(1010020); //原密码错误
             return result;
         }
@@ -581,41 +615,6 @@ public class UserService extends BaseService {
     }
 
     /**
-     * 忘记密码, 0表示发送邮箱认证成功
-     *
-     * @param email
-     * @param wbhost
-     * @return
-     */
-    public int forgetpwd(String email, String wbhost) {
-        long t1 = System.currentTimeMillis();
-        if (email == null) return 1010019; //邮箱地址无效
-        UserInfo info = this.emailUserInfos.get(email.toLowerCase());
-        if (info == null) return 1010019; //邮箱地址无效
-        RandomCode code = new RandomCode();
-        code.setCreatetime(System.currentTimeMillis());
-        code.setUserid(info.getUserid());
-        code.setRandomcode(RandomCode.randomLongCode());
-        code.setType(RandomCode.TYPE_MAILPWD);
-        source.insert(code);
-        ResourceBundle bundle = ResourceBundle.getBundle(userbundle, Locale.forLanguageTag("zh"));
-        EmailMessage message = new EmailMessage();
-        message.setTo(email);
-        message.setTitle(bundle.getString("setpwd.email.title"));
-        String content = bundle.getString("setpwd.email.html")
-            .replace("{username}", info.getUsername())
-            .replace("{useremail}", info.getEmail())
-            .replace("{randomcode}", code.getRandomcode());
-        message.setContent(content);
-        try {
-            emailService.sendMessage(message);
-        } catch (Exception e) {
-            return 1010017; //发送激活邮件失败
-        }
-        return 0;
-    }
-
-    /**
      *
      * 用户注册
      *
@@ -652,7 +651,7 @@ public class UserService extends BaseService {
         user.setInfotime(0);
         user.setUpdatetime(0);
         if (!user.getPassword().isEmpty()) {
-            user.setPassword(UserDetail.digestPassword(UserDetail.secondPasswordMD5(user.getPassword())));
+            user.setPassword(digestPassword(secondPasswordMD5(user.getPassword())));
         }
         user.setStatus(UserInfo.STATUS_NORMAL);
         try {
@@ -729,6 +728,50 @@ public class UserService extends BaseService {
     protected void updateUser(UserDetail user) {
         user.setUpdatetime(System.currentTimeMillis());
         source.update(user);
+    }
+
+    //AES加密
+    public static String encryptAES(String value) {
+        if (value == null || value.isEmpty()) return value;
+        try {
+            synchronized (aesEncrypter) {
+                return Base64.getEncoder().encodeToString(aesEncrypter.doFinal(value.getBytes()));
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    //AES解密
+    public static String decryptAES(String value) {
+        if (value == null || value.isEmpty()) return value;
+        byte[] hex = Base64.getDecoder().decode(value);
+        try {
+            synchronized (aesEncrypter) {
+                return new String(aesDecrypter.doFinal(hex));
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    //第二次MD5
+    public static String secondPasswordMD5(String passwordoncemd5) {
+        byte[] bytes = ("REDKALE-" + passwordoncemd5.trim().toLowerCase()).getBytes();
+        synchronized (md5) {
+            bytes = md5.digest(bytes);
+        }
+        return new String(Utility.binToHex(bytes));
+    }
+
+    //第三次密码加密
+    public static String digestPassword(String passwordtwicemd5) {
+        if (passwordtwicemd5 == null || passwordtwicemd5.isEmpty()) return passwordtwicemd5;
+        byte[] bytes = (passwordtwicemd5.trim().toLowerCase() + "-REDKALE").getBytes();
+        synchronized (sha1) {
+            bytes = sha1.digest(bytes);
+        }
+        return new String(Utility.binToHex(bytes));
     }
 
 }

@@ -28,9 +28,12 @@ public abstract class RetCodes {
 
     @RetInfo("用户或密码错误")
     public static final int RET_USER_ACCOUNT_PWD_ILLEGAL = 1010003;
-    
+
     @RetInfo("密码设置无效")
     public static final int RET_USER_PASSWORD_ILLEGAL = 1010004;
+
+    @RetInfo("用户被禁用")
+    public static final int RET_USER_FREEZED = 1010005;
 
     @RetInfo("用户不存在")
     public static final int RET_USER_NOTEXISTS = 1010008;
@@ -55,7 +58,7 @@ public abstract class RetCodes {
 
     @RetInfo("用户名无效")
     public static final int RET_USER_USERNAME_ILLEGAL = 1010201;
-    
+
     @RetInfo("用户账号无效")
     public static final int RET_USER_ACCOUNT_ILLEGAL = 1010301;
 
@@ -70,7 +73,7 @@ public abstract class RetCodes {
 
     @RetInfo("手机验证码发送过于频繁")
     public static final int RET_USER_MOBILE_SMSFREQUENT = 1010406;
-    
+
     @RetInfo("邮箱地址无效")
     public static final int RET_USER_EMAIL_ILLEGAL = 1010501;
 

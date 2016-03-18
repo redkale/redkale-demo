@@ -26,10 +26,6 @@ public class UserServlet extends BaseServlet {
 
     public static final String COOKIE_AUTOLOGIN = "UNF";
 
-    public static final String COOKIE_WXOPENID = "WXOID";
-
-    public static final String COOKIE_QQOPENID = "QQOID";
-
     @Resource
     private UserService service;
 
@@ -83,13 +79,6 @@ public class UserServlet extends BaseServlet {
         String appid = pos > 0 ? state.substring(0, pos) : state;
 
         Map<String, String> rr = wxService.getMPUserTokenByCode(appid, code);
-        String openid = rr.getOrDefault("openid", "");
-        if (!openid.isEmpty()) {
-            HttpCookie cookie = new HttpCookie(COOKIE_WXOPENID, openid);
-            cookie.setHttpOnly(true);
-            cookie.setPath("/");
-            resp.addCookie(cookie);
-        }
         resp.setHeader("Location", req.getParameter("url", "/"));
         resp.finish(302, null);
     }
@@ -100,36 +89,22 @@ public class UserServlet extends BaseServlet {
         String access_token = req.getParameter("access_token");
         String openid = req.getParameter("openid");
         if (finest) logger.finest("/user/qqlogin :  " + openid + "," + access_token);
-        final boolean wxbrowser = req.getHeader("User-Agent", "").contains("MicroMessenger");
         LoginQQBean bean = new LoginQQBean();
         bean.setAccesstoken(access_token);
         bean.setApptoken(req.getParameter("apptoken", ""));
         bean.setOpenid(openid);
-        bean.setRegaddr(req.getRemoteAddr());
-        bean.setRegagent((wxbrowser ? "wx." : "") + req.getHost());
+        bean.setLoginaddr(req.getRemoteAddr());
+        bean.setLoginagent(req.getHeader("User-Agent"));
         bean.setSessionid(req.changeSessionid());
         RetResult<UserInfo> rr = service.qqlogin(bean);
         if (rr.isSuccess()) {
             UserInfo info = rr.getResult();
-            boolean emptypwd = info.getPassword().isEmpty();
-            char[] chars1 = emptypwd ? (info.getQqopenid()).toCharArray() : info.getPassword().toCharArray();
-            char[] chars2 = ("" + System.nanoTime()).toCharArray();
-            char[] chars = new char[chars1.length + chars2.length];
-            for (int i = 0; i < chars.length; i += 2) {
-                chars[i] = chars1[i / 2];
-                chars[i + 1] = chars2[i / 2];
-            }
-            String key = Integer.toString(info.getUserid(), 32) + "$" + (emptypwd ? "2" : "0") + new String(chars);
+            int age = 1000 * 24 * 60 * 60;
+            String key = UserService.encryptAES(info.getUser36id() + "$2" + info.getQqopenid() + "?" + age + "-" + System.currentTimeMillis());
             HttpCookie cookie = new HttpCookie(COOKIE_AUTOLOGIN, key);
             cookie.setHttpOnly(true);
             cookie.setPath("/");
-            cookie.setMaxAge(1000 * 24 * 60 * 60);
-            resp.addCookie(cookie);
-        }
-        if (rr.isSuccess() && rr.getRetinfo() != null && !rr.getRetinfo().isEmpty()) {
-            HttpCookie cookie = new HttpCookie(COOKIE_QQOPENID, rr.getRetinfo());
-            cookie.setHttpOnly(true);
-            cookie.setPath("/");
+            cookie.setMaxAge(age);
             resp.addCookie(cookie);
         }
         if (access_token == null || access_token.isEmpty()) {
@@ -171,31 +146,18 @@ public class UserServlet extends BaseServlet {
         }
         bean.setAutoreg(autoreg);
         bean.setApptoken(req.getParameter("apptoken", ""));
-        bean.setRegaddr(req.getRemoteAddr());
-        bean.setRegagent((wxbrowser ? "wx." : "") + req.getHost());
+        bean.setLoginaddr(req.getRemoteAddr());
+        bean.setLoginagent(req.getHeader("User-Agent"));
         if (autoreg) bean.setSessionid(req.changeSessionid());
         RetResult<UserInfo> rr = service.wxlogin(bean);
         if (autoreg && rr.isSuccess() && (wxbrowser || (access_token != null && !access_token.isEmpty()))) {
             UserInfo info = rr.getResult();
-            boolean emptypwd = info.getPassword().isEmpty();
-            char[] chars1 = emptypwd ? (info.getWxunionid()).toCharArray() : info.getPassword().toCharArray();
-            char[] chars2 = ("" + System.nanoTime()).toCharArray();
-            char[] chars = new char[chars1.length + chars2.length];
-            for (int i = 0; i < chars.length; i += 2) {
-                chars[i] = chars1[i / 2];
-                chars[i + 1] = chars2[i / 2];
-            }
-            String key = (bean.emptyApptoken() ? "" : (bean.getApptoken() + "#")) + Integer.toString(info.getUserid(), 32) + "$" + (emptypwd ? "1" : "0") + new String(chars);
+            int age = 1000 * 24 * 60 * 60;
+            String key = UserService.encryptAES((bean.emptyApptoken() ? "" : (bean.getApptoken() + "#")) + info.getUser36id() + "$1" + info.getWxunionid() + "?" + age + "-" + System.currentTimeMillis());
             HttpCookie cookie = new HttpCookie(COOKIE_AUTOLOGIN, key);
             cookie.setHttpOnly(true);
             cookie.setPath("/");
-            cookie.setMaxAge(1000 * 24 * 60 * 60);
-            resp.addCookie(cookie);
-        }
-        if (rr.isSuccess() && rr.getRetinfo() != null && !rr.getRetinfo().isEmpty()) {
-            HttpCookie cookie = new HttpCookie(COOKIE_WXOPENID, rr.getRetinfo());
-            cookie.setHttpOnly(true);
-            cookie.setPath("/");
+            cookie.setMaxAge(age);
             resp.addCookie(cookie);
         }
         if (access_token == null || access_token.isEmpty()) {
@@ -218,7 +180,7 @@ public class UserServlet extends BaseServlet {
     public void login(HttpRequest req, HttpResponse resp) throws IOException {
         LoginBean bean = req.getJsonParameter(LoginBean.class, "bean");
         if (bean == null) bean = new LoginBean();
-        if(!bean.emptyPassword()) bean.setPassword(UserDetail.secondPasswordMD5(bean.getPassword())); 
+        if (!bean.emptyPassword()) bean.setPassword(UserService.secondPasswordMD5(bean.getPassword()));
         bean.setLoginagent(req.getHeader("User-Agent"));
         bean.setLoginip(req.getRemoteAddr());
         String oldsessionid = req.getSessionid(false);
@@ -226,20 +188,14 @@ public class UserServlet extends BaseServlet {
         bean.setSessionid(req.changeSessionid());
         RetResult<UserInfo> result = service.login(bean);
         if (result.isSuccess()) {
-            if (bean.getCacheday() > 0) {  //保存N天 
+            if (bean.getCacheday() > 0 && bean.emptyCookieinfo()) {  //保存N天 
                 UserInfo info = result.getResult();
-                char[] chars1 = info.getPassword().toCharArray();
-                char[] chars2 = ("" + System.currentTimeMillis()).toCharArray();
-                char[] chars = new char[chars1.length + chars2.length];
-                for (int i = 0; i < chars.length; i += 2) {
-                    chars[i] = chars1[i / 2];
-                    chars[i + 1] = chars2[i / 2];
-                }
-                String key = (bean.emptyApptoken() ? "" : (bean.getApptoken() + "#")) + Integer.toString(info.getUserid(), 32) + "$0" + new String(chars);
+                int age = bean.getCacheday() * 24 * 60 * 60;
+                String key = UserService.encryptAES((bean.emptyApptoken() ? "" : (bean.getApptoken() + "#")) + info.getUser36id() + "$0" + bean.getPassword() + "?" + age + "-" + System.currentTimeMillis());
                 HttpCookie cookie = new HttpCookie(COOKIE_AUTOLOGIN, key);
                 cookie.setHttpOnly(true);
                 cookie.setPath("/");
-                cookie.setMaxAge(bean.getCacheday() * 24 * 60 * 60);
+                cookie.setMaxAge(age);
                 resp.addCookie(cookie);
             }
         }
@@ -260,7 +216,7 @@ public class UserServlet extends BaseServlet {
         UserInfo curr = currentUser(req);
         if (curr != null) bean.setSessionid(req.getSessionid(false));
         RetResult<UserInfo> result = service.updatePwd(bean);
-        if (result.isSuccess() && curr == null) {
+        if (result.isSuccess() && curr == null) { //找回的密码
             curr = result.getResult();
             LoginBean loginbean = new LoginBean();
             loginbean.setAccount(curr.getEmail().isEmpty() ? curr.getMobile() : curr.getEmail());
@@ -272,19 +228,22 @@ public class UserServlet extends BaseServlet {
         }
         String autologin = req.getCookie(COOKIE_AUTOLOGIN);
         if (autologin != null) {
-            char[] chars1 = curr.getPassword().toCharArray();
-            char[] chars2 = ("" + System.currentTimeMillis()).toCharArray();
-            char[] chars = new char[chars1.length + chars2.length];
-            for (int i = 0; i < chars.length; i += 2) {
-                chars[i] = chars1[i / 2];
-                chars[i + 1] = chars2[i / 2];
+            autologin = UserService.decryptAES(autologin);
+            if (autologin.contains("$0")) { //表示COOKIE_AUTOLOGIN 为密码类型存储
+                String newpwd = UserService.secondPasswordMD5(bean.getNewpwd());
+                int wen = autologin.indexOf('?');
+                int mei = autologin.indexOf('$');
+                String key = autologin.substring(0, mei + 2) + newpwd + autologin.substring(wen);
+                HttpCookie cookie = new HttpCookie(COOKIE_AUTOLOGIN, key);
+                cookie.setHttpOnly(true);
+                cookie.setPath("/");
+                String time = autologin.substring(wen + 1);
+                int fen = time.indexOf('-');
+                int age = Integer.parseInt(time.substring(0, fen)); //秒数
+                long point = Long.parseLong(time.substring(fen + 1)); //毫秒数
+                cookie.setMaxAge(age - (System.currentTimeMillis() - point) / 1000);
+                resp.addCookie(cookie);
             }
-            String key = Integer.toString(curr.getUserid(), 32) + "$" + new String(chars);
-            HttpCookie cookie = new HttpCookie(COOKIE_AUTOLOGIN, key);
-            cookie.setHttpOnly(true);
-            cookie.setPath("/");
-            cookie.setMaxAge(10000 * 24 * 60 * 60);
-            resp.addCookie(cookie);
         }
         sendRetResult(resp, result);
     }
@@ -294,7 +253,7 @@ public class UserServlet extends BaseServlet {
     public void signup(HttpRequest req, HttpResponse resp) throws IOException {
         long s = System.currentTimeMillis();
         Map<String, String> map = convert.convertFrom(JsonConvert.TYPE_MAP_STRING_STRING, req.getParameter("bean"));
-        RetResult<RandomCode> ret = null; 
+        RetResult<RandomCode> ret = null;
         UserDetail bean = new UserDetail();
         if (map.containsKey("mobile")) {
             bean.setMobile(map.get("mobile"));

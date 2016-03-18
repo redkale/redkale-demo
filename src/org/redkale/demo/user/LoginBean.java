@@ -5,9 +5,9 @@
  */
 package org.redkale.demo.user;
 
-import javax.persistence.*;
-import org.redkale.demo.base.*;
-import org.redkale.source.*;
+import javax.persistence.Transient;
+import org.redkale.demo.base.BaseBean;
+import org.redkale.source.FilterBean;
 
 /**
  *
@@ -48,6 +48,10 @@ public final class LoginBean extends BaseBean implements FilterBean {
 
     public boolean emptySessionid() {
         return this.sessionid == null || this.sessionid.isEmpty();
+    }
+
+    public boolean emptyCookieinfo() {
+        return this.cookieinfo == null || this.cookieinfo.isEmpty();
     }
 
     public String getSessionid() {
