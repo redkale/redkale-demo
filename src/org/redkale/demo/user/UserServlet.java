@@ -5,16 +5,16 @@
  */
 package org.redkale.demo.user;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
-import javax.annotation.*;
+import java.io.IOException;
+import java.net.HttpCookie;
+import java.util.Map;
+import javax.annotation.Resource;
 import org.redkale.convert.json.*;
 import org.redkale.demo.base.*;
 import org.redkale.net.http.*;
 import org.redkale.plugins.weixin.WeiXinMPService;
-import org.redkale.service.*;
-import org.redkale.util.*;
+import org.redkale.service.RetResult;
+import org.redkale.util.AnyValue;
 
 /**
  * 用户模块的Servlet
@@ -33,6 +33,7 @@ public class UserServlet extends BaseServlet {
     @Resource
     private UserService service;
 
+    //用于微信登录
     @Resource
     private WeiXinMPService wxService;
 
@@ -59,27 +60,6 @@ public class UserServlet extends BaseServlet {
         cookie.setMaxAge(1);
         resp.addCookie(cookie);
         resp.finish("{\"success\":true}");
-    }
-
-    //检查用户名的合法性
-    @AuthIgnore
-    @WebAction(url = "/user/checkusername/")
-    public void checkUserName(HttpRequest req, HttpResponse resp) throws IOException {
-        sendRetcode(resp, service.checkUsername(req.getRequstURILastPath()) ? 0 : 1010014);
-    }
-
-    //检测邮箱地址是否有效, 返回true表示可用.给新用户注册使用
-    @AuthIgnore
-    @WebAction(url = "/user/checkemail/")
-    public void checkEmail(HttpRequest req, HttpResponse resp) throws IOException {
-        sendRetcode(resp, service.checkEmail(req.getRequstURILastPath()) ? 0 : 1010015);
-    }
-
-    //检测手机号码是否有效, 返回true表示可用.给新用户注册使用
-    @AuthIgnore
-    @WebAction(url = "/user/checkmobile/")
-    public void checkMobile(HttpRequest req, HttpResponse resp) throws IOException {
-        sendRetcode(resp, service.checkMobile(req.getRequstURILastPath()) ? 0 : 1010016);
     }
 
     @WebAction(url = "/user/updatewxid")
@@ -238,6 +218,7 @@ public class UserServlet extends BaseServlet {
     public void login(HttpRequest req, HttpResponse resp) throws IOException {
         LoginBean bean = req.getJsonParameter(LoginBean.class, "bean");
         if (bean == null) bean = new LoginBean();
+        if(!bean.emptyPassword()) bean.setPassword(UserDetail.secondPasswordMD5(bean.getPassword())); 
         bean.setLoginagent(req.getHeader("User-Agent"));
         bean.setLoginip(req.getRemoteAddr());
         String oldsessionid = req.getSessionid(false);
@@ -308,6 +289,49 @@ public class UserServlet extends BaseServlet {
         sendRetResult(resp, result);
     }
 
+    @AuthIgnore
+    @WebAction(url = "/user/signup")   //待定
+    public void signup(HttpRequest req, HttpResponse resp) throws IOException {
+        long s = System.currentTimeMillis();
+        Map<String, String> map = convert.convertFrom(JsonConvert.TYPE_MAP_STRING_STRING, req.getParameter("bean"));
+        RetResult<RandomCode> ret = null; 
+        UserDetail bean = new UserDetail();
+        if (map.containsKey("mobile")) {
+            bean.setMobile(map.get("mobile"));
+            ret = service.checkRandomCode(bean.getMobile(), map.get("vercode"));
+            if (!ret.isSuccess()) {
+                sendRetResult(resp, ret);
+                return;
+            }
+        } else if (map.containsKey("email")) {
+            bean.setEmail(map.get("email"));
+        } else {
+            bean.setAccount(map.getOrDefault("account", ""));
+        }
+        bean.setPassword(map.getOrDefault("password", ""));
+        bean.setRegaddr(req.getRemoteAddr());
+        bean.setRegagent(req.getHeader("User-Agent", ""));
+        RetResult<UserInfo> rr = service.register(bean);
+        if (rr.isSuccess()) {
+            if (ret != null) {
+                ret.getResult().setUserid(rr.getResult().getUserid());
+                service.removeRandomCode(ret.getResult());
+            }
+            UserInfo curr = rr.getResult();
+            LoginBean loginbean = new LoginBean();
+            loginbean.setAccount(curr.isAc() ? curr.getAccount() : (curr.isMb() ? curr.getMobile() : curr.getEmail()));
+            loginbean.setApptoken(bean.getApptoken());
+            loginbean.setPassword(curr.getPassword());
+            loginbean.setSessionid(req.changeSessionid());
+            loginbean.setLoginagent(req.getHeader("User-Agent"));
+            loginbean.setLoginip(req.getRemoteAddr());
+            rr = service.login(loginbean);
+        }
+        long e = System.currentTimeMillis() - s;
+        if (e > 500) logger.warning("/user/signup cost " + e / 1000.0 + " seconds " + bean);
+        resp.finishJson(rr);
+    }
+
     @WebAction(url = "/user/updateusername")
     public void updateUsername(HttpRequest req, HttpResponse resp) throws IOException {
         resp.finishJson(service.updateUsername(currentUser(req).getUserid(), req.getParameter("username")));
@@ -318,42 +342,21 @@ public class UserServlet extends BaseServlet {
         resp.finishJson(service.updateGender(currentUser(req).getUserid(), Short.parseShort(req.getRequstURILastPath())));
     }
 
-    @WebAction(url = "/user/updatemobile")
-    public void updatemobile(HttpRequest req, HttpResponse resp) throws IOException {
-        UserInfo userInfo = super.currentUser(req);
-        resp.finishJson(service.updateMobile(currentUser(req).getUserid(), req.getParameter("mobile"), req.getParameter("vercode")));
-    }
-
-    @WebAction(url = "/user/findbyemail/")
-    public void findbyemail(HttpRequest req, HttpResponse resp) throws IOException {
-        resp.finishJson(service.findUserInfoByEmail(req.getRequstURILastPath().trim()));
-    }
-
-    /**
-     * 忘记密码
-     *
-     * @param req
-     * @param resp
-     * @throws IOException
-     */
-    @AuthIgnore
-    @WebAction(url = "/user/forgetpwd")
-    public void forgetpwd(HttpRequest req, HttpResponse resp) throws IOException {
-        sendRetcode(resp, service.forgetpwd(req.getParameter("email"), req.getHost()));
-    }
-
+    //发送修改密码验证码
     @AuthIgnore
     @WebAction(url = "/user/smspwdcode")
     public void smscode(HttpRequest req, HttpResponse resp) throws IOException {
         smsvercode(RandomCode.TYPE_SMSPWD, req, resp);
     }
 
+    //发送手机修改验证码
     @AuthIgnore
     @WebAction(url = "/user/smsmobcode")
     public void smsmob(HttpRequest req, HttpResponse resp) throws IOException {
         smsvercode(RandomCode.TYPE_SMSMOB, req, resp);
     }
 
+    //发送手机注册验证码
     @AuthIgnore
     @WebAction(url = "/user/smsregcode")
     public void smsreg(HttpRequest req, HttpResponse resp) throws IOException {
@@ -361,117 +364,86 @@ public class UserServlet extends BaseServlet {
     }
 
     private void smsvercode(final short type, HttpRequest req, HttpResponse resp) throws IOException {
-        RetResult rr = service.smscode(type, req.getParameter("mobile"));
-        if (finest) logger.finest(req.getRequestURI() + ", locale = " + req.getParameter("locale", "zh") + ", mobile = " + req.getParameter("mobile") + "---->" + rr);
+        RetResult rr = service.smscode(type, req.getRequstURIPath("mobile:", req.getParameter("mobile")));
+        if (finest) logger.finest(req.getRequestURI() + ", mobile = " + req.getParameter("mobile") + "---->" + rr);
         sendRetResult(resp, rr);
     }
 
+    //检测账号是否有效, 返回t0表示可用.给新用户注册使用
+    @AuthIgnore
+    @WebAction(url = "/user/checkaccount/")
+    public void checkAccount(HttpRequest req, HttpResponse resp) throws IOException {
+        sendRetcode(resp, service.checkAccount(req.getRequstURILastPath()));
+    }
+
+    //检测手机号码是否有效, 返回0表示可用.给新用户注册使用
+    @AuthIgnore
+    @WebAction(url = "/user/checkmobile/")
+    public void checkMobile(HttpRequest req, HttpResponse resp) throws IOException {
+        sendRetcode(resp, service.checkMobile(req.getRequstURILastPath()));
+    }
+
+    //检测邮箱地址是否有效, 返回0表示可用.给新用户注册使用
+    @AuthIgnore
+    @WebAction(url = "/user/checkemail/")
+    public void checkEmail(HttpRequest req, HttpResponse resp) throws IOException {
+        sendRetcode(resp, service.checkEmail(req.getRequstURILastPath()));
+    }
+
+    //验证短信验证码
     @AuthIgnore
     @WebAction(url = "/user/checkcode")
     public void checkcode(HttpRequest req, HttpResponse resp) throws IOException {
-        RetResult<RandomCode> ret = service.checkRandomCode(req.getParameter("mobile"), req.getParameter("vercode"));
+        String mobile = req.getRequstURIPath("mobile:", req.getParameter("mobile"));
+        String vercode = req.getRequstURIPath("vercode:", req.getParameter("vercode"));
+        RetResult<RandomCode> ret = service.checkRandomCode(mobile, vercode);
         sendRetcode(resp, ret.getRetcode());
     }
 
-    @AuthIgnore
-    @WebAction(url = "/user/regbysms")
-    public void regbysms(HttpRequest req, HttpResponse resp) throws IOException {
-        long s = System.currentTimeMillis();
-        RetResult<RandomCode> ret = service.checkRandomCode(req.getParameter("mobile"), req.getParameter("vercode"));
-        if (!ret.isSuccess()) {
-            sendRetResult(resp, ret);
-            return;
-        }
-        UserDetail bean = req.getJsonParameter(UserDetail.class, "bean");
-        bean.setWxunionid("");
-        bean.setRegaddr(req.getRemoteAddr());
-        bean.setRegagent((req.getHeader("User-Agent", "").contains("MicroMessenger") ? "wx." : "") + req.getHost());
-        String sms = "";
-        RetResult<UserInfo> rr = service.register(bean);
-        if (rr.isSuccess()) {
-            ret.getResult().setUserid(rr.getResult().getUserid());
-            service.removeRandomCode(ret.getResult());
-            UserInfo curr = rr.getResult();
-            LoginBean loginbean = new LoginBean();
-            loginbean.setAccount(curr.getEmail().isEmpty() ? curr.getMobile() : curr.getEmail());
-            loginbean.setApptoken(bean.getApptoken());
-            loginbean.setPassword(curr.getPassword());
-            loginbean.setSessionid(req.changeSessionid());
-            loginbean.setLoginagent(req.getHeader("User-Agent"));
-            loginbean.setLoginip(req.getRemoteAddr());
-            rr = service.login(loginbean);
-        }
-        long e = System.currentTimeMillis() - s;
-        if (e > 500) logger.warning("/user/regbysms cost " + e / 1000.0 + " seconds " + bean);
-        resp.finishJson(rr);
-    }
-
-    /**
-     * 获取个人基本信息
-     *
-     * @param req
-     * @param resp
-     * @throws IOException
-     */
+    //获取当前用户基本信息
     @AuthIgnore
     @WebAction(url = "/user/myinfo")
     public void myinfo(HttpRequest req, HttpResponse resp) throws IOException {
         resp.finishJson(currentUser(req));
     }
 
-    /**
-     * 获取个人基本信息
-     *
-     * @param req
-     * @param resp
-     * @throws IOException
-     */
+    //获取当前用户基本信息（js格式）
+    @AuthIgnore
+    @WebAction(url = "/user/js/myinfo")
+    public void myinfojs(HttpRequest req, HttpResponse resp) throws IOException {
+        UserInfo user = currentUser(req);
+        resp.setContentType("application/javascript; charset=utf-8");
+        if (user == null) {
+            resp.finish("var userself = null;");
+        } else {
+            resp.finish("var userself = " + convert.convertTo(user) + ";");
+        }
+    }
+
+    //获取个人基本信息
     @AuthIgnore
     @WebAction(url = "/user/info/")
     public void info(HttpRequest req, HttpResponse resp) throws IOException {
         resp.finishJson(service.findUserInfo(Integer.parseInt(req.getRequstURILastPath(), 36)));
     }
 
-    /**
-     * 获取个人详细信息
-     *
-     * @param req
-     * @param resp
-     * @throws IOException
-     */
-    @AuthIgnore
-    @WebAction(url = "/user/detail/")
-    public void detail(HttpRequest req, HttpResponse resp) throws IOException {
-        resp.finishJson(service.findUserDetail(Integer.parseInt(req.getRequstURILastPath(), 36)));
-    }
-
+    //获取当前用户详细信息
     @WebAction(url = "/user/mydetail")
     public void mydetail(HttpRequest req, HttpResponse resp) throws IOException {
         resp.finish(userConvert.convertTo(service.findUserDetail(currentUser(req).getUserid())));
     }
 
+    //获取当前用户详细信息（js格式）
     @AuthIgnore
     @WebAction(url = "/user/js/mydetail")
     public void mydetailjs(HttpRequest req, HttpResponse resp) throws IOException {
         UserInfo user = currentUser(req);
         resp.setContentType("application/javascript; charset=utf-8");
         if (user == null) {
-            resp.finish("var current_userdetail = null;");
+            resp.finish("var userdetailself = null;");
         } else {
-            resp.finish("var current_userdetail = " + userConvert.convertTo(service.findUserDetail(user.getUserid())) + ";");
+            resp.finish("var userdetailself = " + userConvert.convertTo(service.findUserDetail(user.getUserid())) + ";");
         }
-    }
-
-    /**
-     * 修改用户邮箱
-     *
-     * @param req
-     * @param resp
-     * @throws IOException
-     */
-    @WebAction(url = "/user/updatemail")
-    public void updateEmail(HttpRequest req, HttpResponse resp) throws IOException {
-        resp.finishJson(service.updateEmail(currentUser(req), req.getParameter("email"), req.getParameter("vercode")));
     }
 
 }

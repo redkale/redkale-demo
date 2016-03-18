@@ -1,0 +1,48 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <title>Redkale接口测试页面</title>
+        <style>
+            ul {list-style: none;}
+            li {margin: 10px 0 10px 0;vertical-align: middle;}
+        </style>
+    </head>
+
+    <body>
+        <br/>
+        <br/>
+        <ul>
+            <li>当前用户:  <input id="myname" value="" style="width: 200px;" readonly=""></li>
+            <li>请求 URL:  <input id="url" value="/pipes/" style="width: 600px;">    <button id="btn" style="margin-left: 50px;padding:5px 20px 5px 20px;">发送</button></li>
+            <li>请求参数:  <textarea id="data" style="width: 600px;height: 300px;"></textarea></li>
+            <li>返回结果:  <textarea id="result" style="width: 600px;height: 300px;"></textarea></li>
+        </ul>
+        <br/>    
+        <script src="/pipes/user/js/myinfo"></script>       
+        <script src="zepto.min.js"></script>   
+        <script>
+            if (userself) $('#myname').val(userself.username);
+            $('#btn').click(function () {
+                var data = JSON.parse(($('#data').val() || "{}").replace(/\n/g, " "));
+                var params = {};
+                for (var key in data) {
+                    params[key] = JSON.stringify(data[key]);
+                }
+                $.ajax({
+                    cache: false,
+                    url: $('#url').val(),
+                    data: params,
+                    error: function () {//请求失败处理函数
+                        alert("请求失败");
+                    },
+                    success: function (data) {
+                        $('#result').val(data);
+                    }
+                });
+            });
+        </script>
+    </body>
+
+</html>

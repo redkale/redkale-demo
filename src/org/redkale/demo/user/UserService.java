@@ -5,24 +5,23 @@
  */
 package org.redkale.demo.user;
 
-import java.awt.image.*;
-import java.io.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
-import java.util.function.*;
-import java.util.logging.*;
-import java.util.regex.*;
-import javax.annotation.*;
-import javax.imageio.*;
-import org.redkale.convert.json.*;
+import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.regex.Pattern;
+import javax.annotation.Resource;
+import javax.imageio.ImageIO;
+import org.redkale.convert.json.JsonConvert;
+import static org.redkale.demo.base.RetCodes.*;
 import org.redkale.demo.base.*;
-import static org.redkale.demo.base.UserInfo.GENDER_FEMALE;
-import static org.redkale.demo.base.UserInfo.GENDER_MALE;
-import org.redkale.demo.file.*;
+import static org.redkale.demo.base.UserInfo.*;
+import org.redkale.demo.file.FileService;
 import static org.redkale.demo.user.UserDetail.*;
-import org.redkale.plugins.email.EmailMessage;
-import org.redkale.plugins.email.EmailService;
+import org.redkale.plugins.email.*;
 import org.redkale.plugins.weixin.WeiXinMPService;
 import org.redkale.service.*;
 import org.redkale.source.*;
@@ -34,25 +33,19 @@ import org.redkale.util.*;
  */
 public class UserService extends BaseService {
 
-    public static final int RETCODE_NOUSER = 20100001; //用户不存在
+    protected final Map<Integer, UserInfo> userInfos = new ConcurrentHashMap<>();
 
-    public static final int RETCODE_NOPERMISS = 20100002; //用户权限不对   
+    protected final Map<String, UserInfo> accountUserInfos = new ConcurrentHashMap<>();
 
-    public static final int RETCODE_TALKSMALL = 20100011; //语音太短  
+    protected final Map<String, UserInfo> mobileUserInfos = new ConcurrentHashMap<>();
 
-    public static final int RETCODE_ILLPARAM = 20100021; //参数错误  
+    protected final Map<String, UserInfo> emailUserInfos = new ConcurrentHashMap<>();
 
     protected final Map<String, UserInfo> wxunionidUserInfos = new ConcurrentHashMap<>();
 
     protected final Map<String, UserInfo> qqopenidUserInfos = new ConcurrentHashMap<>();
 
-    protected final Map<String, UserInfo> emailUserInfos = new ConcurrentHashMap<>();
-
-    protected final Map<String, UserInfo> mobileUserInfos = new ConcurrentHashMap<>();
-
     protected final Map<String, UserInfo> apptokenUserInfos = new ConcurrentHashMap<>();
-
-    protected final Map<Integer, UserInfo> userInfos = new ConcurrentHashMap<>();
 
     protected final AtomicInteger maxid = new AtomicInteger(200000000);
 
@@ -103,7 +96,7 @@ public class UserService extends BaseService {
                         if (sheet.getRows().size() < flipper.getSize()) flag.set(false);
                         for (UserDetail detail : sheet.getRows()) {
                             UserInfo info = detail.createUserInfo();
-                            putUserInfo(info, false);
+                            this.putUserInfo(info, false);
                         }
                     }
                 } finally {
@@ -122,7 +115,6 @@ public class UserService extends BaseService {
 
     private boolean updateMax() {
         boolean rs = false;
-
         Number max = source.getNumberResult(UserDetail.class, FilterFunc.MAX, "userid");
         if (max != null && max.intValue() > 200000000) maxid.set(max.intValue());
         rs |= max != null;
@@ -131,34 +123,6 @@ public class UserService extends BaseService {
 
     @Override
     public void destroy(AnyValue conf) {
-    }
-
-    //根据邮箱地址查找用户
-    public UserInfo findUserInfoByEmail(String email) {
-        return email == null ? null : this.emailUserInfos.get(email);
-    }
-
-    //根据手机号码查找用户
-    public UserInfo findUserInfoByMobile(String mobile) {
-        return this.mobileUserInfos.get(mobile);
-    }
-
-    //根据微信绑定ID查找用户
-    public UserInfo findUserInfoByWxunionid(String wxunionid) {
-        if (wxunionid == null) return null;
-        return this.wxunionidUserInfos.get(wxunionid);
-    }
-
-    //根据QQ绑定ID查找用户
-    public UserInfo findUserInfoByQqopenid(String qqopenid) {
-        if (qqopenid == null) return null;
-        return this.qqopenidUserInfos.get(qqopenid);
-    }
-
-    //根据APP设备ID查找用户
-    public UserInfo findUserInfoByApptoken(String apptoken) {
-        if (apptoken == null) return null;
-        return this.apptokenUserInfos.get(apptoken);
     }
 
     //根据用户ID查找用户
@@ -172,64 +136,86 @@ public class UserService extends BaseService {
         return info;
     }
 
+    //根据账号查找用户
+    public UserInfo findUserInfoByAccount(String account) {
+        return account == null || account.isEmpty() ? null : this.accountUserInfos.get(account.toLowerCase());
+    }
+
+    //根据手机号码查找用户
+    public UserInfo findUserInfoByMobile(String mobile) {
+        return mobile == null || mobile.isEmpty() ? null : this.mobileUserInfos.get(mobile);
+    }
+
+    //根据邮箱地址查找用户
+    public UserInfo findUserInfoByEmail(String email) {
+        return email == null || email.isEmpty() ? null : this.emailUserInfos.get(email.toLowerCase());
+    }
+
+    //根据微信绑定ID查找用户
+    public UserInfo findUserInfoByWxunionid(String wxunionid) {
+        return wxunionid == null || wxunionid.isEmpty() ? null : this.wxunionidUserInfos.get(wxunionid);
+    }
+
+    //根据QQ绑定ID查找用户
+    public UserInfo findUserInfoByQqopenid(String qqopenid) {
+        return qqopenid == null || qqopenid.isEmpty() ? null : this.qqopenidUserInfos.get(qqopenid);
+    }
+
+    //根据APP设备ID查找用户
+    public UserInfo findUserInfoByApptoken(String apptoken) {
+        return apptoken == null || apptoken.isEmpty() ? null : this.apptokenUserInfos.get(apptoken);
+    }
+
+    //查询用户列表， 通常用于后台管理系统查询
     public Sheet<UserDetail> queryUserDetail(FilterNode node, Flipper flipper) {
         return source.querySheet(UserDetail.class, flipper, node);
     }
 
-    public List<UserInfo> queryUserInfo(Collection<Integer> userids) {
-        if (userids == null) return new ArrayList<>();
-        List<UserInfo> list = new ArrayList<>(userids.size());
-        for (int userid : userids) {
-            if (userid == UserInfo.USERID_SYSTEM) {
-                list.add(UserInfo.USER_SYSTEM);
-            } else {
-                UserInfo user = userInfos.get(userid);
-                if (user != null) list.add(user);
-            }
-        }
-        return list;
-    }
-
+    //更新缓存信息并同步到其他等节点服务
     @MultiRun
-    public void updateUserInfo(UserInfo info, boolean replace) {
+    public void updateUserInfo(UserInfo info, final boolean replace) {
+        if (info == null) return;
         if (info.getUserid() > maxid.get()) maxid.set(info.getUserid());
         putUserInfo(info, replace);
         if (finer) logger.finer("updateUserInfo userinfo (" + info + ")");
     }
 
-    private void putUserInfo(UserInfo info, boolean replace) {
-        if (info == null) return;
+    private void putUserInfo(UserInfo info, final boolean replace) {
         UserInfo old = userInfos.get(info.getUserid());
         if (replace) {
             if (old != null) {
-                if (old.isEm()) emailUserInfos.remove(old.getEmail().toLowerCase());
+                if (old.isAc()) accountUserInfos.remove(old.getAccount());
                 if (old.isMb()) mobileUserInfos.remove(old.getMobile());
+                if (old.isEm()) emailUserInfos.remove(old.getEmail().toLowerCase());
                 if (old.isWx()) wxunionidUserInfos.remove(old.getWxunionid());
                 if (old.isQq()) qqopenidUserInfos.remove(old.getQqopenid());
-                if (old.isHasapptoken()) apptokenUserInfos.remove(old.getApptoken());
+                if (old.isAp()) apptokenUserInfos.remove(old.getApptoken());
             }
         }
         if (old != null) info = info.copyTo(old);
         userInfos.put(info.getUserid(), info);
+        if (info.isAc()) accountUserInfos.put(old.getAccount().toLowerCase(), info);
         if (info.isEm()) emailUserInfos.put(info.getEmail().toLowerCase(), info);
         if (info.isMb()) mobileUserInfos.put(info.getMobile(), info);
         if (info.isWx()) wxunionidUserInfos.put(info.getWxunionid(), info);
         if (info.isQq()) qqopenidUserInfos.put(info.getQqopenid(), info);
-        if (info.isHasapptoken()) apptokenUserInfos.put(info.getApptoken(), info);
+        if (info.isAp()) apptokenUserInfos.put(info.getApptoken(), info);
     }
 
+    //根据登录态获取当前用户信息
     public UserInfo current(String sessionid) {
         Integer userid = sessions.getAndRefresh(sessionid, sessionExpireSeconds);
         return userid == null ? null : userInfos.get(userid);
     }
 
+    //绑定微信号
     public RetResult updateWxunionid(UserInfo user, String appid, String code) {
         try {
+            if (user == null) return RetCodes.create(RET_USER_NOTEXISTS);
             Map<String, String> wxmap = wxMPService.getMPUserTokenByCode(appid, code);
             final String wxunionid = wxmap.get("unionid");
-            if (wxunionid == null || wxunionid.isEmpty()) return new RetResult(1010011);
-            if (!checkWxunionid(wxunionid)) return new RetResult(1010026);
-            if (user == null) return new RetResult(1010005);
+            if (wxunionid == null || wxunionid.isEmpty()) return RetCodes.create(RET_USER_WXID_ILLEGAL);
+            if (!checkWxunionid(wxunionid)) return RetCodes.create(RET_USER_WXID_EXISTS);
             user = user.copy();
             source.updateColumn(UserDetail.class, user.getUserid(), "wxunionid", wxunionid);
             user.setWxunionid(wxunionid);
@@ -237,27 +223,11 @@ public class UserService extends BaseService {
             return new RetResult();
         } catch (Exception e) {
             logger.log(Level.FINE, "updateWxunionid failed (" + user + ", " + appid + ", " + code + ")", e);
-            return new RetResult<>(1010011);
+            return RetCodes.create(RET_USER_WXID_BIND_FAIL);
         }
     }
 
-    private static String formatUserName(String name, String defname) {
-        //A-Za-z0-9\\u4E00-\\uFFEE-\\. 
-        StringBuilder sb = new StringBuilder(name.length());
-        char first = 0;
-        for (char ch : name.trim().toCharArray()) {
-            if (first == 0) {
-                first = ch;
-                if (first >= '0' && first <= '9') sb.append("wx-");
-            }
-            if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9') || (ch >= '\u4E00' && ch <= '\uFFEE') || ch == '_' || ch == '-' || ch == ' ' || ch == '.') {
-                sb.append(ch);
-            }
-        }
-        String rs = sb.toString().trim();
-        return rs.length() < 2 ? (defname + rs) : rs;
-    }
-
+    //QQ登录
     public RetResult<UserInfo> qqlogin(LoginQQBean bean) {
         try {
             String qqappid = "xxxx";
@@ -265,18 +235,18 @@ public class UserService extends BaseService {
             String json = Utility.getHttpContent(url);
             if (finest) logger.finest(url + "--->" + json);
             Map<String, String> jsonmap = convert.convertFrom(JsonConvert.TYPE_MAP_STRING_STRING, json);
-            if (!"0".equals(jsonmap.get("ret"))) return new RetResult(1010011, "qq get_user_info error.");
+            if (!"0".equals(jsonmap.get("ret"))) return RetCodes.create(RET_USER_QQID_INFO_FAIL);
             RetResult<UserInfo> rr;
             UserInfo user = findUserInfoByQqopenid(bean.getOpenid());
             if (user == null) {
                 UserDetail detail = new UserDetail();
-                detail.setUsername(formatUserName(jsonmap.getOrDefault("nickname", "qq-user"), "qq-"));
+                detail.setUsername(jsonmap.getOrDefault("nickname", "qq-user"));
                 detail.setQqopenid(bean.getOpenid());
                 detail.setRegagent(bean.getRegagent());
                 detail.setRegaddr(bean.getRegaddr());
                 String genstr = jsonmap.getOrDefault("gender", "");
                 detail.setGender("男".equals(genstr) ? UserInfo.GENDER_MALE : ("女".equals(genstr) ? UserInfo.GENDER_FEMALE : (short) 0));
-                logger.fine(bean + " --qqlogin-->" + convert.convertTo(jsonmap));
+                if (finer) logger.fine(bean + " --qqlogin-->" + convert.convertTo(jsonmap));
                 rr = register(detail);
                 if (rr.isSuccess()) {
                     rr.setRetinfo(jsonmap.get(bean.getOpenid()));
@@ -303,29 +273,24 @@ public class UserService extends BaseService {
             return rr;
         } catch (Exception e) {
             logger.log(Level.FINE, "qqlogin failed (" + bean + ")", e);
-            return new RetResult<>(1010011);
+            return RetCodes.create(RET_USER_LOGIN_FAIL);
         }
     }
 
-    /**
-     * 微信登陆
-     * <p>
-     * @param bean
-     * @return
-     */
+    //微信登陆
     public RetResult<UserInfo> wxlogin(LoginWXBean bean) {
         try {
             Map<String, String> wxmap = bean.emptyAccesstoken()
                 ? wxMPService.getMPUserTokenByCode(bean.getAppid(), bean.getCode())
                 : wxMPService.getMPUserTokenByOpenid(bean.getAccesstoken(), bean.getOpenid());
             final String unionid = wxmap.get("unionid");
-            if (unionid == null) return new RetResult(1010011, "unionid is empty.");
+            if (unionid == null) return RetCodes.create(RET_USER_WXID_ILLEGAL);
             RetResult<UserInfo> rr;
             UserInfo user = findUserInfoByWxunionid(unionid);
             if (user == null) {
                 if (!bean.isAutoreg()) return new RetResult(0, convert.convertTo(wxmap));
                 UserDetail detail = new UserDetail();
-                detail.setUsername(formatUserName(wxmap.getOrDefault("nickname", "wx-user"), "wx-"));
+                detail.setUsername(wxmap.getOrDefault("nickname", "wx-user"));
                 detail.setWxunionid(unionid);
                 detail.setApptoken(bean.getApptoken());
                 detail.setRegagent(bean.getRegagent());
@@ -363,10 +328,11 @@ public class UserService extends BaseService {
             return rr;
         } catch (Exception e) {
             logger.log(Level.FINE, "wxlogin failed (" + bean + ")", e);
-            return new RetResult<>(1010011);
+            return RetCodes.create(RET_USER_LOGIN_FAIL);
         }
     }
 
+    //用户密码登录
     public RetResult<UserInfo> login(LoginBean bean) {
         final RetResult<UserInfo> result = new RetResult();
         UserInfo user = null;
@@ -398,18 +364,25 @@ public class UserService extends BaseService {
                 }
             }
         }
-        if (bean == null || bean.emptySessionid() || (user == null && bean.emptyAccount())) {
-            result.setRetcode(1010002); //用户或密码错误
-            result.setRetinfo("login no sessionid or no account");
-            return result;
+        if (bean == null || bean.emptySessionid() || (user == null && bean.emptyAccount())) return RetCodes.create(RET_USER_ACCOUNT_PWD_ILLEGAL);
+        String key = "";
+        if (user == null && !bean.emptyAccount()) {
+            if (bean.getAccount().indexOf('@') > 0) {
+                key = "email";
+                user = this.emailUserInfos.get(bean.getAccount());
+            } else if (Character.isDigit(bean.getAccount().charAt(0))) {
+                key = "mobile";
+                user = this.mobileUserInfos.get(bean.getAccount());
+            } else {
+                key = "account";
+                user = this.accountUserInfos.get(bean.getAccount());
+            }
         }
-        boolean emailkind = (bean.getAccount() != null && bean.getAccount().indexOf('@') > 0);
-        if (user == null) user = (emailkind ? this.emailUserInfos : this.mobileUserInfos).get(bean.getAccount());
         if (user == null) {
-            UserDetail detail = source.find(UserDetail.class, emailkind ? "email" : "mobile", bean.getAccount());
-            if (detail == null || !detail.checkPassword(bean.getPassword())) {
+            UserDetail detail = source.find(UserDetail.class, key, bean.getAccount());
+            if (detail == null || !detail.getPassword().equals(UserDetail.digestPassword(bean.getPassword()))) {
                 result.setRetcode(1010002); //用户或密码错误                
-                result.setRetinfo("login " + (emailkind ? "email" : "mobile") + "(" + bean.getAccount() + ") or password incorrect");
+                result.setRetinfo("login " + key + "(" + bean.getAccount() + ") or password incorrect");
                 //super.log(user, optionid, "用户账号或密码错误，登录失败.");
                 return result;
             }
@@ -442,9 +415,10 @@ public class UserService extends BaseService {
         return result;
     }
 
+    //注销登录
     public boolean logout(final String sessionid) {
         UserInfo user = current(sessionid);
-        if (user != null && user.isHasapptoken()) {
+        if (user != null && user.isAp()) {
             user.setApptoken("");
             updateUserInfo(user, true);
         }
@@ -453,10 +427,10 @@ public class UserService extends BaseService {
     }
 
     public RetResult<RandomCode> checkRandomCode(String targetid, String randomcode) {
-        if (randomcode == null || randomcode.isEmpty()) return new RetResult(1010021);
+        if (randomcode == null || randomcode.isEmpty()) return RetCodes.create(RET_USER_RANDCODE_ILLEGAL);
         if (targetid != null && targetid.length() > 5 && randomcode.length() < 30) randomcode = targetid + "-" + randomcode;
         RandomCode code = source.find(RandomCode.class, randomcode);
-        return code == null ? new RetResult(1010021) : (code.isExpired() ? new RetResult(1010021) : new RetResult(code));
+        return code == null ? RetCodes.create(RET_USER_RANDCODE_ILLEGAL) : (code.isExpired() ? RetCodes.create(RET_USER_RANDCODE_EXPIRED) : new RetResult(code));
     }
 
     public void removeRandomCode(RandomCode code) {
@@ -465,12 +439,12 @@ public class UserService extends BaseService {
     }
 
     public RetResult updateUsername(int userid, String username) {
-        if (username == null || (!username.isEmpty() && !checkUsername(username))) return new RetResult(1010013);
+        if (username == null || username.isEmpty()) return RetCodes.create(RET_USER_USERNAME_ILLEGAL);
         UserInfo user = findUserInfo(userid);
         if (user.getUsername().equals(username)) return new RetResult();
-        if (user == null) return new RetResult(1010005);
+        if (user == null) return RetCodes.create(RET_USER_NOTEXISTS);
         user = user.copy();
-        if (username.isEmpty()) return new RetResult(1010013);
+        if (username.isEmpty()) return RetCodes.create(RET_USER_USERNAME_ILLEGAL);
         long t = System.currentTimeMillis();
         source.updateColumn(UserDetail.class, user.getUserid(), "username", username);
         source.updateColumn(UserDetail.class, user.getUserid(), "infotime", t);
@@ -480,28 +454,9 @@ public class UserService extends BaseService {
         return new RetResult();
     }
 
-    /**
-     * 更新新邮箱， 只对后门接口有效
-     * <p>
-     * @param userid
-     * @param newmail
-     * @return
-     */
-    public RetResult updateEmail(int userid, String newmail) {
-        if (newmail != null && !newmail.isEmpty() && !checkEmail(newmail)) return new RetResult(1010011);
-        UserInfo user = findUserInfo(userid);
-        if (user == null) return new RetResult(1010005);
-        if ((newmail == null || newmail.isEmpty()) && !user.isMb() && !user.isQq() && !user.isWx()) return new RetResult(1010011); //当手机为空时邮箱不能为空
-        user = user.copy();
-        source.updateColumn(UserDetail.class, user.getUserid(), "email", newmail);
-        user.setEmail(newmail);
-        updateUserInfo(user, true);
-        return new RetResult();
-    }
-
     public RetResult updateInfotime(int userid) {
         UserInfo user = findUserInfo(userid);
-        if (user == null) return new RetResult(1010005);
+        if (user == null) return RetCodes.create(RET_USER_NOTEXISTS);
         user = user.copy();
         long t = System.currentTimeMillis();
         source.updateColumn(UserDetail.class, user.getUserid(), "infotime", t);
@@ -512,8 +467,8 @@ public class UserService extends BaseService {
 
     public RetResult updateGender(int userid, short gender) {
         UserInfo user = findUserInfo(userid);
-        if (user == null) return new RetResult(1010005);
-        if (gender != GENDER_MALE && gender != GENDER_FEMALE) return new RetResult(1010005);
+        if (user == null) return RetCodes.create(RET_USER_NOTEXISTS);
+        if (gender != GENDER_MALE && gender != GENDER_FEMALE) return RetCodes.create(RET_USER_GENDER_ILLEGAL);
         user = user.copy();
         long t = System.currentTimeMillis();
         source.updateColumn(UserDetail.class, user.getUserid(), "gender", gender);
@@ -523,11 +478,14 @@ public class UserService extends BaseService {
     }
 
     public RetResult updateMobile(int userid, String newmobile, String vercode) {
-        if (!checkMobile(newmobile)) return new RetResult(1010016);
+        int retcode = checkMobile(newmobile);
+        if (retcode != 0) return RetCodes.create(retcode);
         RandomCode code = source.find(RandomCode.class, newmobile + "-" + vercode);
-        if (code == null || code.isExpired()) return new RetResult(1010021); //验证码无效
+        if (code == null) return RetCodes.create(RET_USER_RANDCODE_ILLEGAL);
+        if (code.isExpired()) return RetCodes.create(RET_USER_RANDCODE_EXPIRED);
+
         UserInfo user = findUserInfo(userid);
-        if (user == null) return new RetResult(1010005);
+        if (user == null) return RetCodes.create(RET_USER_NOTEXISTS);
         user = user.copy();
         source.updateColumn(UserDetail.class, user.getUserid(), "mobile", newmobile);
         user.setMobile(newmobile);
@@ -541,21 +499,19 @@ public class UserService extends BaseService {
     public RetResult<UserInfo> updatePwd(UserPwdBean bean) {
         RetResult<UserInfo> result = new RetResult();
         UserInfo user = bean.getSessionid() == null ? null : current(bean.getSessionid());
-        if (user == null) {
+        final String newpwd = UserDetail.digestPassword(UserDetail.secondPasswordMD5(bean.getNewpwd())); //HEX-MD5(密码明文)
+        if (user == null) {  //表示忘记密码后进行重置密码
             bean.setSessionid(null);
             if (bean.getRandomcode() != null && !bean.getRandomcode().isEmpty()) {
                 RandomCode code = source.find(RandomCode.class, bean.getRandomcode());
-                if (code == null || code.isExpired()) {//验证码无效
-                    result.setRetcode(1010021);
-                    return result;
-                }
+                if (code == null) return RetCodes.create(RET_USER_RANDCODE_ILLEGAL);
+                if (code.isExpired()) return RetCodes.create(RET_USER_RANDCODE_EXPIRED);
+
                 user = findUserInfo(code.getUserid());
-                if (user == null) {//验证码无效
-                    result.setRetcode(1010021);
-                    return result;
-                }
-                source.updateColumn(UserDetail.class, user.getUserid(), "password", bean.getNewpwd());
-                user.setPassword(bean.getNewpwd());
+                if (user == null) return RetCodes.create(RET_USER_NOTEXISTS);
+
+                source.updateColumn(UserDetail.class, user.getUserid(), "password", newpwd);
+                user.setPassword(newpwd);
                 source.insert(code.createRandomCodeHis(RandomCodeHis.RETCODE_OK));
                 source.delete(RandomCode.class, code.getRandomcode());
                 updateUserInfo(user, false);
@@ -564,13 +520,14 @@ public class UserService extends BaseService {
             }
             result.setRetcode(1010002);
             return result;
-        } //用户或密码错误
-        if (!Objects.equals(user.getPassword(), bean.getOldpwd())) {
+        }
+        //用户或密码错误
+        if (!Objects.equals(user.getPassword(), UserDetail.digestPassword(UserDetail.secondPasswordMD5(bean.getOldpwd())))) {
             result.setRetcode(1010020); //原密码错误
             return result;
         }
-        source.updateColumn(UserDetail.class, user.getUserid(), "password", bean.getNewpwd());
-        user.setPassword(bean.getNewpwd());
+        source.updateColumn(UserDetail.class, user.getUserid(), "password", newpwd);
+        user.setPassword(newpwd);
         updateUserInfo(user, false);
         result.setResult(user);
         return result;
@@ -591,9 +548,9 @@ public class UserService extends BaseService {
         if (mobile == null) return new RetResult(1010022, type + " mobile is null"); //手机号码无效
         if (mobile.indexOf('+') == 0) mobile = mobile.substring(1);
         UserInfo info = this.mobileUserInfos.get(mobile);
-        if (type == RandomCode.TYPE_SMSREG || type == RandomCode.TYPE_SMSMOB) {
+        if (type == RandomCode.TYPE_SMSREG || type == RandomCode.TYPE_SMSMOB) { //手机注册或手机修改的号码不能已存在
             if (info != null) return new RetResult(1010016, "smsreg or smsmob mobile " + mobile + " exists");
-        } else if (type == RandomCode.TYPE_SMSPWD) {
+        } else if (type == RandomCode.TYPE_SMSPWD) { //修改密码
             if (info == null) return new RetResult(1010005, "smspwd mobile " + mobile + " not exists");
         } else {
             return new RetResult(1010004, type + " is illegal");
@@ -601,7 +558,7 @@ public class UserService extends BaseService {
         List<RandomCode> codes = source.queryList(RandomCode.class, FilterNode.create("randomcode", FilterExpress.LIKE, mobile + "-%"));
         if (!codes.isEmpty()) {
             RandomCode last = codes.get(codes.size() - 1);
-            if (last.getCreatetime() + 60 * 1000 > System.currentTimeMillis()) return new RetResult(1010024, "mobile " + mobile + " send smscode frequently");
+            if (last.getCreatetime() + 60 * 1000 > System.currentTimeMillis()) return RetCodes.create(RET_USER_MOBILE_SMSFREQUENT);
         }
         final String sms = String.valueOf(RandomCode.randomSmsCode());
 //        ResourceBundle bundle = ResourceBundle.getBundle(userbundle, Locale.forLanguageTag("zh"));
@@ -660,57 +617,43 @@ public class UserService extends BaseService {
 
     /**
      *
-     * 1010001	未登陆 1010002	用户或密码错误 1010003	用户状态异常 1010004	验证码错误或失效 1010005	用户不存在 1010010	邮箱或手机号码已存在 1010011	注册参数异常 1010012	注册类型错误 1010013	用户姓名错误 1010014	用户名无效或已存在 1010015	注册邮箱地址无效或已存在 1010016
-     * 注册手机号码无效或已存在 1010017	发送激活邮件失败 1010018	注册激活码无效 1010019	邮箱地址无效 1010020	原密码错误 1010021	激活码无效 1010022	手机号码无效 1010023 用户已绑定邮箱
-     *
+     * 用户注册
      *
      * @param user
      * @return
      */
     public RetResult<UserInfo> register(UserDetail user) {
         RetResult<UserInfo> result = new RetResult();
-        if (user == null) {  //   注册参数异常
-            result.setRetinfo("parameter is empty");
-            result.setRetcode(1010011);
-            return result;
-        }
-        if (user.getEmail().isEmpty() && user.getMobile().isEmpty() && user.getWxunionid().isEmpty() && user.getQqopenid().isEmpty()) {
-            result.setRetcode(1010011);
-            result.setRetinfo("email, mobile, wxid, qqid is empty");
-            return result;
-        }
-        if (!checkUsername(user.getUsername())) {//  用户名错误  
-            result.setRetcode(1010014);
-            return result;
-        }
-        if (!user.getEmail().isEmpty() && !checkEmail(user.getEmail())) {
-            result.setRetcode(1010015);
-            return result;
-        }
-        if (!user.getMobile().isEmpty() && !checkMobile(user.getMobile())) {
-            result.setRetcode(1010016);
-            return result;
-        }
-        if (!user.getWxunionid().isEmpty() && wxunionidUserInfos.containsKey(user.getWxunionid())) {
-            result.setRetcode(1010026);
-            return result;
-        }
-        if (!user.getQqopenid().isEmpty() && qqopenidUserInfos.containsKey(user.getQqopenid())) {
-            result.setRetcode(1010027);
-            return result;
-        }
-        if (!user.getWxunionid().isEmpty()) {
-            user.setRegtype(REGTYPE_WEIXIN);
-        } else if (!user.getQqopenid().isEmpty()) {
-            user.setRegtype(REGTYPE_QQOPEN);
-        } else if (!user.getMobile().isEmpty()) {
+        if (user == null) return RetCodes.create(RET_USER_SIGNUP_ILLEGAL);
+        if (!user.isAc() && !user.isMb() && !user.isEm() && !user.isWx() && !user.isQq()) return RetCodes.create(RET_USER_SIGNUP_ILLEGAL);
+        if (user.getGender() != 0 && user.getGender() != GENDER_MALE && user.getGender() != GENDER_FEMALE) return RetCodes.create(RET_USER_GENDER_ILLEGAL);
+        int retcode = 0;
+        if (user.isAc() && (retcode = checkAccount(user.getAccount())) != 0) return RetCodes.create(retcode);
+        if (user.isAc() && (retcode = checkMobile(user.getMobile())) != 0) return RetCodes.create(retcode);
+        if (user.isAc() && (retcode = checkEmail(user.getEmail())) != 0) return RetCodes.create(retcode);
+        if (user.isWx() && wxunionidUserInfos.containsKey(user.getWxunionid())) return RetCodes.create(RET_USER_WXID_EXISTS);
+        if (user.isQq() && qqopenidUserInfos.containsKey(user.getQqopenid())) return RetCodes.create(RET_USER_QQID_EXISTS);
+        if (user.isMb()) {
             user.setRegtype(REGTYPE_MOBILE);
-        } else {
+            if (user.getPassword().isEmpty()) return RetCodes.create(RET_USER_PASSWORD_ILLEGAL);
+        } else if (user.isEm()) {
             user.setRegtype(REGTYPE_EMAIL);
+            if (user.getPassword().isEmpty()) return RetCodes.create(RET_USER_PASSWORD_ILLEGAL);
+        } else if (user.isWx()) {
+            user.setRegtype(REGTYPE_WEIXIN);
+        } else if (user.isQq()) {
+            user.setRegtype(REGTYPE_QQOPEN);
+        } else {
+            user.setRegtype(REGTYPE_ACCOUNT);
+            if (user.getPassword().isEmpty()) return RetCodes.create(RET_USER_PASSWORD_ILLEGAL);
         }
         user.setUserid(maxid.incrementAndGet());
         user.setCreatetime(System.currentTimeMillis());
-        user.digestPassword(user.getPassword());
+        user.setInfotime(0);
+        user.setUpdatetime(0);
+        if (!user.getPassword().isEmpty()) {
+            user.setPassword(UserDetail.digestPassword(UserDetail.secondPasswordMD5(user.getPassword())));
+        }
         user.setStatus(UserInfo.STATUS_NORMAL);
         try {
             source.insert(user);
@@ -732,18 +675,47 @@ public class UserService extends BaseService {
         return result;
     }
 
+    private static final Predicate<String> accountReg = Pattern.compile("^[a-zA-Z][\\w_.]{6,64}$").asPredicate();
+
+    /**
+     * 检测账号是否有效, 返回0表示手机号码可用
+     * 账号不能以数字开头、不能包含@ ， 用于区分手机号码和邮箱
+     *
+     * @param account
+     * @return
+     */
+    public int checkAccount(String account) {
+        if (account == null) return RET_USER_ACCOUNT_ILLEGAL;
+        if (!accountReg.test(account)) return RET_USER_ACCOUNT_ILLEGAL;
+        return this.accountUserInfos.get(account) == null ? 0 : RET_USER_ACCOUNT_EXISTS;
+    }
+
+    private static final Predicate<String> mobileReg = Pattern.compile("^\\d{6,18}$").asPredicate();
+
+    /**
+     * 检测手机号码是否有效, 返回0表示手机号码可用
+     *
+     * @param mobile
+     * @return
+     */
+    public int checkMobile(String mobile) {
+        if (mobile == null) return RET_USER_MOBILE_ILLEGAL;
+        if (!mobileReg.test(mobile)) return RET_USER_MOBILE_ILLEGAL;
+        return this.mobileUserInfos.get(mobile) == null ? 0 : RET_USER_MOBILE_EXISTS;
+    }
+
     private static final Predicate<String> emailReg = Pattern.compile("^(\\w|\\.|-)+@(\\w|-)+(\\.(\\w|-)+)+$").asPredicate();
 
     /**
-     * 检测邮箱地址是否有效, 返回true表示邮箱地址可用.给新用户注册使用
+     * 检测邮箱地址是否有效, 返回0表示邮箱地址可用.给新用户注册使用
      *
      * @param email
      * @return
      */
-    public boolean checkEmail(String email) {
-        if (email == null) return false;
-        if (!emailReg.test(email)) return false;
-        return this.emailUserInfos.get(email.toLowerCase()) == null;
+    public int checkEmail(String email) {
+        if (email == null) return RET_USER_EMAIL_ILLEGAL;
+        if (!emailReg.test(email)) return RET_USER_EMAIL_ILLEGAL;
+        return this.emailUserInfos.get(email.toLowerCase()) == null ? 0 : RET_USER_EMAIL_EXISTS;
     }
 
     public boolean checkWxunionid(String wxunionid) {
@@ -754,58 +726,9 @@ public class UserService extends BaseService {
         return qqopenid != null && !qqopenid.isEmpty() && this.qqopenidUserInfos.get(qqopenid) == null;
     }
 
-    private static final Predicate<String> mobileReg = Pattern.compile("^\\d{6,18}$").asPredicate();
-
-    /**
-     * 检测手机号码是否有效, 返回true表示手机号码可用
-     *
-     * @param mobile
-     * @return
-     */
-    public boolean checkMobile(String mobile) {
-        if (mobile == null) return false;
-        if (!mobileReg.test(mobile)) return false;
-        return this.mobileUserInfos.get(mobile) == null;
-    }
-
-    private static final Predicate<String> userNameReg = Pattern.compile("^[A-Za-z0-9\\u4E00-\\uFFEE-\\. _]{2,64}$").asPredicate();
-
-    /**
-     * 检测用户名是否有效, 返回true表示用户名可用
-     *
-     * @param username
-     * @return
-     */
-    public boolean checkUsername(String username) {
-        if (username == null) return false;
-        return userNameReg.test(username);
-    }
-
     protected void updateUser(UserDetail user) {
         user.setUpdatetime(System.currentTimeMillis());
         source.update(user);
-    }
-
-    /**
-     * 修改用户邮件
-     *
-     * @param userInfo
-     * @param email
-     * @param vercode
-     * @return
-     */
-    public RetResult updateEmail(UserInfo userInfo, String email, String vercode) {
-        RetResult result = new RetResult();
-        if (email != null && !email.isEmpty() && !checkEmail(email)) return new RetResult(1010011);
-        RandomCode code = source.find(RandomCode.class, email + "-" + vercode);
-        if (code == null || code.isExpired()) return new RetResult(1010021); //验证码无效
-        userInfo = userInfo.copy();
-        source.updateColumn(UserDetail.class, userInfo.getUserid(), "email", email);
-        userInfo.setEmail(email);
-        updateUserInfo(userInfo, true);
-        source.insert(code.createRandomCodeHis(RandomCodeHis.RETCODE_OK));
-        source.delete(RandomCode.class, code.getRandomcode());
-        return result;
     }
 
 }

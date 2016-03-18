@@ -5,11 +5,10 @@
  */
 package org.redkale.demo.base;
 
-import java.security.*;
-import javax.persistence.*;
+import javax.persistence.Id;
 import org.redkale.convert.*;
-import org.redkale.source.*;
-import org.redkale.util.*;
+import org.redkale.source.VirtualEntity;
+import org.redkale.util.Reproduce;
 
 /**
  *
@@ -31,18 +30,6 @@ public class UserInfo extends BaseEntity {
     //女
     public static final short GENDER_FEMALE = 4;
 
-    protected static final MessageDigest sha1;
-
-    static {
-        MessageDigest d = null;
-        try {
-            d = MessageDigest.getInstance("SHA-1");
-        } catch (NoSuchAlgorithmException ex) {
-            ex.printStackTrace();
-        }
-        sha1 = d;
-    }
-
     //平台的虚拟用户ID
     public static final int USERID_SYSTEM = 100000000;
 
@@ -62,6 +49,8 @@ public class UserInfo extends BaseEntity {
 
     protected String password = ""; //密码（前端不可见） 数据库存放的密码规则为: HEX-SHA1( HEX-MD5( HEX-MD5(明文)+"-REDKALE" ) +"-REDKALE" )
 
+    protected String account = "";  //用户账号（前端不可见）
+
     protected String mobile = "";  //手机号码（前端不可见）
 
     protected String email = "";  //邮箱  （前端不可见）
@@ -73,10 +62,10 @@ public class UserInfo extends BaseEntity {
     protected String apptoken = "";  //APP的设备ID （前端不可见） 通常用于IOS的APNS推送
 
     protected short status;    //状态 （前端不可见）  值见BaseEntity的STATUS常量
-    
-    protected long infotime; //用户可见资料的更新时间 通常用于客户端判断用户资料是否已修改便于主动拉取新资料
 
     protected short gender; //性别; 2:男;  4:女; 值见BaseEntity的GENDER常量
+
+    protected long infotime; //用户可见资料的更新时间 通常用于客户端判断用户资料是否已修改便于主动拉取新资料
 
     @Override
     public int hashCode() {
@@ -97,21 +86,6 @@ public class UserInfo extends BaseEntity {
         return reproduce.copy(dest, this);
     }
 
-    /**
-     * 校验密码是否正确
-     *
-     * @param passwordtwicemd5
-     * @return
-     */
-    public boolean checkPassword(String passwordtwicemd5) {
-        if (this.password.isEmpty() && passwordtwicemd5.isEmpty()) return true;
-        byte[] bytes = (passwordtwicemd5.trim() + "-REDKALE").getBytes();
-        synchronized (sha1) {
-            bytes = sha1.digest(bytes);
-        }
-        return this.password.equals(new String(Utility.binToHex(bytes)));
-    }
-
     //用户是否处于正常状态
     @ConvertColumn(ignore = true, type = ConvertType.BSON)
     public boolean isNormal() {
@@ -130,22 +104,16 @@ public class UserInfo extends BaseEntity {
         return this.status == STATUS_FREEZE;
     }
 
-    //是否绑定了APP设备
-    @ConvertColumn(ignore = true, type = ConvertType.ALL)
-    public boolean isHasapptoken() {
-        return this.apptoken != null && !this.apptoken.isEmpty();
+    //是否绑定了手机号码
+    @ConvertColumn(ignore = true, type = ConvertType.BSON)
+    public boolean isMb() {
+        return this.mobile != null && !this.mobile.isEmpty();
     }
 
     //是否绑定了邮箱
     @ConvertColumn(ignore = true, type = ConvertType.BSON)
     public boolean isEm() {
         return this.email != null && !this.email.isEmpty();
-    }
-
-    //是否绑定了手机号码
-    @ConvertColumn(ignore = true, type = ConvertType.BSON)
-    public boolean isMb() {
-        return this.mobile != null && !this.mobile.isEmpty();
     }
 
     //是否绑定了微信
@@ -158,6 +126,18 @@ public class UserInfo extends BaseEntity {
     @ConvertColumn(ignore = true, type = ConvertType.BSON)
     public boolean isQq() {
         return this.qqopenid != null && !this.qqopenid.isEmpty();
+    }
+
+    //是否有用户账号
+    @ConvertColumn(ignore = true, type = ConvertType.ALL)
+    public boolean isAc() {
+        return this.account != null && !this.account.isEmpty();
+    }
+
+    //是否绑定了APP设备
+    @ConvertColumn(ignore = true, type = ConvertType.ALL)
+    public boolean isAp() {
+        return this.apptoken != null && !this.apptoken.isEmpty();
     }
 
     public long getInfotime() {
@@ -178,6 +158,16 @@ public class UserInfo extends BaseEntity {
 
     public void setUserid(int userid) {
         this.userid = userid;
+    }
+
+    //用户帐号不允许输出给外部接口
+    @ConvertColumn(ignore = true, type = ConvertType.JSON)
+    public String getAccount() {
+        return account;
+    }
+
+    public void setAccount(String account) {
+        if (account != null) this.account = account.trim();
     }
 
     public String getUsername() {

@@ -6,7 +6,7 @@
 package org.redkale.demo.user;
 
 import javax.persistence.*;
-import org.redkale.demo.base.*;
+import org.redkale.demo.base.BaseEntity;
 
 /**
  *
@@ -18,12 +18,13 @@ public class RandomCodeHis extends BaseEntity {
     private static final long serialVersionUID = 1L;
 
     //过期
-    public static final short RETCODE_EXP = 10;
+    public static final short RETCODE_EXP = 2;
 
     //已处理
-    public static final short RETCODE_OK = 20;
+    public static final short RETCODE_OK = 4;
 
     @Id
+    @GeneratedValue
     private long seqid;
 
     private String randomcode;

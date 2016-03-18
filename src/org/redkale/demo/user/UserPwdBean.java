@@ -5,7 +5,7 @@
  */
 package org.redkale.demo.user;
 
-import org.redkale.demo.base.*;
+import org.redkale.demo.base.BaseBean;
 
 /**
  *
@@ -17,9 +17,9 @@ public class UserPwdBean extends BaseBean {
 
     private String randomcode = "";
 
-    private String oldpwd;
+    private String oldpwd;  //HEX-MD5(密码明文)
 
-    private String newpwd;
+    private String newpwd;  //HEX-MD5(密码明文)
 
     public String getSessionid() {
         return sessionid;

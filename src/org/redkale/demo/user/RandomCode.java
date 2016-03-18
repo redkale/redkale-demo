@@ -7,7 +7,7 @@ package org.redkale.demo.user;
 
 import java.security.SecureRandom;
 import javax.persistence.*;
-import org.redkale.demo.base.*;
+import org.redkale.demo.base.BaseEntity;
 import org.redkale.util.*;
 
 /**
@@ -39,7 +39,7 @@ public class RandomCode extends BaseEntity {
     public static final short TYPE_SMSMOB = 30;
 
     //邮件重置密码
-    public static final short TYPE_MAILPWD = 50;
+    public static final short TYPE_MAILPWD = 60;
 
     //更改邮箱绑定
     public static final short TYPE_MAILBIND = 70;
