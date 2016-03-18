@@ -58,6 +58,7 @@ CREATE TABLE `userdetail` (
   `userid` int(11) NOT NULL AUTO_INCREMENT COMMENT '用户ID',
   `account` varchar(128) NOT NULL DEFAULT '' COMMENT '用户账号',
   `username` varchar(128) NOT NULL DEFAULT '' COMMENT '用户昵称',
+  `type` smallint(5) NOT NULL DEFAULT '0' COMMENT '用户类型',
   `password` varchar(128) NOT NULL DEFAULT '' COMMENT '密码',
   `mobile` varchar(128) NOT NULL DEFAULT '' COMMENT '手机号码',
   `email` varchar(128) NOT NULL DEFAULT '' COMMENT '邮箱',
