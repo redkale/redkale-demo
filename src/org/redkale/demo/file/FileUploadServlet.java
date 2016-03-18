@@ -9,13 +9,13 @@ import com.sun.image.codec.jpeg.*;
 import java.awt.*;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.Rectangle2D;
-import java.awt.image.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
-import javax.annotation.*;
-import javax.imageio.*;
+import javax.annotation.Resource;
+import javax.imageio.ImageIO;
 import org.redkale.demo.base.*;
 import org.redkale.net.http.*;
-import org.redkale.util.*;
+import org.redkale.util.AnyValue;
 
 /**
  *
@@ -123,10 +123,10 @@ public class FileUploadServlet extends BaseServlet {
                             image = image.getSubimage((image.getWidth() - nwidth) / 2, 0, nwidth, image.getHeight());
                         }
                     }
-                    final boolean large = image.getWidth() > 640;
+                    final boolean large = image.getWidth() > 2048;
                     if (!jpeg || size > 0 || large) {
-                        int w = size > 0 ? size : (large ? 640 : image.getWidth());
-                        int h = size > 0 ? size : (large ? image.getHeight() * 640 / image.getWidth() : image.getHeight());
+                        int w = size > 0 ? size : (large ? 2048 : image.getWidth());
+                        int h = size > 0 ? size : (large ? image.getHeight() * 2048 / image.getWidth() : image.getHeight());
                         if (rate > 0) h = (int) (w / rate);
                         BufferedImage target = new BufferedImage(w, h, jpeg ? image.getType() : BufferedImage.TYPE_INT_RGB);
                         Graphics2D g = target.createGraphics();
