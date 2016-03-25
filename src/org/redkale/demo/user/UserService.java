@@ -21,10 +21,11 @@ import javax.imageio.ImageIO;
 import org.redkale.convert.json.JsonConvert;
 import static org.redkale.demo.base.RetCodes.*;
 import org.redkale.demo.base.*;
+import static org.redkale.demo.base.RetCodes.*;
 import static org.redkale.demo.base.UserInfo.*;
 import org.redkale.demo.file.FileService;
 import static org.redkale.demo.user.UserDetail.*;
-import org.redkale.plugins.email.*;
+import org.redkale.plugins.email.EmailService;
 import org.redkale.plugins.weixin.WeiXinMPService;
 import org.redkale.service.*;
 import org.redkale.source.*;
@@ -130,16 +131,17 @@ public class UserService extends BaseService {
         for (int i = 0; i < count; i++) {
             super.submit(() -> {
                 try {
+                    Flipper f;
                     while (flag.get()) {
                         synchronized (flipper) {
-                            flipper.next();
+                            f = flipper.next().clone();
                         }
-                        Sheet<UserDetail> sheet = source.querySheet(UserDetail.class, flipper, (FilterBean) null);
+                        Sheet<UserDetail> sheet = source.querySheet(UserDetail.class, f, (FilterBean) null);
                         if (sheet.isEmpty()) {
                             flag.set(false);
                             break;
                         }
-                        if (sheet.getRows().size() < flipper.getSize()) flag.set(false);
+                        if (sheet.getRows().size() < f.getSize()) flag.set(false);
                         for (UserDetail detail : sheet.getRows()) {
                             UserInfo info = detail.createUserInfo();
                             this.putUserInfo(info, false);
