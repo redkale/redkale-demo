@@ -193,10 +193,10 @@ public class FileService extends BaseService {
     private static final int[] face_widths = {64, 128, 512}; //头像有三种规格: 64*64、128*128 512*512
     
     public final String storeFace(int userid, int imgType, BufferedImage srcImage) throws IOException {
-        return storeMultiFile("face", Integer.toString(userid, 36), face_widths, imgType, srcImage, () -> userService.updateInfotime(userid));
+        return storeMultiJPGFile("face", Integer.toString(userid, 36), face_widths, imgType, srcImage, () -> userService.updateInfotime(userid));
     }
 
-    public final String storeMultiFile(final String subdir, final String fileid, int[] widths, int imgType, BufferedImage srcImage, Runnable runner) throws IOException {
+    public final String storeMultiJPGFile(final String subdir, final String fileid, int[] widths, int imgType, BufferedImage srcImage, Runnable runner) throws IOException {
         final File[] facefiles = new File[widths.length];
         final int w = srcImage.getWidth();
         final int h = srcImage.getHeight();
