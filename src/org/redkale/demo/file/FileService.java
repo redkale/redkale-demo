@@ -7,19 +7,19 @@ package org.redkale.demo.file;
 
 import com.sun.image.codec.jpeg.*;
 import java.awt.*;
-import java.awt.image.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
-import java.net.*;
-import java.nio.file.*;
+import java.net.InetSocketAddress;
+import java.nio.file.Files;
 import static java.nio.file.StandardCopyOption.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.*;
-import java.util.logging.*;
-import javax.annotation.*;
-import org.redkale.demo.base.*;
-import org.redkale.demo.user.*;
-import org.redkale.service.*;
+import java.util.logging.Level;
+import javax.annotation.Resource;
+import org.redkale.demo.base.BaseService;
+import org.redkale.demo.user.UserService;
+import org.redkale.service.RetResult;
 import org.redkale.util.*;
 
 /**
@@ -189,18 +189,26 @@ public class FileService extends BaseService {
             logger.log(Level.WARNING, this.getClass().getSimpleName() + " async file error (" + command + ")", ex);
         }
     }
+    
+    private static final int[] face_widths = {64, 128, 512}; //头像有三种规格: 64*64、128*128 512*512
+    
+    public final String storeFace(int userid, int imgType, BufferedImage srcImage) throws IOException {
+        return storeMultiFile("face", Integer.toString(userid, 36), face_widths, imgType, srcImage, () -> userService.updateInfotime(userid));
+    }
 
-    public final String storeFace(int userid, int imgType, Image srcImage) throws IOException {
-        final int[] sizes = {200, 640};  //默认头像有两种规格: 200*200、640*640
-        final String user36id = Integer.toString(userid, 36);
-        final File[] facefiles = {createFile("face", user36id, "jpg_tmp"), createFile("face640", user36id, "jpg_tmp")};
-        for (int i = 0; i < sizes.length; i++) {
-            int size = sizes[i];
-            BufferedImage target = new BufferedImage(size, size, BufferedImage.TYPE_INT_RGB);
+    public final String storeMultiFile(final String subdir, final String fileid, int[] widths, int imgType, BufferedImage srcImage, Runnable runner) throws IOException {
+        final File[] facefiles = new File[widths.length];
+        final int w = srcImage.getWidth();
+        final int h = srcImage.getHeight();
+        for (int i = 0; i < widths.length; i++) {
+            facefiles[i] = createFile(subdir + "_" + widths[i], fileid, "jpg_tmp");
+            int with = widths[i];
+            int height = with * h / w;
+            BufferedImage target = new BufferedImage(with, height, BufferedImage.TYPE_INT_RGB);
             Graphics2D g = target.createGraphics();
             g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, 1));
-            g.fillRect(0, 0, size, size);
-            g.drawImage(srcImage.getScaledInstance(size, size, Image.SCALE_SMOOTH), 0, 0, size, size, null);
+            g.fillRect(0, 0, with, height);
+            g.drawImage(srcImage.getScaledInstance(with, height, Image.SCALE_SMOOTH), 0, 0, with, height, null);
             g.dispose();
             if (facefiles[i].getParentFile().isFile()) facefiles[i].getParentFile().delete();
             facefiles[i].getParentFile().mkdirs();
@@ -216,10 +224,9 @@ public class FileService extends BaseService {
             Files.move(facefiles[i].toPath(), newfile.toPath(), REPLACE_EXISTING, ATOMIC_MOVE);
             facefiles[i] = newfile;
         }
-        String fileid = user36id + ".jpg";
-        userService.updateInfotime(userid);
+        if (runner != null) runner.run();
         asyncFile(facefiles);
-        return fileid;
+        return fileid + ".jpg";
     }
 
     final File storeFile(String dir, String filename, String extension, String content) throws IOException {
@@ -285,7 +292,7 @@ public class FileService extends BaseService {
     /**
      * 创建新的文件名， filename =null 则会随机生成一个文件名
      * <p>
-     * @param dir files下的根目录
+     * @param dir       files下的根目录
      * @param filename
      * @param extension 文件名后缀
      * @return
@@ -308,7 +315,7 @@ public class FileService extends BaseService {
         }
         return s;
     }
-    
+
     //根据文件名生产文件存放的子目录， 如: aabbccddee.png 的存放目录为 aa/bb/cc/dd/aabbccee.png
     public static String hashPath(String filename) {
         int pos = filename.indexOf('.') - 1;
