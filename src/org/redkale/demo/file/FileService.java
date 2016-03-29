@@ -189,21 +189,20 @@ public class FileService extends BaseService {
             logger.log(Level.WARNING, this.getClass().getSimpleName() + " async file error (" + command + ")", ex);
         }
     }
-    
+
     private static final int[] face_widths = {64, 128, 512}; //头像有三种规格: 64*64、128*128 512*512
-    
-    public final String storeFace(int userid, int imgType, BufferedImage srcImage) throws IOException {
-        return storeMultiJPGFile("face", Integer.toString(userid, 36), face_widths, imgType, srcImage, () -> userService.updateInfotime(userid));
+
+    public final String storeFace(int userid, BufferedImage srcImage) throws IOException {
+        return storeMultiJPGFile("face", Integer.toString(userid, 36), face_widths, ImageRatio.RATIO_1_1, srcImage, () -> userService.updateInfotime(userid));
     }
 
-    public final String storeMultiJPGFile(final String subdir, final String fileid, int[] widths, int imgType, BufferedImage srcImage, Runnable runner) throws IOException {
+    public final String storeMultiJPGFile(final String dir, final String fileid, int[] widths, final ImageRatio ratio, BufferedImage srcImage, Runnable runner) throws IOException {
         final File[] facefiles = new File[widths.length];
-        final int w = srcImage.getWidth();
-        final int h = srcImage.getHeight();
+        srcImage = ratio.cut(srcImage);
         for (int i = 0; i < widths.length; i++) {
-            facefiles[i] = createFile(subdir + "_" + widths[i], fileid, "jpg_tmp");
+            facefiles[i] = createFile(dir + "_" + widths[i], fileid, "jpg_tmp");
             int with = widths[i];
-            int height = with * h / w;
+            int height = ratio.height(with);
             BufferedImage target = new BufferedImage(with, height, BufferedImage.TYPE_INT_RGB);
             Graphics2D g = target.createGraphics();
             g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, 1));

@@ -21,7 +21,6 @@ import javax.imageio.ImageIO;
 import org.redkale.convert.json.JsonConvert;
 import static org.redkale.demo.base.RetCodes.*;
 import org.redkale.demo.base.*;
-import static org.redkale.demo.base.RetCodes.*;
 import static org.redkale.demo.base.UserInfo.*;
 import org.redkale.demo.file.FileService;
 import static org.redkale.demo.user.UserDetail.*;
@@ -242,7 +241,7 @@ public class UserService extends BaseService {
         }
         if (old != null) info = info.copyTo(old);
         userInfos.put(info.getUserid(), info);
-        if (info.isAc()) accountUserInfos.put(old.getAccount().toLowerCase(), info);
+        if (info.isAc()) accountUserInfos.put(info.getAccount().toLowerCase(), info);
         if (info.isEm()) emailUserInfos.put(info.getEmail().toLowerCase(), info);
         if (info.isMb()) mobileUserInfos.put(info.getMobile(), info);
         if (info.isWx()) wxunionidUserInfos.put(info.getWxunionid(), info);
@@ -304,7 +303,7 @@ public class UserService extends BaseService {
                             try {
                                 byte[] bytes = Utility.getHttpBytesContent(headimgurl);
                                 BufferedImage image = ImageIO.read(new ByteArrayInputStream(bytes));
-                                fileService.storeFace(rr.getResult().getUserid(), image.getType(), image);
+                                fileService.storeFace(rr.getResult().getUserid(), image);
                             } catch (Exception e) {
                                 logger.log(Level.INFO, "qqlogin get headimgurl fail (" + rr.getResult() + ", " + jsonmap + ")", e);
                             }
@@ -354,7 +353,7 @@ public class UserService extends BaseService {
                             try {
                                 byte[] bytes = Utility.getHttpBytesContent(headimgurl);
                                 BufferedImage image = ImageIO.read(new ByteArrayInputStream(bytes));
-                                fileService.storeFace(rr.getResult().getUserid(), image.getType(), image);
+                                fileService.storeFace(rr.getResult().getUserid(), image);
                             } catch (Exception e) {
                                 logger.log(Level.INFO, "wxlogin get headimgurl fail (" + rr.getResult() + ", " + wxmap + ")", e);
                             }
