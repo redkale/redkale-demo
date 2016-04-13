@@ -72,31 +72,13 @@ public class FileUploadServlet extends BaseServlet {
     }
 
     protected void uploadImg(final HttpRequest req, HttpResponse resp, String dir, int[] widths, final ImageRatio ratio, final boolean sync, final long max) throws IOException {
-        String fileid = "";
         for (MultiPart part : req.multiParts()) {
             final String mime = MimeType.getByFilename(part.getFilename());
             if (!mime.contains("image/")) { //不是图片
                 sendRetResult(resp, RetCodes.create(RET_UPLOAD_NOTIMAGE));
                 return;
             }
-            byte[] bytes = part.getContentBytes(max);
-            if (bytes != null) {
-                final boolean jpeg = bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[bytes.length - 2] == 0xFF && bytes[bytes.length - 1] == 0xD9;
-                BufferedImage image = ratio.cut(ImageIO.read(new ByteArrayInputStream(bytes)));
-                if (!jpeg) {
-                    int w = image.getWidth();
-                    int h = image.getHeight();
-                    BufferedImage target = new BufferedImage(w, h, jpeg ? image.getType() : BufferedImage.TYPE_INT_RGB);
-                    Graphics2D g = target.createGraphics();
-                    // 因为有的图片背景是透明色，所以用白色填充 FIXED
-                    g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, 1));
-                    g.fillRect(0, 0, w, h);
-                    g.drawImage(image.getScaledInstance(w, h, Image.SCALE_SMOOTH), 0, 0, w, h, null);
-                    g.dispose();
-                    image = target;
-                }
-                fileid = service.storeMultiJPGFile(dir, null, widths, ratio, image, null);
-            }
+            String fileid = service.storeMultiJPGFile(dir, null, widths, ratio, part.getContentBytes(max), null);
             if (fileid.isEmpty()) {
                 sendRetResult(resp, RetCodes.create(RET_UPLOAD_FILETOOBIG));
             } else {

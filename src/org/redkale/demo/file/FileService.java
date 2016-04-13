@@ -17,6 +17,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import javax.annotation.Resource;
+import javax.imageio.ImageIO;
 import org.redkale.demo.base.BaseService;
 import org.redkale.demo.user.UserService;
 import org.redkale.service.RetResult;
@@ -194,6 +195,25 @@ public class FileService extends BaseService {
 
     public final String storeFace(int userid, BufferedImage srcImage) throws IOException {
         return storeMultiJPGFile("face", Integer.toString(userid, 36), face_widths, ImageRatio.RATIO_1_1, srcImage, () -> userService.updateInfotime(userid));
+    }
+
+    public final String storeMultiJPGFile(final String dir, final String fileid, int[] widths, final ImageRatio ratio, byte[] bytes, Runnable runner) throws IOException {
+        if (bytes == null) return "";
+        final boolean jpeg = bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[bytes.length - 2] == 0xFF && bytes[bytes.length - 1] == 0xD9;
+        BufferedImage image = ratio.cut(ImageIO.read(new ByteArrayInputStream(bytes)));
+        if (!jpeg) {
+            int w = image.getWidth();
+            int h = image.getHeight();
+            BufferedImage target = new BufferedImage(w, h, jpeg ? image.getType() : BufferedImage.TYPE_INT_RGB);
+            Graphics2D g = target.createGraphics();
+            // 因为有的图片背景是透明色，所以用白色填充 FIXED
+            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, 1));
+            g.fillRect(0, 0, w, h);
+            g.drawImage(image.getScaledInstance(w, h, Image.SCALE_SMOOTH), 0, 0, w, h, null);
+            g.dispose();
+            image = target;
+        }
+        return storeMultiJPGFile(dir, null, widths, ratio, image, null);
     }
 
     public final String storeMultiJPGFile(final String dir, final String fileid, int[] widths, final ImageRatio ratio, BufferedImage srcImage, Runnable runner) throws IOException {
