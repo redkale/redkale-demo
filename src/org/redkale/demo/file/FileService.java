@@ -312,7 +312,7 @@ public class FileService extends BaseService {
      * 创建新的文件名， filename =null 则会随机生成一个文件名
      * <p>
      * @param dir       files下的根目录
-     * @param filename
+     * @param filename 不带后缀的文件名
      * @param extension 文件名后缀
      * @return
      */
