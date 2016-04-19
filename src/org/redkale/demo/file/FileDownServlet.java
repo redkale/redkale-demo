@@ -6,10 +6,10 @@
 package org.redkale.demo.file;
 
 import java.io.*;
-import javax.annotation.*;
-import org.redkale.demo.base.*;
+import javax.annotation.Resource;
+import org.redkale.demo.base.BaseServlet;
 import org.redkale.net.http.*;
-import org.redkale.util.*;
+import org.redkale.util.AnyValue;
 
 /**
  * 所有静态资源的请求url的根目录为dir，便于nginx进行静动分离
@@ -49,7 +49,7 @@ public class FileDownServlet extends BaseServlet {
         File f = new File(files, uri.substring(0, pos + 1) + FileService.hashPath(uri.substring(pos + 1)) + (face ? ".jpg" : ""));
         if (!f.isFile() && face) f = dface;
         if (f.isFile()) {
-            resp.finish(f);
+            resp.finish(req.getParameter("filename"), f);
         } else {
             resp.finish(404, null);
         }
