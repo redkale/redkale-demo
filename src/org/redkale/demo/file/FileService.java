@@ -216,19 +216,27 @@ public class FileService extends BaseService {
         return storeMultiJPGFile(dir, null, widths, ratio, image, null);
     }
 
+    private static final int[] WIDTHS_ONEL = new int[]{0};
+
     public final String storeMultiJPGFile(final String dir, final String fileid, int[] widths, final ImageRatio ratio, BufferedImage srcImage, Runnable runner) throws IOException {
+        if (widths == null) widths = WIDTHS_ONEL;
         final File[] facefiles = new File[widths.length];
-        srcImage = ratio.cut(srcImage);
+        srcImage = ratio == null ? srcImage : ratio.cut(srcImage);
         for (int i = 0; i < widths.length; i++) {
-            facefiles[i] = createFile(dir + "_" + widths[i], fileid, "jpg_tmp");
-            int with = widths[i];
-            int height = ratio.height(with);
-            BufferedImage target = new BufferedImage(with, height, BufferedImage.TYPE_INT_RGB);
-            Graphics2D g = target.createGraphics();
-            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, 1));
-            g.fillRect(0, 0, with, height);
-            g.drawImage(srcImage.getScaledInstance(with, height, Image.SCALE_SMOOTH), 0, 0, with, height, null);
-            g.dispose();
+            facefiles[i] = createFile(widths[i] > 0 ? (dir + "_" + widths[i]) : dir, fileid, "jpg_tmp");
+            BufferedImage target;
+            if (widths[i] > 0) {
+                int with = widths[i];
+                int height = ratio.height(with);
+                target = new BufferedImage(with, height, BufferedImage.TYPE_INT_RGB);
+                Graphics2D g = target.createGraphics();
+                g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, 1));
+                g.fillRect(0, 0, with, height);
+                g.drawImage(srcImage.getScaledInstance(with, height, Image.SCALE_SMOOTH), 0, 0, with, height, null);
+                g.dispose();
+            } else {
+                target = srcImage;
+            }
             if (facefiles[i].getParentFile().isFile()) facefiles[i].getParentFile().delete();
             facefiles[i].getParentFile().mkdirs();
             FileOutputStream out = new FileOutputStream(facefiles[i]);
@@ -312,7 +320,7 @@ public class FileService extends BaseService {
      * 创建新的文件名， filename =null 则会随机生成一个文件名
      * <p>
      * @param dir       files下的根目录
-     * @param filename 不带后缀的文件名
+     * @param filename  不带后缀的文件名
      * @param extension 文件名后缀
      * @return
      */
