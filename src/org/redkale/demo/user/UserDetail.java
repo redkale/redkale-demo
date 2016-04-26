@@ -14,7 +14,6 @@ import org.redkale.util.*;
  *
  * @author zhangjx
  */
-@AutoLoad
 @Cacheable
 @LogLevel("FINER")
 public class UserDetail extends UserInfo {
