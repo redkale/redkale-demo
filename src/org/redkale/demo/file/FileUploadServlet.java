@@ -14,7 +14,6 @@ import javax.annotation.Resource;
 import javax.imageio.ImageIO;
 import static org.redkale.demo.base.RetCodes.*;
 import org.redkale.demo.base.*;
-import static org.redkale.demo.base.RetCodes.*;
 import org.redkale.net.http.*;
 import org.redkale.util.AnyValue;
 
@@ -46,14 +45,6 @@ public class FileUploadServlet extends BaseServlet {
         uploadBin(req, resp, 10 * 1024 * 1024L);
     }
 
-    protected void uploadBin(HttpRequest req, HttpResponse resp, long max) throws IOException {
-        uploadBin(req, resp, req.getRequstURILastPath(), true, max);
-    }
-
-    protected void uploadBin(HttpRequest req, HttpResponse resp, String dir, long max) throws IOException {
-        uploadBin(req, resp, dir, true, max);
-    }
-
     @WebAction(url = "/upload/face") // 上传头像 以正方形规格存储
     public void face(HttpRequest req, HttpResponse resp) throws IOException {
         UserInfo user = currentUser(req);
@@ -71,14 +62,34 @@ public class FileUploadServlet extends BaseServlet {
         resp.finish("{\"success\":false,\"retcode\":2010001,\"retinfo\":\"no upload file entry\"}");
     }
 
-    protected void uploadImg(final HttpRequest req, HttpResponse resp, String dir, int[] widths, final ImageRatio ratio, final boolean sync, final long max) throws IOException {
+    protected void uploadBin(HttpRequest req, HttpResponse resp, long max) throws IOException {
+        uploadBin(req, resp, req.getRequstURILastPath(), null, true, max);
+    }
+
+    protected void uploadBin(HttpRequest req, HttpResponse resp, String dir, long max) throws IOException {
+        uploadBin(req, resp, dir, null, true, max);
+    }
+
+    protected void uploadImg(HttpRequest req, HttpResponse resp, int[] widths, final ImageRatio ratio, long max) throws IOException {
+        uploadImg(req, resp, req.getRequstURILastPath(), null, widths, ratio, true, max);
+    }
+
+    protected void uploadImg(HttpRequest req, HttpResponse resp, String dir, int[] widths, final ImageRatio ratio, long max) throws IOException {
+        uploadImg(req, resp, dir, null, widths, ratio, true, max);
+    }
+
+    protected void uploadImg(HttpRequest req, HttpResponse resp, String dir, String fileid0, int[] widths, final ImageRatio ratio, long max) throws IOException {
+        uploadImg(req, resp, dir, fileid0, widths, ratio, true, max);
+    }
+
+    protected void uploadImg(final HttpRequest req, HttpResponse resp, String dir, String fileid0, int[] widths, final ImageRatio ratio, final boolean sync, final long max) throws IOException {
         for (MultiPart part : req.multiParts()) {
             final String mime = MimeType.getByFilename(part.getFilename());
             if (!mime.contains("image/")) { //不是图片
                 sendRetResult(resp, RetCodes.create(RET_UPLOAD_NOTIMAGE));
                 return;
             }
-            String fileid = service.storeMultiJPGFile(dir, null, widths, ratio, part.getContentBytes(max), null);
+            String fileid = service.storeMultiJPGFile(dir, fileid0, widths, ratio, part.getContentBytes(max), null);
             if (fileid.isEmpty()) {
                 sendRetResult(resp, RetCodes.create(RET_UPLOAD_FILETOOBIG));
             } else {
@@ -89,11 +100,11 @@ public class FileUploadServlet extends BaseServlet {
         sendRetResult(resp, RetCodes.create(RET_UPLOAD_NOFILE));
     }
 
-    protected void uploadBin(final HttpRequest req, HttpResponse resp, String dir, final boolean sync, final long max) throws IOException {
+    protected void uploadBin(final HttpRequest req, HttpResponse resp, String dir, String fileid0, final boolean sync, final long max) throws IOException {
         String fileid = "";
         File file;
         for (MultiPart part : req.multiParts()) {
-            file = service.storeFile(sync, dir, null, part.getFilename(), max, part.getInputStream());
+            file = service.storeFile(sync, dir, fileid0, part.getFilename(), max, part.getInputStream());
             if (file != null) fileid = file.getName();
             if (fileid.isEmpty()) {
                 sendRetResult(resp, RetCodes.create(RET_UPLOAD_FILETOOBIG));
@@ -134,5 +145,4 @@ public class FileUploadServlet extends BaseServlet {
         }
         graphics.dispose();
     }
-
 }
