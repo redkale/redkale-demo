@@ -200,7 +200,7 @@ public class FileService extends BaseService {
     public final String storeMultiJPGFile(final String dir, final String fileid, int[] widths, final ImageRatio ratio, byte[] bytes, Runnable runner) throws IOException {
         if (bytes == null) return "";
         final boolean jpeg = bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[bytes.length - 2] == 0xFF && bytes[bytes.length - 1] == 0xD9;
-        BufferedImage image = ratio.cut(ImageIO.read(new ByteArrayInputStream(bytes)));
+        BufferedImage image = ratio == null ? ImageIO.read(new ByteArrayInputStream(bytes)) : ratio.cut(ImageIO.read(new ByteArrayInputStream(bytes)));
         if (!jpeg) {
             int w = image.getWidth();
             int h = image.getHeight();
@@ -213,7 +213,7 @@ public class FileService extends BaseService {
             g.dispose();
             image = target;
         }
-        return storeMultiJPGFile(dir, null, widths, ratio, image, null);
+        return storeMultiJPGFile(dir, fileid, widths, ratio, image, null);
     }
 
     private static final int[] WIDTHS_ONEL = new int[]{0};
