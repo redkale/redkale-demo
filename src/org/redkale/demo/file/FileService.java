@@ -246,14 +246,16 @@ public class FileService extends BaseService {
             encoder.encode(target);
             out.close();
         }
+        String rs = "";
         for (int i = 0; i < facefiles.length; i++) {
             File newfile = new File(facefiles[i].getPath().replace("_tmp", ""));
             Files.move(facefiles[i].toPath(), newfile.toPath(), REPLACE_EXISTING, ATOMIC_MOVE);
             facefiles[i] = newfile;
+            rs = newfile.getName();
         }
         if (runner != null) runner.run();
         asyncFile(facefiles);
-        return fileid + ".jpg";
+        return rs;
     }
 
     final File storeFile(String dir, String filename, String extension, String content) throws IOException {
