@@ -65,7 +65,7 @@ CREATE TABLE `userdetail` (
   `wxunionid` varchar(255) NOT NULL DEFAULT '' COMMENT '微信openid',
   `qqopenid` varchar(255) NOT NULL DEFAULT '' COMMENT 'QQ openid',
   `apptoken` varchar(255) NOT NULL DEFAULT '' COMMENT 'APP的设备ID',
-  `status` smallint(5) NOT NULL DEFAULT '0' COMMENT '状态: 10:正常;20:待审批;40:冻结;50：隐藏;60:过期;70:关闭;80:删除;',
+  `status` smallint(5) NOT NULL DEFAULT '0' COMMENT '状态: 10:正常;20:待审批;40:冻结;50:隐藏;60:关闭;70:过期;80:删除;',
   `infotime` bigint(20) NOT NULL DEFAULT '0' COMMENT '用户可见资料的更新时间',
   `gender` smallint(5) NOT NULL DEFAULT '0' COMMENT '性别：2：男； 4:女；',
   `updatetime` bigint(20) NOT NULL DEFAULT '0' COMMENT '更新时间',
