@@ -116,7 +116,7 @@ public class UserServlet extends BaseServlet {
     }
 
     /**
-     * 微信登陆 https://open.weixin.qq.com/connect/qrconnect?appid=wx微信ID&redirect_uri=xxxxx&response_type=code&scope=snsapi_login&state=wx64ae61c939bdf906_1#wechat_redirect
+     * 微信登陆 https://open.weixin.qq.com/connect/qrconnect?appid=wx微信ID&redirect_uri=xxxxx&response_type=code&scope=snsapi_login&state=wx微信ID_1#wechat_redirect
      * <p>
      * @param req
      * @param resp
