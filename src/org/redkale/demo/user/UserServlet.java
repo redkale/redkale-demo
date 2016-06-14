@@ -267,6 +267,7 @@ public class UserServlet extends BaseServlet {
         } else {
             bean.setAccount(map.getOrDefault("account", ""));
         }
+        bean.setApptoken(map.getOrDefault("apptoken", ""));
         bean.setPassword(map.getOrDefault("password", ""));
         bean.setRegaddr(req.getRemoteAddr());
         bean.setRegagent(req.getHeader("User-Agent", ""));
@@ -283,6 +284,7 @@ public class UserServlet extends BaseServlet {
             loginbean.setPassword(curr.getPassword());
             loginbean.setSessionid(req.changeSessionid());
             loginbean.setLoginagent(req.getHeader("User-Agent"));
+            if(map.containsKey("cacheday"))loginbean.setCacheday(Integer.parseInt(map.getOrDefault("cacheday", "0")));
             loginbean.setLoginip(req.getRemoteAddr());
             rr = service.login(loginbean);
         }
