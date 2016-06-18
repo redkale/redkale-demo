@@ -77,12 +77,12 @@ public class BaseServlet extends org.redkale.net.http.BasedHttpServlet {
         UserInfo info = currentUser(request);
         if (info != null) return true;
         if (info == null) {
-            response.addHeader("retcode", "1010001");
+            response.addHeader("retcode", RetCodes.RET_USER_UNLOGIN);
             response.addHeader("retmessage", "Not Login");
             response.setStatus(203);
             response.finish("{'success':false, 'message':'Not Login'}");
         } else if (!info.checkAuth(module, actionid)) {
-            response.addHeader("retcode", "1010030");
+            response.addHeader("retcode", RetCodes.RET_USER_AUTH_ILLEGAL);
             response.addHeader("retmessage", "No Authority");
             response.setStatus(203);
             response.finish("{'success':false, 'message':'No Authority'}");

@@ -45,6 +45,9 @@ public abstract class RetCodes {
     @RetInfo("用户被禁用")
     public static final int RET_USER_FREEZED = 2010005;
 
+    @RetInfo("用户权限不够")
+    public static final int RET_USER_AUTH_ILLEGAL = 2010006;
+    
     @RetInfo("用户不存在")
     public static final int RET_USER_NOTEXISTS = 2010008;
 
