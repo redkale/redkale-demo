@@ -75,19 +75,20 @@ public class BaseServlet extends org.redkale.net.http.BasedHttpServlet {
     @Override
     public final boolean authenticate(int module, int actionid, HttpRequest request, HttpResponse response) throws IOException {
         UserInfo info = currentUser(request);
-        if (info != null) return true;
         if (info == null) {
             response.addHeader("retcode", RetCodes.RET_USER_UNLOGIN);
             response.addHeader("retmessage", "Not Login");
             response.setStatus(203);
             response.finish("{'success':false, 'message':'Not Login'}");
+            return false;
         } else if (!info.checkAuth(module, actionid)) {
             response.addHeader("retcode", RetCodes.RET_USER_AUTH_ILLEGAL);
             response.addHeader("retmessage", "No Authority");
             response.setStatus(203);
             response.finish("{'success':false, 'message':'No Authority'}");
+            return false;
         }
-        return false;
+        return true;
     }
 
     /**
