@@ -88,6 +88,12 @@ public class UserInfo extends BaseEntity {
         return reproduce.copy(dest, this);
     }
 
+    public boolean checkAuth(int moduleid, int actionid) {
+        if (moduleid == 0 || actionid == 0) return true;
+        //权限判断
+        return true;
+    }
+    
     //用户是否处于正常状态
     @ConvertColumn(ignore = true, type = ConvertType.BSON)
     public boolean isNormal() {

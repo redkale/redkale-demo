@@ -46,8 +46,9 @@ public class BaseServlet extends org.redkale.net.http.BasedHttpServlet {
     /**
      * Servlet的入口判断，一般用于全局的基本校验和预处理
      *
-     * @param request HTTP请求对象
+     * @param request  HTTP请求对象
      * @param response HTTP响应对象
+     *
      * @return
      * @throws IOException
      */
@@ -63,10 +64,11 @@ public class BaseServlet extends org.redkale.net.http.BasedHttpServlet {
     /**
      * 校验用户的登录态
      *
-     * @param module 模块ID，为0通常无需判断
+     * @param module   模块ID，为0通常无需判断
      * @param actionid 操作ID，为0通常无需判断
-     * @param request HTTP请求对象
+     * @param request  HTTP请求对象
      * @param response HTTP响应对象
+     *
      * @return
      * @throws IOException
      */
@@ -79,7 +81,7 @@ public class BaseServlet extends org.redkale.net.http.BasedHttpServlet {
             response.addHeader("retmessage", "Not Login");
             response.setStatus(203);
             response.finish("{'success':false, 'message':'Not Login'}");
-        } else {
+        } else if (!info.checkAuth(module, actionid)) {
             response.addHeader("retcode", "1010030");
             response.addHeader("retmessage", "No Authority");
             response.setStatus(203);
@@ -92,6 +94,7 @@ public class BaseServlet extends org.redkale.net.http.BasedHttpServlet {
      * 获取当前用户对象，没有返回null
      *
      * @param req HTTP请求对象
+     *
      * @return
      * @throws IOException
      */
@@ -103,7 +106,8 @@ public class BaseServlet extends org.redkale.net.http.BasedHttpServlet {
      * 获取当前用户对象，没有返回null, 提供static方法便于WebSocket进行用户态判断
      *
      * @param service UserService
-     * @param req HTTP请求对象
+     * @param req     HTTP请求对象
+     *
      * @return
      * @throws IOException
      */
@@ -134,8 +138,8 @@ public class BaseServlet extends org.redkale.net.http.BasedHttpServlet {
     /**
      * 将对象以js方式输出
      *
-     * @param resp HTTP响应对象
-     * @param var 对象名
+     * @param resp   HTTP响应对象
+     * @param var    对象名
      * @param result 对象
      */
     protected void sendJsResult(HttpResponse resp, String var, Object result) {
@@ -147,7 +151,7 @@ public class BaseServlet extends org.redkale.net.http.BasedHttpServlet {
      * 将结果对象输出， 异常的结果在HTTP的header添加retcode值
      *
      * @param resp HTTP响应对象
-     * @param ret 结果对象
+     * @param ret  结果对象
      */
     protected void sendRetResult(HttpResponse resp, RetResult ret) {
         if (!ret.isSuccess()) resp.addHeader("retcode", ret.getRetcode());
@@ -157,7 +161,7 @@ public class BaseServlet extends org.redkale.net.http.BasedHttpServlet {
     /**
      * 将结果对象输出， 异常的结果在HTTP的header添加retcode值
      *
-     * @param resp HTTP响应对象
+     * @param resp    HTTP响应对象
      * @param retcode 结果码
      */
     protected void sendRetcode(HttpResponse resp, int retcode) {
@@ -171,6 +175,7 @@ public class BaseServlet extends org.redkale.net.http.BasedHttpServlet {
      * 以上两种接口都可以获取到翻页对象
      *
      * @param request HTTP请求对象
+     *
      * @return
      */
     protected Flipper findFlipper(HttpRequest request) {
