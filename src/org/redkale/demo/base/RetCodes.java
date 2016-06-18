@@ -20,6 +20,9 @@ public abstract class RetCodes {
     }
 
     //------------------------------------- 通用模块 -----------------------------------------
+    @RetInfo("参数无效")
+    public static final int RET_PARAMS_ILLEGAL = 1010001;
+
     @RetInfo("无上传文件")
     public static final int RET_UPLOAD_NOFILE = 1010101;
 
@@ -47,7 +50,7 @@ public abstract class RetCodes {
 
     @RetInfo("用户权限不够")
     public static final int RET_USER_AUTH_ILLEGAL = 2010006;
-    
+
     @RetInfo("用户不存在")
     public static final int RET_USER_NOTEXISTS = 2010008;
 

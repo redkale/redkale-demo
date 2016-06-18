@@ -532,7 +532,6 @@ public class UserService extends BaseService {
     }
 
     public RetResult<UserInfo> updatePwd(UserPwdBean bean) {
-        RetResult<UserInfo> result = new RetResult();
         UserInfo user = bean.getSessionid() == null ? null : current(bean.getSessionid());
         final String newpwd = digestPassword(secondPasswordMD5(bean.getNewpwd())); //HEX-MD5(密码明文)
         if (user == null) {  //表示忘记密码后进行重置密码
@@ -550,22 +549,18 @@ public class UserService extends BaseService {
                 source.insert(code.createRandomCodeHis(RandomCodeHis.RETCODE_OK));
                 source.delete(RandomCode.class, code.getRandomcode());
                 updateUserInfo(user, false);
-                result.setResult(user);
-                return result;
+                return new RetResult<>(user);
             }
-            result.setRetcode(1010002);
-            return result;
+            return RetCodes.create(RET_USER_NOTEXISTS);
         }
         //用户或密码错误
         if (!Objects.equals(user.getPassword(), digestPassword(secondPasswordMD5(bean.getOldpwd())))) {
-            result.setRetcode(1010020); //原密码错误
-            return result;
+            return RetCodes.create(RET_USER_ACCOUNT_PWD_ILLEGAL);  //原密码错误
         }
         source.updateColumn(UserDetail.class, user.getUserid(), "password", newpwd);
         user.setPassword(newpwd);
         updateUserInfo(user, false);
-        result.setResult(user);
-        return result;
+        return new RetResult<>(user);
     }
 
     protected UserDetail findUserDetail(int userid) {
@@ -580,15 +575,15 @@ public class UserService extends BaseService {
      * @return
      */
     public RetResult smscode(final short type, String mobile) {
-        if (mobile == null) return new RetResult(1010022, type + " mobile is null"); //手机号码无效
+        if (mobile == null) return new RetResult(RET_USER_MOBILE_ILLEGAL, type + " mobile is null"); //手机号码无效
         if (mobile.indexOf('+') == 0) mobile = mobile.substring(1);
         UserInfo info = this.mobileUserInfos.get(mobile);
         if (type == RandomCode.TYPE_SMSREG || type == RandomCode.TYPE_SMSMOB) { //手机注册或手机修改的号码不能已存在
-            if (info != null) return new RetResult(1010016, "smsreg or smsmob mobile " + mobile + " exists");
+            if (info != null) return new RetResult(RET_USER_MOBILE_EXISTS, "smsreg or smsmob mobile " + mobile + " exists");
         } else if (type == RandomCode.TYPE_SMSPWD) { //修改密码
-            if (info == null) return new RetResult(1010005, "smspwd mobile " + mobile + " not exists");
+            if (info == null) return new RetResult(RET_USER_NOTEXISTS, "smspwd mobile " + mobile + " not exists");
         } else {
-            return new RetResult(1010004, type + " is illegal");
+            return new RetResult(RET_PARAMS_ILLEGAL, type + " is illegal");
         }
         List<RandomCode> codes = source.queryList(RandomCode.class, FilterNode.create("randomcode", FilterExpress.LIKE, mobile + "-%"));
         if (!codes.isEmpty()) {
