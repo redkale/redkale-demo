@@ -98,7 +98,7 @@ public class UserService extends BaseService {
     @Resource(name = "reduser")
     private DataSource source;
 
-    private int sessionExpireSeconds = 30 * 60;
+    private final int sessionExpireSeconds = 30 * 60;
 
     @Resource(name = "usersessions")
     protected CacheSource<String, Integer> sessions;
