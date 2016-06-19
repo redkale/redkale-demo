@@ -155,7 +155,10 @@ public class BaseServlet extends org.redkale.net.http.BasedHttpServlet {
      * @param ret  结果对象
      */
     protected void sendRetResult(HttpResponse resp, RetResult ret) {
-        if (!ret.isSuccess()) resp.addHeader("retcode", ret.getRetcode());
+        if (!ret.isSuccess()) {
+            resp.addHeader("retcode", ret.getRetcode());
+            resp.addHeader("retinfo", ret.getRetinfo());
+        }
         resp.finishJson(ret);
     }
 
@@ -167,6 +170,19 @@ public class BaseServlet extends org.redkale.net.http.BasedHttpServlet {
      */
     protected void sendRetcode(HttpResponse resp, int retcode) {
         if (retcode != 0) resp.addHeader("retcode", retcode);
+        resp.finish("{\"retcode\":" + retcode + ", \"success\": " + (retcode == 0) + "}");
+    }
+
+    /**
+     * 将结果对象输出， 异常的结果在HTTP的header添加retcode值
+     *
+     * @param resp    HTTP响应对象
+     * @param retcode 结果码
+     * @param retinfo 结果信息
+     */
+    protected void sendRetcode(HttpResponse resp, int retcode, String retinfo) {
+        if (retcode != 0) resp.addHeader("retcode", retcode);
+        if (retinfo != null && !retinfo.isEmpty()) resp.addHeader("retinfo", retinfo);
         resp.finish("{\"retcode\":" + retcode + ", \"success\": " + (retcode == 0) + "}");
     }
 
