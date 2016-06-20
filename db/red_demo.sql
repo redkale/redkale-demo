@@ -21,10 +21,10 @@ USE `red_demo`;
 DROP TABLE IF EXISTS `randomcode`;
 
 CREATE TABLE `randomcode` (
-  `randomcode` varchar(128) NOT NULL DEFAULT '' COMMENT '验证码',
-  `userid` int(11) NOT NULL DEFAULT '0' COMMENT '所属用户ID',
-  `type` smallint(5) NOT NULL DEFAULT '0' COMMENT '类型: 10:手机号码注册;20:短信重置密码;30:修改手机号码; ;60:邮件重置密码;70:更改邮箱绑定;',
-  `createtime` bigint(20) NOT NULL DEFAULT '0' COMMENT '创建时间',
+  `randomcode` varchar(128) NOT NULL DEFAULT '' COMMENT '[验证码]',
+  `userid` int(11) NOT NULL DEFAULT '0' COMMENT '[所属用户ID]',
+  `type` smallint(5) NOT NULL DEFAULT '0' COMMENT '[类型]: 10:手机号码注册;20:短信重置密码;30:修改手机号码; ;60:邮件重置密码;70:更改邮箱绑定;',
+  `createtime` bigint(20) NOT NULL DEFAULT '0' COMMENT '[创建时间]',
   PRIMARY KEY (`randomcode`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -38,12 +38,12 @@ DROP TABLE IF EXISTS `randomcodehis`;
 
 CREATE TABLE `randomcodehis` (
   `seqid` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增长序号',
-  `randomcode` varchar(128) NOT NULL DEFAULT '' COMMENT '验证码',
-  `userid` int(11) NOT NULL DEFAULT '0' COMMENT '所属用户ID',
-  `type` smallint(5) NOT NULL DEFAULT '0' COMMENT '类型: 10:手机号码注册;20:短信重置密码;30:修改手机号码; ;60:邮件重置密码;70:更改邮箱绑定;',
-  `createtime` bigint(20) NOT NULL DEFAULT '0' COMMENT '创建时间',
-  `retcode` int(11) NOT NULL DEFAULT '0' COMMENT '结果: 2: 过期; 4已处理;',
-  `updatetime` bigint(20) NOT NULL DEFAULT '0' COMMENT '更新时间',
+  `randomcode` varchar(128) NOT NULL DEFAULT '' COMMENT '[验证码]',
+  `userid` int(11) NOT NULL DEFAULT '0' COMMENT '[所属用户ID]',
+  `type` smallint(5) NOT NULL DEFAULT '0' COMMENT '[类型]: 10:手机号码注册;20:短信重置密码;30:修改手机号码; ;60:邮件重置密码;70:更改邮箱绑定;',
+  `createtime` bigint(20) NOT NULL DEFAULT '0' COMMENT '[创建时间]',
+  `retcode` int(11) NOT NULL DEFAULT '0' COMMENT '[结果]: 2: 过期; 4已处理;',
+  `updatetime` bigint(20) NOT NULL DEFAULT '0' COMMENT '[更新时间]',
   PRIMARY KEY (`seqid`)
 ) ENGINE=InnoDB AUTO_INCREMENT=100000001 DEFAULT CHARSET=utf8;
 
@@ -55,25 +55,25 @@ CREATE TABLE `randomcodehis` (
 DROP TABLE IF EXISTS `userdetail`;
 
 CREATE TABLE `userdetail` (
-  `userid` int(11) NOT NULL AUTO_INCREMENT COMMENT '用户ID',
-  `account` varchar(128) NOT NULL DEFAULT '' COMMENT '用户账号',
-  `username` varchar(128) NOT NULL DEFAULT '' COMMENT '用户昵称',
-  `type` smallint(5) NOT NULL DEFAULT '0' COMMENT '用户类型',
+  `userid` int(11) NOT NULL AUTO_INCREMENT COMMENT '[用户ID]',
+  `account` varchar(128) NOT NULL DEFAULT '' COMMENT '[用户账号]',
+  `username` varchar(128) NOT NULL DEFAULT '' COMMENT '[用户昵称]',
+  `type` smallint(5) NOT NULL DEFAULT '0' COMMENT '[用户类型]',
   `password` varchar(128) NOT NULL DEFAULT '' COMMENT '密码',
-  `mobile` varchar(128) NOT NULL DEFAULT '' COMMENT '手机号码',
-  `email` varchar(128) NOT NULL DEFAULT '' COMMENT '邮箱',
+  `mobile` varchar(128) NOT NULL DEFAULT '' COMMENT '[手机号码]',
+  `email` varchar(128) NOT NULL DEFAULT '' COMMENT '[邮箱地址]',
   `wxunionid` varchar(255) NOT NULL DEFAULT '' COMMENT '微信openid',
-  `qqopenid` varchar(255) NOT NULL DEFAULT '' COMMENT 'QQ openid',
+  `qqopenid` varchar(255) NOT NULL DEFAULT '' COMMENT 'QQ openid]',
   `apptoken` varchar(255) NOT NULL DEFAULT '' COMMENT 'APP的设备ID',
-  `status` smallint(5) NOT NULL DEFAULT '0' COMMENT '状态: 10:正常;20:待审批;40:冻结;50:隐藏;60:关闭;70:过期;80:删除;',
-  `infotime` bigint(20) NOT NULL DEFAULT '0' COMMENT '用户可见资料的更新时间',
-  `gender` smallint(5) NOT NULL DEFAULT '0' COMMENT '性别：2：男； 4:女；',
-  `updatetime` bigint(20) NOT NULL DEFAULT '0' COMMENT '更新时间',
-  `remark` varchar(255) NOT NULL DEFAULT '' COMMENT '备注',
-  `regtype` smallint(6) NOT NULL DEFAULT '0' COMMENT '注册类型',
-  `createtime` bigint(20) NOT NULL DEFAULT '0' COMMENT '创建时间',
-  `regagent` varchar(255) NOT NULL DEFAULT '' COMMENT '注册终端',
-  `regaddr` varchar(64) NOT NULL DEFAULT '' COMMENT '注册IP',
+  `status` smallint(5) NOT NULL DEFAULT '0' COMMENT '[状态]: 10:正常;20:待审批;40:冻结;50:隐藏;60:关闭;70:过期;80:删除;',
+  `infotime` bigint(20) NOT NULL DEFAULT '0' COMMENT '[资料更新时间]',
+  `gender` smallint(5) NOT NULL DEFAULT '0' COMMENT '[性别]：2：男； 4:女；',
+  `updatetime` bigint(20) NOT NULL DEFAULT '0' COMMENT '[更新时间]',
+  `remark` varchar(255) NOT NULL DEFAULT '' COMMENT '[备注]',
+  `regtype` smallint(6) NOT NULL DEFAULT '0' COMMENT '[注册类型]',
+  `createtime` bigint(20) NOT NULL DEFAULT '0' COMMENT '[创建时间]',
+  `regagent` varchar(255) NOT NULL DEFAULT '' COMMENT '[注册终端]',
+  `regaddr` varchar(64) NOT NULL DEFAULT '' COMMENT '[注册IP]',
   PRIMARY KEY (`userid`)
 ) ENGINE=InnoDB AUTO_INCREMENT=200000001 DEFAULT CHARSET=utf8;
 
