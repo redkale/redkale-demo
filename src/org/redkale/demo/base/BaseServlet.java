@@ -196,13 +196,17 @@ public class BaseServlet extends org.redkale.net.http.BasedHttpServlet {
      * @return
      */
     protected Flipper findFlipper(HttpRequest request) {
+        return findFlipper(request, 0);
+    }
+
+    protected Flipper findFlipper(HttpRequest request, int defaultSize) {
         Flipper flipper = request.getJsonParameter(Flipper.class, "flipper");
         if (flipper == null) {
-            int size = request.getRequstURIPath("size:", 0);
+            int size = request.getRequstURIPath("size:", defaultSize);
             int page = request.getRequstURIPath("page:", 0);
             if (size > 0) flipper = page > 0 ? new Flipper(size, page) : new Flipper(size);
         }
-        if (flipper == null) flipper = new Flipper();
+        if (flipper == null) flipper = defaultSize > 0 ? new Flipper(defaultSize) : new Flipper();
         return flipper;
     }
 
