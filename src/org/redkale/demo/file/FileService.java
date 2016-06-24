@@ -227,7 +227,7 @@ public class FileService extends BaseService {
             BufferedImage target;
             if (widths[i] > 0) {
                 int with = widths[i];
-                int height = ratio.height(with);
+                int height = ratio == null ? (srcImage.getHeight() * with / srcImage.getWidth()) : ratio.height(with);
                 target = new BufferedImage(with, height, BufferedImage.TYPE_INT_RGB);
                 Graphics2D g = target.createGraphics();
                 g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, 1));
@@ -324,6 +324,7 @@ public class FileService extends BaseService {
      * @param dir       files下的根目录
      * @param filename  不带后缀的文件名
      * @param extension 文件名后缀
+     *
      * @return
      */
     final File createFile(String dir, String filename, String extension) {
