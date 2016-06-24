@@ -83,6 +83,10 @@ public class FileService extends BaseService {
     @Resource
     private UserService userService;
 
+    //自定义的文件根目录，没有设置默认使用 {home}/files 值
+    @Resource(name = "property.files.root")
+    private String filesroot;
+
     @Resource(name = "APP_HOME")
     private File home;
 
@@ -158,7 +162,7 @@ public class FileService extends BaseService {
     //初始化静态资源的总文件目录
     private void initPath() {
         if (this.files != null) return;
-        this.files = new File(home, "files");
+        this.files = (this.filesroot == null || this.filesroot.isEmpty()) ? new File(home, "files") : new File(this.filesroot);
         this.files.mkdirs();
         this.homepath = this.home.getPath();
         try {
