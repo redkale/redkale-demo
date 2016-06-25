@@ -425,7 +425,11 @@ public class UserService extends BaseService {
         if (user == null) { //不在缓存内
             UserDetail detail = source.find(UserDetail.class, key, bean.getAccount());
             if (detail == null) return RetCodes.create(RET_USER_ACCOUNT_PWD_ILLEGAL);
-            if (!detail.getPassword().equals(digestPassword(bean.getPassword()))) {
+            if (bean.getPassword().isEmpty() && !bean.getVercode().isEmpty()) { //手机验证码登录
+                RetResult<RandomCode> rr = checkRandomCode(detail.getMobile(), bean.getVercode(), RandomCode.TYPE_SMSLGN);
+                if (!rr.isSuccess()) return RetCodes.create(rr.getRetcode());
+                removeRandomCode(rr.getResult());
+            } else if (!detail.getPassword().equals(digestPassword(bean.getPassword()))) {
                 return RetCodes.create(RET_USER_ACCOUNT_PWD_ILLEGAL); //用户或密码错误   
             }
             user = detail.createUserInfo();
@@ -435,8 +439,14 @@ public class UserService extends BaseService {
             result.setResult(user);
             updateUserInfo(user, !user.getApptoken().equals(bean.getApptoken()));
         } else { //在缓存内
-            if (unok && !user.getPassword().equals(digestPassword(bean.getPassword()))) {
-                return RetCodes.create(RET_USER_ACCOUNT_PWD_ILLEGAL); //用户或密码错误   
+            if (unok) {
+                if (bean.getPassword().isEmpty() && !bean.getVercode().isEmpty()) { //手机验证码登录
+                    RetResult<RandomCode> rr = checkRandomCode(user.getMobile(), bean.getVercode(), RandomCode.TYPE_SMSLGN);
+                    if (!rr.isSuccess()) return RetCodes.create(rr.getRetcode());
+                    removeRandomCode(rr.getResult());
+                } else if (!user.getPassword().equals(digestPassword(bean.getPassword()))) {
+                    return RetCodes.create(RET_USER_ACCOUNT_PWD_ILLEGAL); //用户或密码错误   
+                }
             }
             result.setRetcode(0);
             result.setResult(user);
@@ -461,10 +471,11 @@ public class UserService extends BaseService {
         return true;
     }
 
-    public RetResult<RandomCode> checkRandomCode(String targetid, String randomcode) {
+    public RetResult<RandomCode> checkRandomCode(String targetid, String randomcode, short type) {
         if (randomcode == null || randomcode.isEmpty()) return RetCodes.create(RET_USER_RANDCODE_ILLEGAL);
         if (targetid != null && targetid.length() > 5 && randomcode.length() < 30) randomcode = targetid + "-" + randomcode;
         RandomCode code = source.find(RandomCode.class, randomcode);
+        if (code != null && type > 0 && code.getType() != type) return RetCodes.create(RET_USER_RANDCODE_ILLEGAL);
         return code == null ? RetCodes.create(RET_USER_RANDCODE_ILLEGAL) : (code.isExpired() ? RetCodes.create(RET_USER_RANDCODE_EXPIRED) : new RetResult(code));
     }
 
@@ -572,6 +583,7 @@ public class UserService extends BaseService {
      *
      * @param type
      * @param mobile
+     *
      * @return
      */
     public RetResult smscode(final short type, String mobile) {
@@ -582,6 +594,8 @@ public class UserService extends BaseService {
             if (info != null) return new RetResult(RET_USER_MOBILE_EXISTS, "smsreg or smsmob mobile " + mobile + " exists");
         } else if (type == RandomCode.TYPE_SMSPWD) { //修改密码
             if (info == null) return new RetResult(RET_USER_NOTEXISTS, "smspwd mobile " + mobile + " not exists");
+        } else if (type == RandomCode.TYPE_SMSLGN) { //手机登录
+            if (info == null) return new RetResult(RET_USER_NOTEXISTS, "smslgn mobile " + mobile + " not exists");
         } else {
             return new RetResult(RET_PARAMS_ILLEGAL, type + " is illegal");
         }
@@ -615,6 +629,7 @@ public class UserService extends BaseService {
      * 用户注册
      *
      * @param user
+     *
      * @return
      */
     public RetResult<UserInfo> register(UserDetail user) {
@@ -677,6 +692,7 @@ public class UserService extends BaseService {
      * 账号不能以数字开头、不能包含@ ， 用于区分手机号码和邮箱
      *
      * @param account
+     *
      * @return
      */
     public int checkAccount(String account) {
@@ -691,6 +707,7 @@ public class UserService extends BaseService {
      * 检测手机号码是否有效, 返回0表示手机号码可用
      *
      * @param mobile
+     *
      * @return
      */
     public int checkMobile(String mobile) {
@@ -705,6 +722,7 @@ public class UserService extends BaseService {
      * 检测邮箱地址是否有效, 返回0表示邮箱地址可用.给新用户注册使用
      *
      * @param email
+     *
      * @return
      */
     public int checkEmail(String email) {

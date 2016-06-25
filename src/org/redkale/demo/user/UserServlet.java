@@ -257,7 +257,7 @@ public class UserServlet extends BaseServlet {
         UserDetail bean = new UserDetail();
         if (map.containsKey("mobile")) {
             bean.setMobile(map.get("mobile"));
-            ret = service.checkRandomCode(bean.getMobile(), map.get("vercode"));
+            ret = service.checkRandomCode(bean.getMobile(), map.get("vercode"), RandomCode.TYPE_SMSLGN);
             if (!ret.isSuccess()) {
                 sendRetResult(resp, ret);
                 return;
@@ -325,6 +325,13 @@ public class UserServlet extends BaseServlet {
         smsvercode(RandomCode.TYPE_SMSREG, req, resp);
     }
 
+    //发送手机登录验证码
+    @AuthIgnore
+    @WebAction(url = "/user/smslgncode")
+    public void smslgn(HttpRequest req, HttpResponse resp) throws IOException {
+        smsvercode(RandomCode.TYPE_SMSLGN, req, resp);
+    }
+    
     private void smsvercode(final short type, HttpRequest req, HttpResponse resp) throws IOException {
         RetResult rr = service.smscode(type, req.getRequstURIPath("mobile:", req.getParameter("mobile")));
         if (finest) logger.finest(req.getRequestURI() + ", mobile = " + req.getParameter("mobile") + "---->" + rr);
@@ -358,7 +365,7 @@ public class UserServlet extends BaseServlet {
     public void checkcode(HttpRequest req, HttpResponse resp) throws IOException {
         String mobile = req.getRequstURIPath("mobile:", req.getParameter("mobile"));
         String vercode = req.getRequstURIPath("vercode:", req.getParameter("vercode"));
-        RetResult<RandomCode> ret = service.checkRandomCode(mobile, vercode);
+        RetResult<RandomCode> ret = service.checkRandomCode(mobile, vercode, (short)0);
         sendRetcode(resp, ret.getRetcode());
     }
 
