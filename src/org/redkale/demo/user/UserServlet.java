@@ -12,7 +12,7 @@ import javax.annotation.Resource;
 import org.redkale.convert.json.*;
 import org.redkale.demo.base.*;
 import org.redkale.net.http.*;
-import org.redkale.plugins.weixin.WeiXinMPService;
+import org.redkalex.weixin.WeiXinMPService;
 import org.redkale.service.RetResult;
 import org.redkale.util.AnyValue;
 
