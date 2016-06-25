@@ -220,7 +220,7 @@ public class UserServlet extends BaseServlet {
             curr = result.getResult();
             LoginBean loginbean = new LoginBean();
             loginbean.setAccount(curr.getEmail().isEmpty() ? curr.getMobile() : curr.getEmail());
-            loginbean.setPassword(curr.getPassword());
+            loginbean.setPassword(UserService.secondPasswordMD5(bean.getNewpwd()));
             loginbean.setSessionid(req.changeSessionid());
             loginbean.setLoginagent(req.getHeader("User-Agent"));
             loginbean.setLoginip(req.getRemoteAddr());
@@ -271,6 +271,7 @@ public class UserServlet extends BaseServlet {
         bean.setPassword(map.getOrDefault("password", ""));
         bean.setRegaddr(req.getRemoteAddr());
         bean.setRegagent(req.getHeader("User-Agent", ""));
+        final String reqpwd = bean.getPassword();
         RetResult<UserInfo> rr = service.register(bean);
         if (rr.isSuccess()) {
             if (ret != null) {
@@ -281,7 +282,7 @@ public class UserServlet extends BaseServlet {
             LoginBean loginbean = new LoginBean();
             loginbean.setAccount(curr.isAc() ? curr.getAccount() : (curr.isMb() ? curr.getMobile() : curr.getEmail()));
             loginbean.setApptoken(bean.getApptoken());
-            loginbean.setPassword(curr.getPassword());
+            loginbean.setPassword(UserService.secondPasswordMD5(reqpwd));
             loginbean.setSessionid(req.changeSessionid());
             loginbean.setLoginagent(req.getHeader("User-Agent"));
             if(map.containsKey("cacheday"))loginbean.setCacheday(Integer.parseInt(map.getOrDefault("cacheday", "0")));
