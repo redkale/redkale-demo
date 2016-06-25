@@ -103,56 +103,8 @@ public final class ImageRatio {
 
             //必须与DeMember[] 顺序一致
             private final EnMember[] enMembers = new EnMember[]{
-                EnMember.create(new Attribute<ImageRatio, Integer>() {
-                    @Override
-                    public Class<? extends Integer> type() {
-                        return int.class;
-                    }
-
-                    @Override
-                    public Class<ImageRatio> declaringClass() {
-                        return ImageRatio.class;
-                    }
-
-                    @Override
-                    public String field() {
-                        return "width";
-                    }
-
-                    @Override
-                    public Integer get(ImageRatio obj) {
-                        return obj == null ? 0 : obj.width;
-                    }
-
-                    @Override
-                    public void set(ImageRatio obj, Integer value) {
-                    }
-                }, factory, int.class),
-                EnMember.create(new Attribute<ImageRatio, Integer>() {
-                    @Override
-                    public Class<? extends Integer> type() {
-                        return int.class;
-                    }
-
-                    @Override
-                    public Class<ImageRatio> declaringClass() {
-                        return ImageRatio.class;
-                    }
-
-                    @Override
-                    public String field() {
-                        return "height";
-                    }
-
-                    @Override
-                    public Integer get(ImageRatio obj) {
-                        return obj == null ? 0 : obj.height;
-                    }
-
-                    @Override
-                    public void set(ImageRatio obj, Integer value) {
-                    }
-                }, factory, int.class)
+                EnMember.create(Attribute.create(ImageRatio.class, "width", int.class, (t) -> t == null ? 0 : t.width, null), factory, int.class),
+                EnMember.create(Attribute.create(ImageRatio.class, "height", int.class, (t) -> t == null ? 0 : t.height, null), factory, int.class)
             };
 
             @Override
