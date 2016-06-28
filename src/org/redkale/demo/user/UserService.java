@@ -122,7 +122,7 @@ public class UserService extends BaseService {
         updateMax();
         //---------------------------------------------
         final Flipper flipper = new Flipper(10000);
-        flipper.setPage(0);
+        flipper.setStart(0);
         final long s = System.currentTimeMillis();
         final AtomicBoolean flag = new AtomicBoolean(true);
         final int count = 10;
