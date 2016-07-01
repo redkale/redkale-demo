@@ -5,6 +5,7 @@
  */
 package org.redkale.demo.base;
 
+import java.io.*;
 import static java.lang.Character.toUpperCase;
 import java.sql.*;
 import java.util.*;
@@ -15,18 +16,37 @@ import java.util.*;
  */
 public class ClassCreator {
 
+    private static final String jdbc_url = "jdbc:mysql://localhost:3306/center?autoReconnect=true&amp;characterEncoding=utf8";//数据库url
+
+    private static final String jdbc_user = "root"; //数据库用户名
+
+    private static final String jdbc_pwd = ""; //数据库密码
+
     public static void main(String[] args) throws Exception {
-        create("org.redkale.demo.xxx", "userdetail");
+
+        final String pkg = "org.redkale.demo.xxx";  //包名
+
+        final String entityClass = "UserDetail";//类名
+
+        final String srcPath = "D:/Java-Project/RedkaleProject/src"; //源码根路径
+
+        String entityBody = createEntity(pkg, entityClass); //源码内容
+
+        final File entityFile = new File(srcPath, pkg.replace('.', '/') + "/" + entityClass + ".java");
+        if (entityFile.isFile()) throw new RuntimeException(entityClass + ".java 已经存在");
+        FileOutputStream out = new FileOutputStream(entityFile);
+        out.write(entityBody.getBytes("UTF-8"));
+        out.close();
     }
 
-    private static void create(String pkg, String tablename) throws Exception {
+    private static String createEntity(String pkg, String classname) throws Exception {
         com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource source = new com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource();
-        source.setUrl("jdbc:mysql://localhost:3306/center?autoReconnect=true&amp;characterEncoding=utf8");  //数据库url
-        source.setUser("root"); //数据库账号
-        source.setPassword("1234"); //数据库密码
+        source.setUrl(jdbc_url);  //数据库url
+        source.setUser(jdbc_user); //数据库账号
+        source.setPassword(jdbc_pwd); //数据库密码
         Connection conn = source.getConnection();
         DatabaseMetaData meta = conn.getMetaData();
-        ResultSet rs = meta.getColumns(null, "%", tablename, null);
+        ResultSet rs = meta.getColumns(null, "%", classname.toLowerCase(), null);
 //       ResultSetMetaData rsd = rs.getMetaData();
 //       for(int i =1 ; i<=rsd.getColumnCount();i++) {
 //           System.out.println(rsd.getColumnName(i));
@@ -39,10 +59,7 @@ public class ClassCreator {
         sb.append("import javax.persistence.*;\r\n");
         sb.append("import org.redkale.convert.*;\r\n");
         sb.append("import " + pkg.substring(0, pkg.lastIndexOf('.')) + ".base.BaseEntity;\r\n");
-        char[] chs = tablename.toCharArray();
-        chs[0] = toUpperCase(chs[0]);
 
-        String classname = new String(chs).replace("info", "Info").replace("record", "Record").replaceAll("his$", "His");
         sb.append("\r\n/**\r\n"
             + " *\r\n"
             + " * @author " + System.getProperty("user.name") + "\r\n"
@@ -105,6 +122,6 @@ public class ClassCreator {
             sb.append(item);
         }
         sb.append("}\r\n");
-        System.out.println(sb);
+        return sb.toString();
     }
 }
