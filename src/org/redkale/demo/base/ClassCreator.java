@@ -47,7 +47,7 @@ public class ClassCreator {
             + " *\r\n"
             + " * @author " + System.getProperty("user.name") + "\r\n"
             + " */\r\n");
-        if (classname.contains("Info")) sb.append("@Cacheable\r\n");
+        //if (classname.contains("Info")) sb.append("@Cacheable\r\n");
         sb.append("public class " + classname + " extends BaseEntity {\r\n");
         boolean idable = false;
         List<StringBuilder> list = new ArrayList<>();
