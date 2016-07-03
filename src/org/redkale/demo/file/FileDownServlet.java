@@ -12,6 +12,15 @@ import org.redkale.net.http.*;
 import org.redkale.util.AnyValue;
 
 /**
+ *
+ * <pre>
+ *     int   10万-100万     (36进制 4位)  255t - lflr
+ *     int  1000万-6000万   (36进制 5位)  5yc1t - zq0an
+ *     int    2亿-10亿      (36进制 6位)  3b2ozl - gjdgxr
+ *    long   30亿-770亿     (36进制 7位)  1dm4etd - zdft88v
+ *    long  1000亿-9999亿   (36进制 8位)  19xtf1tt - cre66i9r
+ * </pre>
+ *
  * 所有静态资源的请求url的根目录为dir，便于nginx进行静动分离
  * 请求url为 /dir/{分类目录}/文件名
  *
