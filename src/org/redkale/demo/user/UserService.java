@@ -258,11 +258,11 @@ public class UserService extends BaseService {
     //绑定微信号
     public RetResult updateWxunionid(UserInfo user, String appid, String code) {
         try {
-            if (user == null) return RetCodes.create(RET_USER_NOTEXISTS);
+            if (user == null) return RetCodes.retResult(RET_USER_NOTEXISTS);
             Map<String, String> wxmap = wxMPService.getMPUserTokenByCode(appid, code);
             final String wxunionid = wxmap.get("unionid");
-            if (wxunionid == null || wxunionid.isEmpty()) return RetCodes.create(RET_USER_WXID_ILLEGAL);
-            if (!checkWxunionid(wxunionid)) return RetCodes.create(RET_USER_WXID_EXISTS);
+            if (wxunionid == null || wxunionid.isEmpty()) return RetCodes.retResult(RET_USER_WXID_ILLEGAL);
+            if (!checkWxunionid(wxunionid)) return RetCodes.retResult(RET_USER_WXID_EXISTS);
             user = user.copy();
             source.updateColumn(UserDetail.class, user.getUserid(), "wxunionid", wxunionid);
             user.setWxunionid(wxunionid);
@@ -270,7 +270,7 @@ public class UserService extends BaseService {
             return new RetResult();
         } catch (Exception e) {
             logger.log(Level.FINE, "updateWxunionid failed (" + user + ", " + appid + ", " + code + ")", e);
-            return RetCodes.create(RET_USER_WXID_BIND_FAIL);
+            return RetCodes.retResult(RET_USER_WXID_BIND_FAIL);
         }
     }
 
@@ -282,7 +282,7 @@ public class UserService extends BaseService {
             String json = Utility.getHttpContent(url);
             if (finest) logger.finest(url + "--->" + json);
             Map<String, String> jsonmap = convert.convertFrom(JsonConvert.TYPE_MAP_STRING_STRING, json);
-            if (!"0".equals(jsonmap.get("ret"))) return RetCodes.create(RET_USER_QQID_INFO_FAIL);
+            if (!"0".equals(jsonmap.get("ret"))) return RetCodes.retResult(RET_USER_QQID_INFO_FAIL);
             RetResult<UserInfo> rr;
             UserInfo user = findUserInfoByQqopenid(bean.getOpenid());
             if (user == null) {
@@ -320,7 +320,7 @@ public class UserService extends BaseService {
             return rr;
         } catch (Exception e) {
             logger.log(Level.FINE, "qqlogin failed (" + bean + ")", e);
-            return RetCodes.create(RET_USER_LOGIN_FAIL);
+            return RetCodes.retResult(RET_USER_LOGIN_FAIL);
         }
     }
 
@@ -331,7 +331,7 @@ public class UserService extends BaseService {
                 ? wxMPService.getMPUserTokenByCode(bean.getAppid(), bean.getCode())
                 : wxMPService.getMPUserTokenByOpenid(bean.getAccesstoken(), bean.getOpenid());
             final String unionid = wxmap.get("unionid");
-            if (unionid == null) return RetCodes.create(RET_USER_WXID_ILLEGAL);
+            if (unionid == null) return RetCodes.retResult(RET_USER_WXID_ILLEGAL);
             RetResult<UserInfo> rr;
             UserInfo user = findUserInfoByWxunionid(unionid);
             if (user == null) {
@@ -375,7 +375,7 @@ public class UserService extends BaseService {
             return rr;
         } catch (Exception e) {
             logger.log(Level.FINE, "wxlogin failed (" + bean + ")", e);
-            return RetCodes.create(RET_USER_LOGIN_FAIL);
+            return RetCodes.retResult(RET_USER_LOGIN_FAIL);
         }
     }
 
@@ -408,7 +408,7 @@ public class UserService extends BaseService {
                 }
             }
         }
-        if (bean == null || bean.emptySessionid() || (user == null && bean.emptyAccount())) return RetCodes.create(RET_USER_ACCOUNT_PWD_ILLEGAL);
+        if (bean == null || bean.emptySessionid() || (user == null && bean.emptyAccount())) return RetCodes.retResult(RET_USER_ACCOUNT_PWD_ILLEGAL);
         String key = "";
         if (user == null && !bean.emptyAccount()) {
             if (bean.getAccount().indexOf('@') > 0) {
@@ -424,16 +424,16 @@ public class UserService extends BaseService {
         }
         if (user == null) { //不在缓存内
             UserDetail detail = source.find(UserDetail.class, key, bean.getAccount());
-            if (detail == null) return RetCodes.create(RET_USER_ACCOUNT_PWD_ILLEGAL);
+            if (detail == null) return RetCodes.retResult(RET_USER_ACCOUNT_PWD_ILLEGAL);
             if (bean.getPassword().isEmpty() && !bean.getVercode().isEmpty()) { //手机验证码登录
                 RetResult<RandomCode> rr = checkRandomCode(detail.getMobile(), bean.getVercode(), RandomCode.TYPE_SMSLGN);
-                if (!rr.isSuccess()) return RetCodes.create(rr.getRetcode());
+                if (!rr.isSuccess()) return RetCodes.retResult(rr.getRetcode());
                 removeRandomCode(rr.getResult());
             } else if (!detail.getPassword().equals(digestPassword(bean.getPassword()))) {
-                return RetCodes.create(RET_USER_ACCOUNT_PWD_ILLEGAL); //用户或密码错误   
+                return RetCodes.retResult(RET_USER_ACCOUNT_PWD_ILLEGAL); //用户或密码错误   
             }
             user = detail.createUserInfo();
-            if (user.isFrobid()) return RetCodes.create(RET_USER_FREEZED);
+            if (user.isFrobid()) return RetCodes.retResult(RET_USER_FREEZED);
 
             result.setRetcode(0);
             result.setResult(user);
@@ -442,10 +442,10 @@ public class UserService extends BaseService {
             if (unok) {
                 if (bean.getPassword().isEmpty() && !bean.getVercode().isEmpty()) { //手机验证码登录
                     RetResult<RandomCode> rr = checkRandomCode(user.getMobile(), bean.getVercode(), RandomCode.TYPE_SMSLGN);
-                    if (!rr.isSuccess()) return RetCodes.create(rr.getRetcode());
+                    if (!rr.isSuccess()) return RetCodes.retResult(rr.getRetcode());
                     removeRandomCode(rr.getResult());
                 } else if (!user.getPassword().equals(digestPassword(bean.getPassword()))) {
-                    return RetCodes.create(RET_USER_ACCOUNT_PWD_ILLEGAL); //用户或密码错误   
+                    return RetCodes.retResult(RET_USER_ACCOUNT_PWD_ILLEGAL); //用户或密码错误   
                 }
             }
             result.setRetcode(0);
@@ -472,11 +472,11 @@ public class UserService extends BaseService {
     }
 
     public RetResult<RandomCode> checkRandomCode(String targetid, String randomcode, short type) {
-        if (randomcode == null || randomcode.isEmpty()) return RetCodes.create(RET_USER_RANDCODE_ILLEGAL);
+        if (randomcode == null || randomcode.isEmpty()) return RetCodes.retResult(RET_USER_RANDCODE_ILLEGAL);
         if (targetid != null && targetid.length() > 5 && randomcode.length() < 30) randomcode = targetid + "-" + randomcode;
         RandomCode code = source.find(RandomCode.class, randomcode);
-        if (code != null && type > 0 && code.getType() != type) return RetCodes.create(RET_USER_RANDCODE_ILLEGAL);
-        return code == null ? RetCodes.create(RET_USER_RANDCODE_ILLEGAL) : (code.isExpired() ? RetCodes.create(RET_USER_RANDCODE_EXPIRED) : new RetResult(code));
+        if (code != null && type > 0 && code.getType() != type) return RetCodes.retResult(RET_USER_RANDCODE_ILLEGAL);
+        return code == null ? RetCodes.retResult(RET_USER_RANDCODE_ILLEGAL) : (code.isExpired() ? RetCodes.retResult(RET_USER_RANDCODE_EXPIRED) : new RetResult(code));
     }
 
     public void removeRandomCode(RandomCode code) {
@@ -485,12 +485,12 @@ public class UserService extends BaseService {
     }
 
     public RetResult updateUsername(int userid, String username) {
-        if (username == null || username.isEmpty()) return RetCodes.create(RET_USER_USERNAME_ILLEGAL);
+        if (username == null || username.isEmpty()) return RetCodes.retResult(RET_USER_USERNAME_ILLEGAL);
         UserInfo user = findUserInfo(userid);
         if (user.getUsername().equals(username)) return new RetResult();
-        if (user == null) return RetCodes.create(RET_USER_NOTEXISTS);
+        if (user == null) return RetCodes.retResult(RET_USER_NOTEXISTS);
         user = user.copy();
-        if (username.isEmpty()) return RetCodes.create(RET_USER_USERNAME_ILLEGAL);
+        if (username.isEmpty()) return RetCodes.retResult(RET_USER_USERNAME_ILLEGAL);
         long t = System.currentTimeMillis();
         source.updateColumn(UserDetail.class, user.getUserid(), "username", username);
         source.updateColumn(UserDetail.class, user.getUserid(), "infotime", t);
@@ -502,7 +502,7 @@ public class UserService extends BaseService {
 
     public RetResult updateInfotime(int userid) {
         UserInfo user = findUserInfo(userid);
-        if (user == null) return RetCodes.create(RET_USER_NOTEXISTS);
+        if (user == null) return RetCodes.retResult(RET_USER_NOTEXISTS);
         user = user.copy();
         long t = System.currentTimeMillis();
         source.updateColumn(UserDetail.class, user.getUserid(), "infotime", t);
@@ -513,8 +513,8 @@ public class UserService extends BaseService {
 
     public RetResult updateGender(int userid, short gender) {
         UserInfo user = findUserInfo(userid);
-        if (user == null) return RetCodes.create(RET_USER_NOTEXISTS);
-        if (gender != GENDER_MALE && gender != GENDER_FEMALE) return RetCodes.create(RET_USER_GENDER_ILLEGAL);
+        if (user == null) return RetCodes.retResult(RET_USER_NOTEXISTS);
+        if (gender != GENDER_MALE && gender != GENDER_FEMALE) return RetCodes.retResult(RET_USER_GENDER_ILLEGAL);
         user = user.copy();
         long t = System.currentTimeMillis();
         source.updateColumn(UserDetail.class, user.getUserid(), "gender", gender);
@@ -525,13 +525,13 @@ public class UserService extends BaseService {
 
     public RetResult updateMobile(int userid, String newmobile, String vercode) {
         int retcode = checkMobile(newmobile);
-        if (retcode != 0) return RetCodes.create(retcode);
+        if (retcode != 0) return RetCodes.retResult(retcode);
         RandomCode code = source.find(RandomCode.class, newmobile + "-" + vercode);
-        if (code == null) return RetCodes.create(RET_USER_RANDCODE_ILLEGAL);
-        if (code.isExpired()) return RetCodes.create(RET_USER_RANDCODE_EXPIRED);
+        if (code == null) return RetCodes.retResult(RET_USER_RANDCODE_ILLEGAL);
+        if (code.isExpired()) return RetCodes.retResult(RET_USER_RANDCODE_EXPIRED);
 
         UserInfo user = findUserInfo(userid);
-        if (user == null) return RetCodes.create(RET_USER_NOTEXISTS);
+        if (user == null) return RetCodes.retResult(RET_USER_NOTEXISTS);
         user = user.copy();
         source.updateColumn(UserDetail.class, user.getUserid(), "mobile", newmobile);
         user.setMobile(newmobile);
@@ -549,11 +549,11 @@ public class UserService extends BaseService {
             bean.setSessionid(null);
             if (bean.getRandomcode() != null && !bean.getRandomcode().isEmpty()) {
                 RandomCode code = source.find(RandomCode.class, bean.getRandomcode());
-                if (code == null) return RetCodes.create(RET_USER_RANDCODE_ILLEGAL);
-                if (code.isExpired()) return RetCodes.create(RET_USER_RANDCODE_EXPIRED);
+                if (code == null) return RetCodes.retResult(RET_USER_RANDCODE_ILLEGAL);
+                if (code.isExpired()) return RetCodes.retResult(RET_USER_RANDCODE_EXPIRED);
 
                 user = findUserInfo(code.getUserid());
-                if (user == null) return RetCodes.create(RET_USER_NOTEXISTS);
+                if (user == null) return RetCodes.retResult(RET_USER_NOTEXISTS);
 
                 source.updateColumn(UserDetail.class, user.getUserid(), "password", newpwd);
                 user.setPassword(newpwd);
@@ -562,11 +562,11 @@ public class UserService extends BaseService {
                 updateUserInfo(user, false);
                 return new RetResult<>(user);
             }
-            return RetCodes.create(RET_USER_NOTEXISTS);
+            return RetCodes.retResult(RET_USER_NOTEXISTS);
         }
         //用户或密码错误
         if (!Objects.equals(user.getPassword(), digestPassword(secondPasswordMD5(bean.getOldpwd())))) {
-            return RetCodes.create(RET_USER_ACCOUNT_PWD_ILLEGAL);  //原密码错误
+            return RetCodes.retResult(RET_USER_ACCOUNT_PWD_ILLEGAL);  //原密码错误
         }
         source.updateColumn(UserDetail.class, user.getUserid(), "password", newpwd);
         user.setPassword(newpwd);
@@ -602,7 +602,7 @@ public class UserService extends BaseService {
         List<RandomCode> codes = source.queryList(RandomCode.class, FilterNode.create("randomcode", FilterExpress.LIKE, mobile + "-%"));
         if (!codes.isEmpty()) {
             RandomCode last = codes.get(codes.size() - 1);
-            if (last.getCreatetime() + 60 * 1000 > System.currentTimeMillis()) return RetCodes.create(RET_USER_MOBILE_SMSFREQUENT);
+            if (last.getCreatetime() + 60 * 1000 > System.currentTimeMillis()) return RetCodes.retResult(RET_USER_MOBILE_SMSFREQUENT);
         }
         final String sms = String.valueOf(RandomCode.randomSmsCode());
 //        ResourceBundle bundle = ResourceBundle.getBundle(userbundle, Locale.forLanguageTag("zh"));
@@ -634,28 +634,28 @@ public class UserService extends BaseService {
      */
     public RetResult<UserInfo> register(UserDetail user) {
         RetResult<UserInfo> result = new RetResult();
-        if (user == null) return RetCodes.create(RET_USER_SIGNUP_ILLEGAL);
-        if (!user.isAc() && !user.isMb() && !user.isEm() && !user.isWx() && !user.isQq()) return RetCodes.create(RET_USER_SIGNUP_ILLEGAL);
-        if (user.getGender() != 0 && user.getGender() != GENDER_MALE && user.getGender() != GENDER_FEMALE) return RetCodes.create(RET_USER_GENDER_ILLEGAL);
+        if (user == null) return RetCodes.retResult(RET_USER_SIGNUP_ILLEGAL);
+        if (!user.isAc() && !user.isMb() && !user.isEm() && !user.isWx() && !user.isQq()) return RetCodes.retResult(RET_USER_SIGNUP_ILLEGAL);
+        if (user.getGender() != 0 && user.getGender() != GENDER_MALE && user.getGender() != GENDER_FEMALE) return RetCodes.retResult(RET_USER_GENDER_ILLEGAL);
         int retcode = 0;
-        if (user.isAc() && (retcode = checkAccount(user.getAccount())) != 0) return RetCodes.create(retcode);
-        if (user.isAc() && (retcode = checkMobile(user.getMobile())) != 0) return RetCodes.create(retcode);
-        if (user.isAc() && (retcode = checkEmail(user.getEmail())) != 0) return RetCodes.create(retcode);
-        if (user.isWx() && wxunionidUserInfos.containsKey(user.getWxunionid())) return RetCodes.create(RET_USER_WXID_EXISTS);
-        if (user.isQq() && qqopenidUserInfos.containsKey(user.getQqopenid())) return RetCodes.create(RET_USER_QQID_EXISTS);
+        if (user.isAc() && (retcode = checkAccount(user.getAccount())) != 0) return RetCodes.retResult(retcode);
+        if (user.isAc() && (retcode = checkMobile(user.getMobile())) != 0) return RetCodes.retResult(retcode);
+        if (user.isAc() && (retcode = checkEmail(user.getEmail())) != 0) return RetCodes.retResult(retcode);
+        if (user.isWx() && wxunionidUserInfos.containsKey(user.getWxunionid())) return RetCodes.retResult(RET_USER_WXID_EXISTS);
+        if (user.isQq() && qqopenidUserInfos.containsKey(user.getQqopenid())) return RetCodes.retResult(RET_USER_QQID_EXISTS);
         if (user.isMb()) {
             user.setRegtype(REGTYPE_MOBILE);
-            if (user.getPassword().isEmpty()) return RetCodes.create(RET_USER_PASSWORD_ILLEGAL);
+            if (user.getPassword().isEmpty()) return RetCodes.retResult(RET_USER_PASSWORD_ILLEGAL);
         } else if (user.isEm()) {
             user.setRegtype(REGTYPE_EMAIL);
-            if (user.getPassword().isEmpty()) return RetCodes.create(RET_USER_PASSWORD_ILLEGAL);
+            if (user.getPassword().isEmpty()) return RetCodes.retResult(RET_USER_PASSWORD_ILLEGAL);
         } else if (user.isWx()) {
             user.setRegtype(REGTYPE_WEIXIN);
         } else if (user.isQq()) {
             user.setRegtype(REGTYPE_QQOPEN);
         } else {
             user.setRegtype(REGTYPE_ACCOUNT);
-            if (user.getPassword().isEmpty()) return RetCodes.create(RET_USER_PASSWORD_ILLEGAL);
+            if (user.getPassword().isEmpty()) return RetCodes.retResult(RET_USER_PASSWORD_ILLEGAL);
         }
         user.setUserid(maxid.incrementAndGet());
         user.setCreatetime(System.currentTimeMillis());
