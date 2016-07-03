@@ -352,6 +352,7 @@ public class FileService extends BaseService {
         if (s.length() >= 26) return s;
         StringBuilder sb = new StringBuilder(26);
         for (int i = s.length(); i < 26; i++) sb.append('0');
+        sb.append(s);
         return sb.toString();
     }
 
