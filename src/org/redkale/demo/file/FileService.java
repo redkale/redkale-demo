@@ -9,9 +9,11 @@ import com.sun.image.codec.jpeg.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import static java.nio.file.StandardCopyOption.*;
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.*;
@@ -343,11 +345,14 @@ public class FileService extends BaseService {
     }
 
     private static String randomFileid() {
-        String s = Long.toString(Math.abs(System.nanoTime()), 32);
-        if (s.length() < 12) {
-            for (int i = s.length(); i < 12; i++) s = '0' + s;
-        }
-        return s;
+        byte[] bytes = new byte[16];
+        numberGenerator.nextBytes(bytes);
+        String s = new BigInteger(1, bytes).toString(32);
+        if (s.charAt(0) == '-') s = s.substring(1);
+        if (s.length() >= 26) return s;
+        StringBuilder sb = new StringBuilder(26);
+        for (int i = s.length(); i < 26; i++) sb.append('0');
+        return sb.toString();
     }
 
     //根据文件名生产文件存放的子目录， 如: aabbccddee.png 的存放目录为 aa/bb/cc/dd/aabbccee.png
@@ -363,4 +368,5 @@ public class FileService extends BaseService {
         return sb.toString();
     }
 
+    private static final SecureRandom numberGenerator = new SecureRandom();
 }
