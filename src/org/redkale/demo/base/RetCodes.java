@@ -19,6 +19,7 @@ public abstract class RetCodes {
     }
 
     // 20000001 - 29999999 预留给 Redkale的扩展包使用
+    //X1XXXXXX 为 OSS系统使用， X0XXXXXX 为平台系统使用
     //------------------------------------- 通用模块 -----------------------------------------
     @RetLabel("参数无效")
     public static final int RET_PARAMS_ILLEGAL = 30010001;
