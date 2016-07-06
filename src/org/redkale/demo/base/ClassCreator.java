@@ -65,9 +65,9 @@ public class ClassCreator {
 
         sb.append("package " + pkg + ";" + "\r\n\r\n");
 
-        sb.append("import org.redkale.util.*;\r\n");
+        //sb.append("import org.redkale.util.*;\r\n");
+        //sb.append("import org.redkale.convert.*;\r\n");
         sb.append("import javax.persistence.*;\r\n");
-        sb.append("import org.redkale.convert.*;\r\n");
         sb.append("import " + pkg.substring(0, pkg.lastIndexOf('.')) + ".base.BaseEntity;\r\n");
 
         sb.append("\r\n/**\r\n"
