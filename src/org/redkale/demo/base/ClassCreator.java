@@ -28,9 +28,11 @@ public class ClassCreator {
 
         final String entityClass = "UserDetail";//类名
 
+        final String superEntityClass = "";//父类名
+        
         final String srcPath = "D:/Java-Project/RedkaleProject/src"; //源码根路径
 
-        String entityBody = createEntity(pkg, entityClass); //源码内容
+        String entityBody = createEntity(pkg, entityClass, superEntityClass); //源码内容
 
         final File entityFile = new File(srcPath, pkg.replace('.', '/') + "/" + entityClass + ".java");
         if (entityFile.isFile()) throw new RuntimeException(entityClass + ".java 已经存在");
@@ -39,13 +41,21 @@ public class ClassCreator {
         out.close();
     }
 
-    private static String createEntity(String pkg, String classname) throws Exception {
+    private static String createEntity(String pkg, String classname, String superclassname) throws Exception {
         com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource source = new com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource();
         source.setUrl(jdbc_url);  //数据库url
         source.setUser(jdbc_user); //数据库账号
         source.setPassword(jdbc_pwd); //数据库密码
         Connection conn = source.getConnection();
         DatabaseMetaData meta = conn.getMetaData();
+        final Set<String> columns = new HashSet<>();
+        if (superclassname != null && !superclassname.isEmpty()) {
+            ResultSet rs = meta.getColumns(null, "%", superclassname.toLowerCase(), null);
+            while (rs.next()) {
+                columns.add(rs.getString("COLUMN_NAME"));
+            }
+            rs.close();
+        }
         ResultSet rs = meta.getColumns(null, "%", classname.toLowerCase(), null);
 //       ResultSetMetaData rsd = rs.getMetaData();
 //       for(int i =1 ; i<=rsd.getColumnCount();i++) {
@@ -65,7 +75,7 @@ public class ClassCreator {
             + " * @author " + System.getProperty("user.name") + "\r\n"
             + " */\r\n");
         //if (classname.contains("Info")) sb.append("@Cacheable\r\n");
-        sb.append("public class " + classname + " extends BaseEntity {\r\n");
+        sb.append("public class " + classname + " extends BaseEntity {\r\n\r\n");
         boolean idable = false;
         List<StringBuilder> list = new ArrayList<>();
         while (rs.next()) {
@@ -73,12 +83,14 @@ public class ClassCreator {
             String column = rs.getString("COLUMN_NAME");
             String type = rs.getString("TYPE_NAME");
             String remark = rs.getString("REMARKS");
-            sb.append("\r\n");
             if (!idable) {
                 idable = true;
-                sb.append("    @Id\r\n");
-                if (incre) sb.append("    @GeneratedValue\r\n");
+                sb.append("    @Id");
+                if (incre) sb.append("\r\n    @GeneratedValue");
+            } else {
+                if(columns.contains(column)) continue; //跳过被继承的重复字段
             }
+            sb.append("\r\n");
             if ("createtime".equals(column)) sb.append("    @Column(updatable = false)\r\n");
             String ctype = "NULL";
             if ("INT".equalsIgnoreCase(type)) {
