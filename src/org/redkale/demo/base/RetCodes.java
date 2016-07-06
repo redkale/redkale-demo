@@ -117,4 +117,7 @@ public abstract class RetCodes extends PayRetCodes {
 
     @RetLabel("验证码错误或失效")
     public static final int RET_USER_CAPTCHA_ILLEGAL = 30020028; //图片验证码
+
+    @RetLabel("用户类型无效")
+    public static final int RET_USER_TYPE_ILLEGAL = 30020029;
 }
