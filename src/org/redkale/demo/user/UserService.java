@@ -122,7 +122,7 @@ public class UserService extends BaseService {
         updateMax();
         //---------------------------------------------
         final Flipper flipper = new Flipper(10000);
-        flipper.setStart(0);
+        flipper.setOffset(0);
         final long s = System.currentTimeMillis();
         final AtomicBoolean flag = new AtomicBoolean(true);
         final int count = 10;
@@ -140,7 +140,7 @@ public class UserService extends BaseService {
                             flag.set(false);
                             break;
                         }
-                        if (sheet.getRows().size() < f.getSize()) flag.set(false);
+                        if (sheet.getRows().size() < f.getLimit()) flag.set(false);
                         for (UserDetail detail : sheet.getRows()) {
                             UserInfo info = detail.createUserInfo();
                             this.putUserInfo(info, false);
