@@ -216,7 +216,7 @@ public class UserServlet extends BaseServlet {
         UserDetail bean = new UserDetail();
         if (map.containsKey("mobile")) {
             bean.setMobile(map.get("mobile"));
-            ret = service.checkRandomCode(bean.getMobile(), map.get("vercode"), RandomCode.TYPE_SMSLGN);
+            ret = service.checkRandomCode(bean.getMobile(), map.get("vercode"), RandomCode.TYPE_SMSREG);
             if (!ret.isSuccess()) {
                 sendRetResult(resp, ret);
                 return;
