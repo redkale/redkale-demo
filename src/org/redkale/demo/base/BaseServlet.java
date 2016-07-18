@@ -187,8 +187,8 @@ public class BaseServlet extends org.redkale.net.http.BasedHttpServlet {
     }
 
     /**
-     * 获取翻页对象 http://demo.redkale.org/pipes/records/list/start:0/size:20  <br>
-     * http://demo.redkale.org/pipes/records/list?flipper={'start':0,'size':20}  <br>
+     * 获取翻页对象 http://demo.redkale.org/pipes/records/list/offset:0/limit:20  <br>
+     * http://demo.redkale.org/pipes/records/list?flipper={'offset':0,'limit':20}  <br>
      * 以上两种接口都可以获取到翻页对象
      *
      * @param request HTTP请求对象
@@ -199,14 +199,14 @@ public class BaseServlet extends org.redkale.net.http.BasedHttpServlet {
         return findFlipper(request, 0);
     }
 
-    protected Flipper findFlipper(HttpRequest request, int defaultSize) {
+    protected Flipper findFlipper(HttpRequest request, int defaultLimit) {
         Flipper flipper = request.getJsonParameter(Flipper.class, "flipper");
         if (flipper == null) {
-            int size = request.getRequstURIPath("size:", defaultSize);
-            int start = request.getRequstURIPath("start:", 0);
-            if (size > 0) flipper = new Flipper(size, start);
+            int limit = request.getRequstURIPath("limit:", defaultLimit);
+            int offset = request.getRequstURIPath("offset:", 0);
+            if (limit > 0) flipper = new Flipper(limit, offset);
         }
-        if (flipper == null) flipper = defaultSize > 0 ? new Flipper(defaultSize) : new Flipper();
+        if (flipper == null) flipper = defaultLimit > 0 ? new Flipper(defaultLimit) : new Flipper();
         return flipper;
     }
 
