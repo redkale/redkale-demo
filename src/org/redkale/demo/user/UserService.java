@@ -389,7 +389,7 @@ public class UserService extends BaseService {
             int sharp = cookie.indexOf('#');
             if (sharp > 0) bean.setApptoken(cookie.substring(0, sharp));
             int pos = cookie.indexOf('$');
-            int userid = Integer.parseInt(cookie.substring(sharp + 1, pos), 32);
+            int userid = Integer.parseInt(cookie.substring(sharp + 1, pos), 36);
             user = this.findUserInfo(userid);
             if (user != null) {
                 char type = cookie.charAt(pos + 1);
