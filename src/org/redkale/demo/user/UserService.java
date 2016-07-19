@@ -487,8 +487,8 @@ public class UserService extends BaseService {
     public RetResult updateUsername(int userid, String username) {
         if (username == null || username.isEmpty()) return RetCodes.retResult(RET_USER_USERNAME_ILLEGAL);
         UserInfo user = findUserInfo(userid);
-        if (user.getUsername().equals(username)) return new RetResult();
         if (user == null) return RetCodes.retResult(RET_USER_NOTEXISTS);
+        if (user.getUsername().equals(username)) return new RetResult();
         user = user.copy();
         if (username.isEmpty()) return RetCodes.retResult(RET_USER_USERNAME_ILLEGAL);
         long t = System.currentTimeMillis();
