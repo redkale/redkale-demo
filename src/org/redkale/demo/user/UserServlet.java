@@ -86,11 +86,12 @@ public class UserServlet extends BaseServlet {
     /**
      * 微信登陆 https://open.weixin.qq.com/connect/qrconnect?appid=wx微信ID&redirect_uri=xxxxx&response_type=code&scope=snsapi_login&state=wx微信ID_1#wechat_redirect
      * 接收两种形式：
-     *  WEB端微信登录： /user/wxlogin?code=XXXXXX&state=wx微信ID_1&apptoken=XXX
-     *  APP端微信登录:  /user/wxlogin?openid=XXXX&state=1&access_token=XXX&apptoken=XXX
+     * WEB端微信登录： /user/wxlogin?code=XXXXXX&state=wx微信ID_1&apptoken=XXX
+     * APP端微信登录: /user/wxlogin?openid=XXXX&state=1&access_token=XXX&apptoken=XXX
      * <p>
      * @param req
      * @param resp
+     *
      * @throws IOException
      */
     @AuthIgnore
@@ -98,10 +99,10 @@ public class UserServlet extends BaseServlet {
     public void wxlogin(HttpRequest req, HttpResponse resp) throws IOException {
         String code = req.getParameter("code");
         String state = req.getParameter("state");  //state值格式: appid_autoregflag
-        
+
         String access_token = req.getParameter("access_token");
         String openid = req.getParameter("openid");
-        
+
         if (finest) logger.finest("/user/wxlogin :  code = " + code + ", access_token = " + access_token + ", openid = " + openid + ", state =" + state);
         int pos = state.indexOf('_');
         String appid = pos > 0 ? state.substring(0, pos) : state;
@@ -178,6 +179,7 @@ public class UserServlet extends BaseServlet {
      *
      * @param req
      * @param resp
+     *
      * @throws IOException
      */
     @AuthIgnore
@@ -192,7 +194,7 @@ public class UserServlet extends BaseServlet {
         if (oldsessionid != null && !oldsessionid.isEmpty()) service.logout(oldsessionid);
         bean.setSessionid(req.changeSessionid());
         RetResult<UserInfo> result = service.login(bean);
-        if (result.isSuccess()) {
+        if (result.isSuccess() && !bean.emptyPassword()) { //必须是密码登录类
             if (bean.getCacheday() > 0 && bean.emptyCookieinfo()) {  //保存N天 
                 UserInfo info = result.getResult();
                 int age = bean.getCacheday() * 24 * 60 * 60;
@@ -258,6 +260,7 @@ public class UserServlet extends BaseServlet {
      *
      * @param req
      * @param resp
+     *
      * @throws IOException
      */
     @AuthIgnore
