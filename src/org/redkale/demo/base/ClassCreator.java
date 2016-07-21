@@ -29,7 +29,7 @@ public class ClassCreator {
         final String entityClass = "UserDetail";//类名
 
         final String superEntityClass = "";//父类名
-        
+
         final String srcPath = "D:/Java-Project/RedkaleProject/src"; //源码根路径
 
         String entityBody = createEntity(pkg, entityClass, superEntityClass); //源码内容
@@ -75,7 +75,8 @@ public class ClassCreator {
             + " * @author " + System.getProperty("user.name") + "\r\n"
             + " */\r\n");
         //if (classname.contains("Info")) sb.append("@Cacheable\r\n");
-        sb.append("public class " + classname + " extends BaseEntity {\r\n\r\n");
+        sb.append("public class " + classname + " extends " 
+            + (superclassname != null && !superclassname.isEmpty() ? superclassname : "BaseEntity") + " {\r\n\r\n");
         boolean idable = false;
         List<StringBuilder> list = new ArrayList<>();
         while (rs.next()) {
@@ -87,9 +88,7 @@ public class ClassCreator {
                 idable = true;
                 sb.append("    @Id");
                 if (incre) sb.append("\r\n    @GeneratedValue");
-            } else {
-                if(columns.contains(column)) continue; //跳过被继承的重复字段
-            }
+            } else if (columns.contains(column)) continue; //跳过被继承的重复字段
             sb.append("\r\n");
             if ("createtime".equals(column)) sb.append("    @Column(updatable = false)\r\n");
             String ctype = "NULL";
