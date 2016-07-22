@@ -14,6 +14,10 @@ import org.redkalex.pay.PayRetCodes;
  */
 public abstract class RetCodes extends PayRetCodes {
 
+    static {
+        load(RetCodes.class);
+    }
+
     protected RetCodes() {
     }
 
