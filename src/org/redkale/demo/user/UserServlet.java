@@ -127,8 +127,8 @@ public class UserServlet extends BaseServlet {
         if (autoreg && rr.isSuccess() && (wxbrowser || (access_token != null && !access_token.isEmpty()))) {
             UserInfo info = rr.getResult();
             int age = 1000 * 24 * 60 * 60;
-            String key = UserService.encryptAES((bean.emptyApptoken() ? "" : (bean.getApptoken() + "#")) + info.getUser36id() + "$1" + info.getWxunionid() + "?" + age + "-" + System.currentTimeMillis());
-            HttpCookie cookie = new HttpCookie(COOKIE_AUTOLOGIN, key);
+            String key = (bean.emptyApptoken() ? "" : (bean.getApptoken() + "#")) + info.getUser36id() + "$1" + info.getWxunionid() + "?" + age + "-" + System.currentTimeMillis();
+            HttpCookie cookie = new HttpCookie(COOKIE_AUTOLOGIN, UserService.encryptAES(key));
             cookie.setHttpOnly(true);
             cookie.setPath("/");
             cookie.setMaxAge(age);
@@ -159,8 +159,8 @@ public class UserServlet extends BaseServlet {
         if (rr.isSuccess()) {
             UserInfo info = rr.getResult();
             int age = 1000 * 24 * 60 * 60;
-            String key = UserService.encryptAES(info.getUser36id() + "$2" + info.getQqopenid() + "?" + age + "-" + System.currentTimeMillis());
-            HttpCookie cookie = new HttpCookie(COOKIE_AUTOLOGIN, key);
+            String key = info.getUser36id() + "$2" + info.getQqopenid() + "?" + age + "-" + System.currentTimeMillis();
+            HttpCookie cookie = new HttpCookie(COOKIE_AUTOLOGIN, UserService.encryptAES(key));
             cookie.setHttpOnly(true);
             cookie.setPath("/");
             cookie.setMaxAge(age);
@@ -198,8 +198,8 @@ public class UserServlet extends BaseServlet {
             if (bean.getCacheday() > 0 && bean.emptyCookieinfo()) {  //保存N天 
                 UserInfo info = result.getResult();
                 int age = bean.getCacheday() * 24 * 60 * 60;
-                String key = UserService.encryptAES((bean.emptyApptoken() ? "" : (bean.getApptoken() + "#")) + info.getUser36id() + "$0" + bean.getPassword() + "?" + age + "-" + System.currentTimeMillis());
-                HttpCookie cookie = new HttpCookie(COOKIE_AUTOLOGIN, key);
+                String key = (bean.emptyApptoken() ? "" : (bean.getApptoken() + "#")) + info.getUser36id() + "$0" + bean.getPassword() + "?" + age + "-" + System.currentTimeMillis();
+                HttpCookie cookie = new HttpCookie(COOKIE_AUTOLOGIN, UserService.encryptAES(key));
                 cookie.setHttpOnly(true);
                 cookie.setPath("/");
                 cookie.setMaxAge(age);
@@ -281,14 +281,14 @@ public class UserServlet extends BaseServlet {
             result = service.login(loginbean);
         }
         String autologin = req.getCookie(COOKIE_AUTOLOGIN);
-        if (autologin != null) {
+        if (result.isSuccess() && autologin != null) {
             autologin = UserService.decryptAES(autologin);
             if (autologin.contains("$0")) { //表示COOKIE_AUTOLOGIN 为密码类型存储
                 String newpwd = UserService.secondPasswordMD5(bean.getNewpwd());
                 int wen = autologin.indexOf('?');
                 int mei = autologin.indexOf('$');
                 String key = autologin.substring(0, mei + 2) + newpwd + autologin.substring(wen);
-                HttpCookie cookie = new HttpCookie(COOKIE_AUTOLOGIN, key);
+                HttpCookie cookie = new HttpCookie(COOKIE_AUTOLOGIN, UserService.encryptAES(key));
                 cookie.setHttpOnly(true);
                 cookie.setPath("/");
                 String time = autologin.substring(wen + 1);
