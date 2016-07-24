@@ -40,14 +40,11 @@ public class FileDownServlet extends BaseServlet {
 
     private File files;
 
-    private File dface;
-
     @Override
     public void init(HttpContext context, AnyValue config) {
         super.init(context, config);
         this.files = new File(home, "files");
         this.files.mkdirs();
-        this.dface = new File(files, "/face/my.jpg"); //默认头像
     }
 
     @AuthIgnore
@@ -58,11 +55,10 @@ public class FileDownServlet extends BaseServlet {
 
     private void download(HttpRequest req, HttpResponse resp) throws IOException {
         final String uri = req.getRequestURI().substring(req.getRequestURI().indexOf("/dir") + 4);
-        boolean face = uri.startsWith("/face");
         resp.setHeader("Cache-Control", "max-age=3600");
         int pos = uri.lastIndexOf('/');
-        File f = new File(files, uri.substring(0, pos + 1) + FileService.hashPath(uri.substring(pos + 1)) + (face ? ".jpg" : ""));
-        if (!f.isFile() && face) f = dface;
+        File f = new File(files, uri.substring(0, pos + 1) + FileService.hashPath(uri.substring(pos + 1)));
+        if (!f.isFile()) f = new File(files, uri.substring(0, pos + 1) + "def.jpg"); //每个目录下放个默认图片
         if (f.isFile()) {
             resp.finish(req.getParameter("filename"), f);
         } else {

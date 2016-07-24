@@ -11,7 +11,6 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import javax.annotation.Resource;
-import javax.imageio.ImageIO;
 import static org.redkale.demo.base.RetCodes.*;
 import org.redkale.demo.base.*;
 import org.redkale.net.http.*;
@@ -60,19 +59,7 @@ public class FileUploadServlet extends BaseServlet {
 
     @WebAction(url = "/upload/face") // 上传头像 以正方形规格存储
     public void face(HttpRequest req, HttpResponse resp) throws IOException {
-        UserInfo user = currentUser(req);
-        for (MultiPart part : req.multiParts()) {
-            byte[] byts = part.getContentBytes(10 * 1024 * 1024L);
-            if (byts == null) {
-                resp.finish("{\"success\":false,\"retcode\":2010001,\"retinfo\":\"file too long or io error\"}");
-            } else {
-                BufferedImage img = ImageIO.read(new ByteArrayInputStream(byts));
-                service.storeFace(user.getUserid(), img);
-            }
-            resp.finish("{\"success\":true,\"retcode\":0,\"fileid\":\"" + user.getUser36id() + ".jpg\"}");
-            return;
-        }
-        resp.finish("{\"success\":false,\"retcode\":2010001,\"retinfo\":\"no upload file entry\"}");
+        uploadImg(req, resp, "face", currentUser(req).getUser36id(), FileService.face_widths, ImageRatio.RATIO_1_1, 10 * 1024 * 1024L);
     }
 
     protected void uploadBin(HttpRequest req, HttpResponse resp, long max) throws IOException {
@@ -95,14 +82,22 @@ public class FileUploadServlet extends BaseServlet {
         uploadImg(req, resp, dir, fileid0, widths, ratio, true, max);
     }
 
+    protected void uploadImg(HttpRequest req, HttpResponse resp, String dir, String fileid0, int[] widths, final ImageRatio ratio, long max, Runnable runner) throws IOException {
+        uploadImg(req, resp, dir, fileid0, widths, ratio, true, max, runner);
+    }
+
     protected void uploadImg(final HttpRequest req, HttpResponse resp, String dir, String fileid0, int[] widths, final ImageRatio ratio, final boolean sync, final long max) throws IOException {
+        uploadImg(req, resp, dir, fileid0, widths, ratio, sync, max, null);
+    }
+
+    protected void uploadImg(final HttpRequest req, HttpResponse resp, String dir, String fileid0, int[] widths, final ImageRatio ratio, final boolean sync, final long max, Runnable runner) throws IOException {
         for (MultiPart part : req.multiParts()) {
             final String mime = MimeType.getByFilename(part.getFilename());
             if (!mime.contains("image/")) { //不是图片
                 sendRetResult(resp, RetCodes.retResult(RET_UPLOAD_NOTIMAGE));
                 return;
             }
-            String fileid = service.storeMultiJPGFile(dir, fileid0, widths, ratio, part.getContentBytes(max), null);
+            String fileid = service.storeMultiJPGFile(dir, fileid0, widths, ratio, part.getContentBytes(max), runner);
             if (fileid.isEmpty()) {
                 sendRetResult(resp, RetCodes.retResult(RET_UPLOAD_FILETOOBIG));
             } else {
