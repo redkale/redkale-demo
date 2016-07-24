@@ -15,7 +15,7 @@ import org.redkale.util.Reproduce;
  * @author zhangjx
  */
 /**
- * 头像的url： http://xxx/user/{userid的36进制}
+ * 头像的url： http://redkale.org/dir/face_xx/{userid的36进制}.jpg
  *
  * @author zhangjx
  */
