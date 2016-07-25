@@ -64,6 +64,19 @@ CREATE TABLE `smsrecord` (
 ) ENGINE=INNODB AUTO_INCREMENT=200000001 DEFAULT CHARSET=utf8 COMMENT='短信发送记录表';
 
 
+DROP TABLE IF EXISTS `noticerecord`;
+
+CREATE TABLE `noticerecord` (
+  `noticeid` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '消息ID',
+  `userid` int(11) NOT NULL DEFAULT '0' COMMENT '用户ID',
+  `status` smallint(6) NOT NULL DEFAULT '0' COMMENT '状态; 20:未读;60:已读;70:过期',
+  `apptoken` varchar(128) NOT NULL DEFAULT '' COMMENT '设备推送ID',
+  `content` varchar(4096) NOT NULL DEFAULT '' COMMENT '消息体',
+  `resultdesc` varchar(4096) NOT NULL DEFAULT '' COMMENT '消息体',
+  `createtime` bigint(20) NOT NULL DEFAULT '0' COMMENT '创建时间',
+  PRIMARY KEY (`noticeid`)
+) ENGINE=InnoDB AUTO_INCREMENT=3000000001 DEFAULT CHARSET=utf8 COMMENT='消息推送表';
+
 /*Table structure for table `userdetail` */
 
 DROP TABLE IF EXISTS `userdetail`;
