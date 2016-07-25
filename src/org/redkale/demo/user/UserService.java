@@ -609,8 +609,8 @@ public class UserService extends BasedService {
         if (user == null) {  //表示忘记密码后进行重置密码
             bean.setSessionid(null);
             if (bean.getRandomcode() != null && !bean.getRandomcode().isEmpty()) {
-                RandomCode code = source.find(RandomCode.class, bean.getRandomcode());
-                if (code == null) return RetCodes.retResult(RET_USER_RANDCODE_ILLEGAL);
+                RandomCode code = source.find(RandomCode.class, bean.getRandomcode());                
+                if (code == null || code.getType() != RandomCode.TYPE_SMSPWD) return retResult(RET_USER_RANDCODE_ILLEGAL);
                 if (code.isExpired()) return RetCodes.retResult(RET_USER_RANDCODE_EXPIRED);
 
                 user = findUserInfo(code.getUserid());
