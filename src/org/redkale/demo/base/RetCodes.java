@@ -124,4 +124,7 @@ public abstract class RetCodes extends PayRetCodes {
 
     @RetLabel("用户类型无效")
     public static final int RET_USER_TYPE_ILLEGAL = 30020029;
+
+    @RetLabel("用户设备ID无效")
+    public static final int RET_USER_APPTOKEN_ILLEGAL = 30020030;
 }
