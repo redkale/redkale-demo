@@ -17,6 +17,10 @@ public class UserPwdBean extends BaseBean {
 
     private String randomcode = "";
 
+    private String account = "";  
+
+    private String vercode = "";
+
     private String oldpwd;  //HEX-MD5(密码明文)
 
     private String newpwd;  //HEX-MD5(密码明文)
@@ -51,6 +55,22 @@ public class UserPwdBean extends BaseBean {
 
     public void setRandomcode(String randomcode) {
         this.randomcode = randomcode;
+    }
+
+    public String getAccount() {
+        return account;
+    }
+
+    public void setAccount(String account) {
+        this.account = account;
+    }
+
+    public String getVercode() {
+        return vercode;
+    }
+
+    public void setVercode(String vercode) {
+        this.vercode = vercode;
     }
 
 }

@@ -608,8 +608,15 @@ public class UserService extends BasedService {
         final String newpwd = digestPassword(secondPasswordMD5(bean.getNewpwd())); //HEX-MD5(密码明文)
         if (user == null) {  //表示忘记密码后进行重置密码
             bean.setSessionid(null);
-            if (bean.getRandomcode() != null && !bean.getRandomcode().isEmpty()) {
-                RandomCode code = source.find(RandomCode.class, bean.getRandomcode());                
+            String randomcode = bean.getRandomcode();
+            if (randomcode == null || randomcode.isEmpty()) {
+                if (bean.getAccount() != null && !bean.getAccount().isEmpty()
+                    && bean.getVercode() != null && !bean.getVercode().isEmpty()) {
+                    randomcode = bean.getAccount() + "-" + bean.getVercode();
+                }
+            }
+            if (randomcode != null && !randomcode.isEmpty()) {
+                RandomCode code = source.find(RandomCode.class, randomcode);
                 if (code == null || code.getType() != RandomCode.TYPE_SMSPWD) return retResult(RET_USER_RANDCODE_ILLEGAL);
                 if (code.isExpired()) return RetCodes.retResult(RET_USER_RANDCODE_EXPIRED);
 
