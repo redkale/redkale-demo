@@ -34,7 +34,7 @@ import org.redkale.util.*;
  *
  * @author zhangjx
  */
-public class UserService extends BaseService {
+public class UserService extends BasedService {
 
     private static final MessageDigest sha1;
 
@@ -95,9 +95,6 @@ public class UserService extends BaseService {
 
     protected final AtomicInteger maxid = new AtomicInteger(200000000);
 
-    @Resource(name = "reduser")
-    private DataSource source;
-
     private final int sessionExpireSeconds = 30 * 60;
 
     @Resource(name = "usersessions")
@@ -111,6 +108,9 @@ public class UserService extends BaseService {
 
     @Resource
     private EmailService emailService;
+
+    @Resource
+    private SmsService smsService;
 
     @Resource
     private JsonConvert convert;
@@ -253,25 +253,6 @@ public class UserService extends BaseService {
     public UserInfo current(String sessionid) {
         Integer userid = sessions.getAndRefresh(sessionid, sessionExpireSeconds);
         return userid == null ? null : userInfos.get(userid);
-    }
-
-    //绑定微信号
-    public RetResult updateWxunionid(UserInfo user, String appid, String code) {
-        try {
-            if (user == null) return RetCodes.retResult(RET_USER_NOTEXISTS);
-            Map<String, String> wxmap = wxMPService.getMPUserTokenByCode(appid, code);
-            final String wxunionid = wxmap.get("unionid");
-            if (wxunionid == null || wxunionid.isEmpty()) return RetCodes.retResult(RET_USER_WXID_ILLEGAL);
-            if (!checkWxunionid(wxunionid)) return RetCodes.retResult(RET_USER_WXID_EXISTS);
-            user = user.copy();
-            source.updateColumn(UserDetail.class, user.getUserid(), "wxunionid", wxunionid);
-            user.setWxunionid(wxunionid);
-            updateUserInfo(user, true);
-            return new RetResult();
-        } catch (Exception e) {
-            logger.log(Level.FINE, "updateWxunionid failed (" + user + ", " + appid + ", " + code + ")", e);
-            return RetCodes.retResult(RET_USER_WXID_BIND_FAIL);
-        }
     }
 
     //QQ登录
@@ -460,6 +441,67 @@ public class UserService extends BaseService {
         return result;
     }
 
+    /**
+     *
+     * 用户注册
+     *
+     * @param user
+     *
+     * @return
+     */
+    public RetResult<UserInfo> register(UserDetail user) {
+        RetResult<UserInfo> result = new RetResult();
+        if (user == null) return RetCodes.retResult(RET_USER_SIGNUP_ILLEGAL);
+        if (!user.isAc() && !user.isMb() && !user.isEm() && !user.isWx() && !user.isQq()) return RetCodes.retResult(RET_USER_SIGNUP_ILLEGAL);
+        if (user.getGender() != 0 && user.getGender() != GENDER_MALE && user.getGender() != GENDER_FEMALE) return RetCodes.retResult(RET_USER_GENDER_ILLEGAL);
+        int retcode = 0;
+        if (user.isAc() && (retcode = checkAccount(user.getAccount())) != 0) return RetCodes.retResult(retcode);
+        if (user.isAc() && (retcode = checkMobile(user.getMobile())) != 0) return RetCodes.retResult(retcode);
+        if (user.isAc() && (retcode = checkEmail(user.getEmail())) != 0) return RetCodes.retResult(retcode);
+        if (user.isWx() && wxunionidUserInfos.containsKey(user.getWxunionid())) return RetCodes.retResult(RET_USER_WXID_EXISTS);
+        if (user.isQq() && qqopenidUserInfos.containsKey(user.getQqopenid())) return RetCodes.retResult(RET_USER_QQID_EXISTS);
+        if (user.isMb()) {
+            user.setRegtype(REGTYPE_MOBILE);
+            if (user.getPassword().isEmpty()) return RetCodes.retResult(RET_USER_PASSWORD_ILLEGAL);
+        } else if (user.isEm()) {
+            user.setRegtype(REGTYPE_EMAIL);
+            if (user.getPassword().isEmpty()) return RetCodes.retResult(RET_USER_PASSWORD_ILLEGAL);
+        } else if (user.isWx()) {
+            user.setRegtype(REGTYPE_WEIXIN);
+        } else if (user.isQq()) {
+            user.setRegtype(REGTYPE_QQOPEN);
+        } else {
+            user.setRegtype(REGTYPE_ACCOUNT);
+            if (user.getPassword().isEmpty()) return RetCodes.retResult(RET_USER_PASSWORD_ILLEGAL);
+        }
+        user.setUserid(maxid.incrementAndGet());
+        user.setCreatetime(System.currentTimeMillis());
+        user.setInfotime(0);
+        user.setUpdatetime(0);
+        if (!user.getPassword().isEmpty()) {
+            user.setPassword(digestPassword(secondPasswordMD5(user.getPassword())));
+        }
+        user.setStatus(UserInfo.STATUS_NORMAL);
+        try {
+            source.insert(user);
+        } catch (RuntimeException e) {
+            logger.log(Level.WARNING, "register user error (" + user + ")", e);
+            if (updateMax()) {
+                user.setUserid(maxid.incrementAndGet());
+                source.insert(user);
+            } else {
+                throw e;
+            }
+        }
+        //------------------------扩展信息-----------------------------
+
+        UserInfo info = user.createUserInfo();
+        updateUserInfo(info, false);
+        result.setResult(info);
+        //可以在此处给企业微信号推送注册消息
+        return result;
+    }
+
     //注销登录
     public boolean logout(final String sessionid) {
         UserInfo user = current(sessionid);
@@ -471,17 +513,23 @@ public class UserService extends BaseService {
         return true;
     }
 
-    public RetResult<RandomCode> checkRandomCode(String targetid, String randomcode, short type) {
-        if (randomcode == null || randomcode.isEmpty()) return RetCodes.retResult(RET_USER_RANDCODE_ILLEGAL);
-        if (targetid != null && targetid.length() > 5 && randomcode.length() < 30) randomcode = targetid + "-" + randomcode;
-        RandomCode code = source.find(RandomCode.class, randomcode);
-        if (code != null && type > 0 && code.getType() != type) return RetCodes.retResult(RET_USER_RANDCODE_ILLEGAL);
-        return code == null ? RetCodes.retResult(RET_USER_RANDCODE_ILLEGAL) : (code.isExpired() ? RetCodes.retResult(RET_USER_RANDCODE_EXPIRED) : new RetResult(code));
-    }
-
-    public void removeRandomCode(RandomCode code) {
-        source.insert(code.createRandomCodeHis(RandomCodeHis.RETCODE_OK));
-        source.delete(RandomCode.class, code.getRandomcode());
+    //绑定微信号
+    public RetResult updateWxunionid(UserInfo user, String appid, String code) {
+        try {
+            if (user == null) return RetCodes.retResult(RET_USER_NOTEXISTS);
+            Map<String, String> wxmap = wxMPService.getMPUserTokenByCode(appid, code);
+            final String wxunionid = wxmap.get("unionid");
+            if (wxunionid == null || wxunionid.isEmpty()) return RetCodes.retResult(RET_USER_WXID_ILLEGAL);
+            if (!checkWxunionid(wxunionid)) return RetCodes.retResult(RET_USER_WXID_EXISTS);
+            user = user.copy();
+            source.updateColumn(UserDetail.class, user.getUserid(), "wxunionid", wxunionid);
+            user.setWxunionid(wxunionid);
+            updateUserInfo(user, true);
+            return new RetResult();
+        } catch (Exception e) {
+            logger.log(Level.FINE, "updateWxunionid failed (" + user + ", " + appid + ", " + code + ")", e);
+            return RetCodes.retResult(RET_USER_WXID_BIND_FAIL);
+        }
     }
 
     public RetResult updateUsername(int userid, String username) {
@@ -491,13 +539,26 @@ public class UserService extends BaseService {
         if (user.getUsername().equals(username)) return new RetResult();
         user = user.copy();
         if (username.isEmpty()) return RetCodes.retResult(RET_USER_USERNAME_ILLEGAL);
-        long t = System.currentTimeMillis();
-        source.updateColumn(UserDetail.class, user.getUserid(), "username", username);
-        source.updateColumn(UserDetail.class, user.getUserid(), "infotime", t);
+        UserDetail ud = new UserDetail();
+        ud.setUserid(userid);
+        ud.setUsername(username);
+        ud.setInfotime(System.currentTimeMillis());
+        source.updateColumns(ud, "username", "infotime");
         user.setUsername(username);
-        user.setInfotime(t);
+        user.setInfotime(ud.getInfotime());
         updateUserInfo(user, true);
         return new RetResult();
+    }
+
+    public RetResult updateApptoken(int userid, String apptoken) {
+        UserInfo user = findUserInfo(userid);
+        if (user == null) return RetCodes.retResult(RET_USER_NOTEXISTS);
+        if (apptoken == null) apptoken = "";
+        user = user.copy();
+        source.updateColumn(UserDetail.class, user.getUserid(), "apptoken", apptoken);
+        user.setApptoken(apptoken);
+        updateUserInfo(user, false);
+        return RetResult.SUCCESS;
     }
 
     public RetResult updateInfotime(int userid) {
@@ -578,6 +639,19 @@ public class UserService extends BaseService {
         return source.find(UserDetail.class, userid);
     }
 
+    public RetResult<RandomCode> checkRandomCode(String targetid, String randomcode, short type) {
+        if (randomcode == null || randomcode.isEmpty()) return RetCodes.retResult(RET_USER_RANDCODE_ILLEGAL);
+        if (targetid != null && targetid.length() > 5 && randomcode.length() < 30) randomcode = targetid + "-" + randomcode;
+        RandomCode code = source.find(RandomCode.class, randomcode);
+        if (code != null && type > 0 && code.getType() != type) return RetCodes.retResult(RET_USER_RANDCODE_ILLEGAL);
+        return code == null ? RetCodes.retResult(RET_USER_RANDCODE_ILLEGAL) : (code.isExpired() ? RetCodes.retResult(RET_USER_RANDCODE_EXPIRED) : new RetResult(code));
+    }
+
+    public void removeRandomCode(RandomCode code) {
+        source.insert(code.createRandomCodeHis(RandomCodeHis.RETCODE_OK));
+        source.delete(RandomCode.class, code.getRandomcode());
+    }
+
     /**
      * 发送短信验证码
      *
@@ -604,85 +678,20 @@ public class UserService extends BaseService {
             RandomCode last = codes.get(codes.size() - 1);
             if (last.getCreatetime() + 60 * 1000 > System.currentTimeMillis()) return RetCodes.retResult(RET_USER_MOBILE_SMSFREQUENT);
         }
-        final String sms = String.valueOf(RandomCode.randomSmsCode());
-//        ResourceBundle bundle = ResourceBundle.getBundle(userbundle, Locale.forLanguageTag("zh"));
-//        SmsMessage message = new SmsMessage();
-//        message.setTo(mobile);
-//        message.setContent(bundle.getString("vercode.mobile.content").replace("{randomcode}", sms));
-//        try {
-//            smsService.sendMessage(message);
-//        } catch (Exception e) {
-//            logger.log(Level.WARNING, "mobile(" + mobile + ", type=" + type + ", locale = " + locale + ") send smscode error", e);
-//            return new RetResult(1010025); //发送验证码失败
-//        }
+        final int smscode = RandomCode.randomSmsCode();
+        try {
+            if (!smsService.sendRandomSmsCode(type, mobile, smscode)) return retResult(RET_USER_MOBILE_SMSFREQUENT);
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "mobile(" + mobile + ", type=" + type + ") send smscode " + smscode + " error", e);
+            return retResult(RET_USER_MOBILE_SMSFREQUENT);
+        }
         RandomCode code = new RandomCode();
         code.setCreatetime(System.currentTimeMillis());
         if (info != null) code.setUserid(info.getUserid());
-        code.setRandomcode(mobile + "-" + sms);
+        code.setRandomcode(mobile + "-" + smscode);
         code.setType(type);
         source.insert(code);
         return RetResult.SUCCESS;
-    }
-
-    /**
-     *
-     * 用户注册
-     *
-     * @param user
-     *
-     * @return
-     */
-    public RetResult<UserInfo> register(UserDetail user) {
-        RetResult<UserInfo> result = new RetResult();
-        if (user == null) return RetCodes.retResult(RET_USER_SIGNUP_ILLEGAL);
-        if (!user.isAc() && !user.isMb() && !user.isEm() && !user.isWx() && !user.isQq()) return RetCodes.retResult(RET_USER_SIGNUP_ILLEGAL);
-        if (user.getGender() != 0 && user.getGender() != GENDER_MALE && user.getGender() != GENDER_FEMALE) return RetCodes.retResult(RET_USER_GENDER_ILLEGAL);
-        int retcode = 0;
-        if (user.isAc() && (retcode = checkAccount(user.getAccount())) != 0) return RetCodes.retResult(retcode);
-        if (user.isAc() && (retcode = checkMobile(user.getMobile())) != 0) return RetCodes.retResult(retcode);
-        if (user.isAc() && (retcode = checkEmail(user.getEmail())) != 0) return RetCodes.retResult(retcode);
-        if (user.isWx() && wxunionidUserInfos.containsKey(user.getWxunionid())) return RetCodes.retResult(RET_USER_WXID_EXISTS);
-        if (user.isQq() && qqopenidUserInfos.containsKey(user.getQqopenid())) return RetCodes.retResult(RET_USER_QQID_EXISTS);
-        if (user.isMb()) {
-            user.setRegtype(REGTYPE_MOBILE);
-            if (user.getPassword().isEmpty()) return RetCodes.retResult(RET_USER_PASSWORD_ILLEGAL);
-        } else if (user.isEm()) {
-            user.setRegtype(REGTYPE_EMAIL);
-            if (user.getPassword().isEmpty()) return RetCodes.retResult(RET_USER_PASSWORD_ILLEGAL);
-        } else if (user.isWx()) {
-            user.setRegtype(REGTYPE_WEIXIN);
-        } else if (user.isQq()) {
-            user.setRegtype(REGTYPE_QQOPEN);
-        } else {
-            user.setRegtype(REGTYPE_ACCOUNT);
-            if (user.getPassword().isEmpty()) return RetCodes.retResult(RET_USER_PASSWORD_ILLEGAL);
-        }
-        user.setUserid(maxid.incrementAndGet());
-        user.setCreatetime(System.currentTimeMillis());
-        user.setInfotime(0);
-        user.setUpdatetime(0);
-        if (!user.getPassword().isEmpty()) {
-            user.setPassword(digestPassword(secondPasswordMD5(user.getPassword())));
-        }
-        user.setStatus(UserInfo.STATUS_NORMAL);
-        try {
-            source.insert(user);
-        } catch (RuntimeException e) {
-            logger.log(Level.WARNING, "register user error (" + user + ")", e);
-            if (updateMax()) {
-                user.setUserid(maxid.incrementAndGet());
-                source.insert(user);
-            } else {
-                throw e;
-            }
-        }
-        //------------------------扩展信息-----------------------------
-
-        UserInfo info = user.createUserInfo();
-        updateUserInfo(info, false);
-        result.setResult(info);
-        //可以在此处给企业微信号推送注册消息
-        return result;
     }
 
     private static final Predicate<String> accountReg = Pattern.compile("^[a-zA-Z][\\w_.]{6,64}$").asPredicate();
@@ -737,11 +746,6 @@ public class UserService extends BaseService {
 
     public boolean checkQqopenid(String qqopenid) {
         return qqopenid != null && !qqopenid.isEmpty() && this.qqopenidUserInfos.get(qqopenid) == null;
-    }
-
-    protected void updateUser(UserDetail user) {
-        user.setUpdatetime(System.currentTimeMillis());
-        source.update(user);
     }
 
     //AES加密
