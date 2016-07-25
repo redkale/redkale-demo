@@ -558,7 +558,7 @@ public class UserService extends BasedService {
         source.updateColumn(UserDetail.class, user.getUserid(), "apptoken", apptoken);
         user.setApptoken(apptoken);
         updateUserInfo(user, false);
-        return RetResult.SUCCESS;
+        return RetResult.success();
     }
 
     public RetResult updateInfotime(int userid) {
@@ -569,7 +569,7 @@ public class UserService extends BasedService {
         source.updateColumn(UserDetail.class, user.getUserid(), "infotime", t);
         user.setInfotime(t);
         updateUserInfo(user, false);
-        return RetResult.SUCCESS;
+        return RetResult.success();
     }
 
     public RetResult updateGender(int userid, short gender) {
@@ -581,7 +581,7 @@ public class UserService extends BasedService {
         source.updateColumn(UserDetail.class, user.getUserid(), "gender", gender);
         user.setGender(gender);
         updateUserInfo(user, false);
-        return RetResult.SUCCESS;
+        return RetResult.success();
     }
 
     public RetResult updateMobile(int userid, String newmobile, String vercode) {
@@ -691,7 +691,7 @@ public class UserService extends BasedService {
         code.setRandomcode(mobile + "-" + smscode);
         code.setType(type);
         source.insert(code);
-        return RetResult.SUCCESS;
+        return RetResult.success();
     }
 
     private static final Predicate<String> accountReg = Pattern.compile("^[a-zA-Z][\\w_.]{6,64}$").asPredicate();
