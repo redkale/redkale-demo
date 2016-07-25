@@ -50,6 +50,20 @@ CREATE TABLE `randomcodehis` (
 /*Data for the table `randomcodehis` */
 
 
+DROP TABLE IF EXISTS `smsrecord`;
+
+CREATE TABLE `smsrecord` (
+  `smsid` BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT '短信ID',
+  `smstype` SMALLINT(6) NOT NULL DEFAULT '0' COMMENT '短信类型; 10:手机注册；20:重置密码；30:修改手机；40:登录；',
+  `status` SMALLINT(6) NOT NULL DEFAULT '10' COMMENT '状态; 10:未发送; 20:已发送; 30:发送失败;',
+  `mobile` VARCHAR(32) NOT NULL DEFAULT '' COMMENT '手机号码',
+  `content` VARCHAR(1024) NOT NULL DEFAULT '' COMMENT '短信内容',
+  `resultdesc` VARCHAR(1024) NOT NULL DEFAULT '' COMMENT '返回结果',
+  `createtime` BIGINT(20) NOT NULL DEFAULT '0' COMMENT '生成时间，单位毫秒',
+  PRIMARY KEY (`smsid`)
+) ENGINE=INNODB AUTO_INCREMENT=200000001 DEFAULT CHARSET=utf8 COMMENT='短信发送记录表';
+
+
 /*Table structure for table `userdetail` */
 
 DROP TABLE IF EXISTS `userdetail`;
