@@ -30,7 +30,6 @@ CREATE TABLE `randomcode` (
 
 /*Data for the table `randomcode` */
 
-insert  into `randomcode`(`randomcode`,`userid`,`type`,`createtime`) values ('1316768820-165370',0,10,1458215773946);
 
 /*Table structure for table `randomcodehis` */
 
