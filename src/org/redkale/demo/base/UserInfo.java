@@ -19,7 +19,7 @@ import org.redkale.util.Reproduce;
  *
  * @author zhangjx
  */
-@VirtualEntity
+@VirtualEntity(direct = true, loader = UserInfoLoader.class)
 public class UserInfo extends BaseEntity {
 
     private static final Reproduce<UserInfo, UserInfo> reproduce = Reproduce.create(UserInfo.class, UserInfo.class);
@@ -93,7 +93,7 @@ public class UserInfo extends BaseEntity {
         //权限判断
         return true;
     }
-    
+
     //用户是否处于正常状态
     @ConvertColumn(ignore = true, type = ConvertType.BSON)
     public boolean isNormal() {
