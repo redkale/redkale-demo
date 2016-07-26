@@ -345,8 +345,9 @@ public class UserServlet extends BaseServlet {
     }
 
     private void smsvercode(final short type, HttpRequest req, HttpResponse resp) throws IOException {
-        RetResult rr = service.smscode(type, req.getRequstURIPath("mobile:", req.getParameter("mobile")));
-        if (finest) logger.finest(req.getRequestURI() + ", mobile = " + req.getParameter("mobile") + "---->" + rr);
+        String mobile = req.getRequstURIPath("mobile:", req.getParameter("mobile"));
+        RetResult rr = service.smscode(type, mobile);
+        if (finest) logger.finest(req.getRequestURI() + ", mobile = " + mobile + "---->" + rr);
         sendRetResult(resp, rr);
     }
 
