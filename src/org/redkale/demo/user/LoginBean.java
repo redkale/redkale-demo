@@ -17,7 +17,7 @@ public final class LoginBean extends BaseBean implements FilterBean {
 
     private String account;  //登录账号: 用户名、邮箱或者手机号码(为便于区别，用户名规则：不能以数字开头或者包含@)
 
-    private String password = ""; //HEX-MD5(HEX-MD5(密码明文))
+    private String password = ""; //HEX-MD5(HEX-MD5(密码明文)) 两次MD5的值
 
     private String apptoken = ""; //APP设备唯一标识
 

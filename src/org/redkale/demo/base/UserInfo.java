@@ -112,42 +112,6 @@ public class UserInfo extends BaseEntity {
         return this.status == STATUS_FREEZE;
     }
 
-    //是否绑定了手机号码
-    @ConvertColumn(ignore = true, type = ConvertType.BSON)
-    public boolean isMb() {
-        return this.mobile != null && !this.mobile.isEmpty();
-    }
-
-    //是否绑定了邮箱
-    @ConvertColumn(ignore = true, type = ConvertType.BSON)
-    public boolean isEm() {
-        return this.email != null && !this.email.isEmpty();
-    }
-
-    //是否绑定了微信
-    @ConvertColumn(ignore = true, type = ConvertType.BSON)
-    public boolean isWx() {
-        return this.wxunionid != null && !this.wxunionid.isEmpty();
-    }
-
-    //是否绑定了QQ
-    @ConvertColumn(ignore = true, type = ConvertType.BSON)
-    public boolean isQq() {
-        return this.qqopenid != null && !this.qqopenid.isEmpty();
-    }
-
-    //是否有用户账号
-    @ConvertColumn(ignore = true, type = ConvertType.ALL)
-    public boolean isAc() {
-        return this.account != null && !this.account.isEmpty();
-    }
-
-    //是否绑定了APP设备
-    @ConvertColumn(ignore = true, type = ConvertType.ALL)
-    public boolean isAp() {
-        return this.apptoken != null && !this.apptoken.isEmpty();
-    }
-
     public long getInfotime() {
         return infotime;
     }
@@ -171,11 +135,11 @@ public class UserInfo extends BaseEntity {
     //用户帐号不允许输出给外部接口
     @ConvertColumn(ignore = true, type = ConvertType.JSON)
     public String getAccount() {
-        return account;
+        return account == null ? "" : account;
     }
 
     public void setAccount(String account) {
-        if (account != null) this.account = account.trim();
+        this.account = account == null ? "" : account.trim();
     }
 
     public short getType() {
@@ -187,11 +151,11 @@ public class UserInfo extends BaseEntity {
     }
 
     public String getUsername() {
-        return username;
+        return username == null ? "" : username;
     }
 
     public void setUsername(String username) {
-        this.username = username;
+        this.username = username == null ? "" : username.trim();
     }
 
     //密码不允许输出给外部接口
@@ -201,17 +165,17 @@ public class UserInfo extends BaseEntity {
     }
 
     public void setPassword(String password) {
-        this.password = password;
+        this.password = password == null ? "" : password.trim();
     }
 
     //手机号码不允许输出给外部接口
     @ConvertColumn(ignore = true, type = ConvertType.JSON)
     public String getMobile() {
-        return mobile;
+        return mobile == null ? "" : mobile;
     }
 
     public void setMobile(String mobile) {
-        if (mobile != null) this.mobile = mobile.trim();
+        this.mobile = mobile == null ? "" : mobile.trim();
     }
 
     //邮箱地址不允许输出给外部接口
@@ -221,37 +185,37 @@ public class UserInfo extends BaseEntity {
     }
 
     public void setEmail(String email) {
-        if (email != null) this.email = email.trim().toLowerCase();
+        this.email = email == null ? "" : email.trim();
     }
 
     //微信绑定ID不允许输出给外部接口
     @ConvertColumn(ignore = true, type = ConvertType.JSON)
     public String getWxunionid() {
-        return wxunionid;
+        return wxunionid == null ? "" : wxunionid;
     }
 
     public void setWxunionid(String wxunionid) {
-        this.wxunionid = wxunionid;
+        this.wxunionid = wxunionid == null ? "" : wxunionid.trim();
     }
 
     //QQ绑定ID不允许输出给外部接口
     @ConvertColumn(ignore = true, type = ConvertType.JSON)
     public String getQqopenid() {
-        return qqopenid;
+        return qqopenid == null ? "" : qqopenid;
     }
 
     public void setQqopenid(String qqopenid) {
-        this.qqopenid = qqopenid;
+        this.qqopenid = qqopenid == null ? "" : qqopenid.trim();
     }
 
     //APP设备ID不允许输出给外部接口
     @ConvertColumn(ignore = true, type = ConvertType.JSON)
     public String getApptoken() {
-        return apptoken;
+        return apptoken == null ? "" : apptoken;
     }
 
     public void setApptoken(String apptoken) {
-        this.apptoken = apptoken;
+        this.apptoken = apptoken == null ? "" : apptoken.trim();
     }
 
     //用户状态值不允许输出给外部接口

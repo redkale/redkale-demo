@@ -215,9 +215,11 @@ public class UserServlet extends BaseServlet {
         long s = System.currentTimeMillis();
         Map<String, String> map = convert.convertFrom(JsonConvert.TYPE_MAP_STRING_STRING, req.getParameter("bean"));
         RetResult<RandomCode> ret = null;
+        String beanaccount = "";
         UserDetail bean = new UserDetail();
         if (map.containsKey("mobile")) {
             bean.setMobile(map.get("mobile"));
+            beanaccount = bean.getMobile();
             ret = service.checkRandomCode(bean.getMobile(), map.get("vercode"), RandomCode.TYPE_SMSREG);
             if (!ret.isSuccess()) {
                 sendRetResult(resp, ret);
@@ -225,8 +227,10 @@ public class UserServlet extends BaseServlet {
             }
         } else if (map.containsKey("email")) {
             bean.setEmail(map.get("email"));
+            beanaccount = bean.getEmail();
         } else {
             bean.setAccount(map.getOrDefault("account", ""));
+            beanaccount = bean.getAccount();
         }
         bean.setUsername(map.getOrDefault("username", ""));
         bean.setApptoken(map.getOrDefault("apptoken", ""));
@@ -240,9 +244,8 @@ public class UserServlet extends BaseServlet {
                 ret.getResult().setUserid(rr.getResult().getUserid());
                 service.removeRandomCode(ret.getResult());
             }
-            UserInfo curr = rr.getResult();
             LoginBean loginbean = new LoginBean();
-            loginbean.setAccount(curr.isAc() ? curr.getAccount() : (curr.isMb() ? curr.getMobile() : curr.getEmail()));
+            loginbean.setAccount(beanaccount);
             loginbean.setApptoken(bean.getApptoken());
             loginbean.setPassword(UserService.secondPasswordMD5(reqpwd));
             loginbean.setSessionid(req.changeSessionid());
