@@ -177,6 +177,48 @@ public class UserService extends BasedService {
         return userid == null ? null : findUserInfo(userid);
     }
 
+    /**
+     * 发送短信验证码
+     *
+     * @param type
+     * @param mobile
+     *
+     * @return
+     */
+    public RetResult smscode(final short type, String mobile) {
+        if (mobile == null) return new RetResult(RET_USER_MOBILE_ILLEGAL, type + " mobile is null"); //手机号码无效
+        if (mobile.indexOf('+') == 0) mobile = mobile.substring(1);
+        UserInfo info = findUserInfoByMobile(mobile);
+        if (type == RandomCode.TYPE_SMSREG || type == RandomCode.TYPE_SMSMOB) { //手机注册或手机修改的号码不能已存在
+            if (info != null) return new RetResult(RET_USER_MOBILE_EXISTS, "smsreg or smsmob mobile " + mobile + " exists");
+        } else if (type == RandomCode.TYPE_SMSPWD) { //修改密码
+            if (info == null) return new RetResult(RET_USER_NOTEXISTS, "smspwd mobile " + mobile + " not exists");
+        } else if (type == RandomCode.TYPE_SMSLGN) { //手机登录
+            if (info == null) return new RetResult(RET_USER_NOTEXISTS, "smslgn mobile " + mobile + " not exists");
+        } else {
+            return new RetResult(RET_PARAMS_ILLEGAL, type + " is illegal");
+        }
+        List<RandomCode> codes = source.queryList(RandomCode.class, FilterNode.create("randomcode", FilterExpress.LIKE, mobile + "-%"));
+        if (!codes.isEmpty()) {
+            RandomCode last = codes.get(codes.size() - 1);
+            if (last.getCreatetime() + 60 * 1000 > System.currentTimeMillis()) return RetCodes.retResult(RET_USER_MOBILE_SMSFREQUENT);
+        }
+        final int smscode = RandomCode.randomSmsCode();
+        try {
+            if (!smsService.sendRandomSmsCode(type, mobile, smscode)) return retResult(RET_USER_MOBILE_SMSFREQUENT);
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "mobile(" + mobile + ", type=" + type + ") send smscode " + smscode + " error", e);
+            return retResult(RET_USER_MOBILE_SMSFREQUENT);
+        }
+        RandomCode code = new RandomCode();
+        code.setCreatetime(System.currentTimeMillis());
+        if (info != null) code.setUserid(info.getUserid());
+        code.setRandomcode(mobile + "-" + smscode);
+        code.setType(type);
+        source.insert(code);
+        return RetResult.success();
+    }
+
     //QQ登录
     public RetResult<UserInfo> qqlogin(LoginQQBean bean) {
         try {
@@ -577,48 +619,6 @@ public class UserService extends BasedService {
     public void removeRandomCode(RandomCode code) {
         source.insert(code.createRandomCodeHis(RandomCodeHis.RETCODE_OK));
         source.delete(RandomCode.class, code.getRandomcode());
-    }
-
-    /**
-     * 发送短信验证码
-     *
-     * @param type
-     * @param mobile
-     *
-     * @return
-     */
-    public RetResult smscode(final short type, String mobile) {
-        if (mobile == null) return new RetResult(RET_USER_MOBILE_ILLEGAL, type + " mobile is null"); //手机号码无效
-        if (mobile.indexOf('+') == 0) mobile = mobile.substring(1);
-        UserInfo info = findUserInfoByMobile(mobile);
-        if (type == RandomCode.TYPE_SMSREG || type == RandomCode.TYPE_SMSMOB) { //手机注册或手机修改的号码不能已存在
-            if (info != null) return new RetResult(RET_USER_MOBILE_EXISTS, "smsreg or smsmob mobile " + mobile + " exists");
-        } else if (type == RandomCode.TYPE_SMSPWD) { //修改密码
-            if (info == null) return new RetResult(RET_USER_NOTEXISTS, "smspwd mobile " + mobile + " not exists");
-        } else if (type == RandomCode.TYPE_SMSLGN) { //手机登录
-            if (info == null) return new RetResult(RET_USER_NOTEXISTS, "smslgn mobile " + mobile + " not exists");
-        } else {
-            return new RetResult(RET_PARAMS_ILLEGAL, type + " is illegal");
-        }
-        List<RandomCode> codes = source.queryList(RandomCode.class, FilterNode.create("randomcode", FilterExpress.LIKE, mobile + "-%"));
-        if (!codes.isEmpty()) {
-            RandomCode last = codes.get(codes.size() - 1);
-            if (last.getCreatetime() + 60 * 1000 > System.currentTimeMillis()) return RetCodes.retResult(RET_USER_MOBILE_SMSFREQUENT);
-        }
-        final int smscode = RandomCode.randomSmsCode();
-        try {
-            if (!smsService.sendRandomSmsCode(type, mobile, smscode)) return retResult(RET_USER_MOBILE_SMSFREQUENT);
-        } catch (Exception e) {
-            logger.log(Level.WARNING, "mobile(" + mobile + ", type=" + type + ") send smscode " + smscode + " error", e);
-            return retResult(RET_USER_MOBILE_SMSFREQUENT);
-        }
-        RandomCode code = new RandomCode();
-        code.setCreatetime(System.currentTimeMillis());
-        if (info != null) code.setUserid(info.getUserid());
-        code.setRandomcode(mobile + "-" + smscode);
-        code.setType(type);
-        source.insert(code);
-        return RetResult.success();
     }
 
     private static final Predicate<String> accountReg = Pattern.compile("^[a-zA-Z][\\w_.]{6,64}$").asPredicate();
