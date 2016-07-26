@@ -215,7 +215,7 @@ public class UserServlet extends BaseServlet {
         long s = System.currentTimeMillis();
         Map<String, String> map = convert.convertFrom(JsonConvert.TYPE_MAP_STRING_STRING, req.getParameter("bean"));
         RetResult<RandomCode> ret = null;
-        String beanaccount = "";
+        String beanaccount;
         UserDetail bean = new UserDetail();
         if (map.containsKey("mobile")) {
             bean.setMobile(map.get("mobile"));
