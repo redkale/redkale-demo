@@ -18,7 +18,6 @@ public class UserInfoLoader implements BiFunction<DataSource, Class, List> {
 
     @Override
     public List apply(DataSource source, Class type) {
-        if (System.currentTimeMillis() >1) return null;//暂不实现
         List<UserDetail> details = source.queryList(UserDetail.class, (FilterNode) null);
         List<UserInfo> list = new ArrayList<>(details.size());
         for (UserDetail detail : details) {
