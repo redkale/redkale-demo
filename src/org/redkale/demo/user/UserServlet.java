@@ -228,6 +228,7 @@ public class UserServlet extends BaseServlet {
         } else {
             bean.setAccount(map.getOrDefault("account", ""));
         }
+        bean.setUsername(map.getOrDefault("username", ""));
         bean.setApptoken(map.getOrDefault("apptoken", ""));
         bean.setPassword(map.getOrDefault("password", ""));
         bean.setRegaddr(req.getRemoteAddr());
