@@ -430,7 +430,7 @@ public class UserService extends BasedService {
     //注销登录
     public boolean logout(final String sessionid) {
         UserInfo user = current(sessionid);
-        if (user != null && user.getApptoken() != null && !user.getApptoken().isEmpty()) {
+        if (user != null && !user.getApptoken().isEmpty()) {
             user.setApptoken("");
             source.updateColumn(UserDetail.class, user.getUserid(), "apptoken", "");
             source.updateColumn(UserInfo.class, user.getUserid(), "apptoken", "");
@@ -447,7 +447,6 @@ public class UserService extends BasedService {
             final String wxunionid = wxmap.get("unionid");
             if (wxunionid == null || wxunionid.isEmpty()) return RetCodes.retResult(RET_USER_WXID_ILLEGAL);
             if (checkWxunionid(wxunionid) != 0) return RetCodes.retResult(RET_USER_WXID_EXISTS);
-            user = user.copy();
             source.updateColumn(UserDetail.class, user.getUserid(), "wxunionid", wxunionid);
             source.updateColumn(UserInfo.class, user.getUserid(), "wxunionid", wxunionid);
             user.setWxunionid(wxunionid);
