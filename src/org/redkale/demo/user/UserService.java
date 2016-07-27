@@ -520,7 +520,6 @@ public class UserService extends BasedService {
         UserInfo user = findUserInfo(userid);
         if (user == null) return RetCodes.retResult(RET_USER_NOTEXISTS);
         if (apptoken == null) apptoken = "";
-        user = user.copy();
         source.updateColumn(UserDetail.class, user.getUserid(), "apptoken", apptoken);
         source.updateColumn(UserInfo.class, user.getUserid(), "apptoken", apptoken);
         user.setApptoken(apptoken);
