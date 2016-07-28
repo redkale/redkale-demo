@@ -313,9 +313,11 @@ public class UserServlet extends BaseServlet {
 
     @WebAction(url = "/user/updateapptoken")
     public void updateApptoken(HttpRequest req, HttpResponse resp) throws IOException {
-        resp.finishJson(service.updateApptoken(currentUser(req).getUserid(), req.getParameter("apptoken")));
+        String s = req.getRequstURILastPath();
+        if ("updateapptoken".equalsIgnoreCase(s)) s = "";
+        resp.finishJson(service.updateApptoken(currentUser(req).getUserid(), req.getParameter("apptoken", s)));
     }
-    
+
     @WebAction(url = "/user/updategender/")
     public void updateGender(HttpRequest req, HttpResponse resp) throws IOException {
         resp.finishJson(service.updateGender(currentUser(req).getUserid(), Short.parseShort(req.getRequstURILastPath())));
