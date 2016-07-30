@@ -317,7 +317,7 @@ public class UserServlet extends BaseServlet {
     public void updateUsername(HttpRequest req, HttpResponse resp) throws IOException {
         resp.finishJson(service.updateUsername(currentUser(req).getUserid(), req.getParameter("username")));
     }
-    
+
     //更新设备ID
     @WebAction(url = "/user/updateapptoken")
     public void updateApptoken(HttpRequest req, HttpResponse resp) throws IOException {
@@ -346,6 +346,13 @@ public class UserServlet extends BaseServlet {
         smsvercode(RandomCode.TYPE_SMSMOB, req, resp);
     }
 
+    //发送原手机验证码
+    @AuthIgnore
+    @WebAction(url = "/user/smsodmcode")
+    public void smsodm(HttpRequest req, HttpResponse resp) throws IOException {
+        smsvercode(RandomCode.TYPE_SMSODM, req, resp);
+    }
+
     //发送手机注册验证码
     @AuthIgnore
     @WebAction(url = "/user/smsregcode")
@@ -362,7 +369,7 @@ public class UserServlet extends BaseServlet {
 
     private void smsvercode(final short type, HttpRequest req, HttpResponse resp) throws IOException {
         String mobile = req.getRequstURIPath("mobile:", req.getParameter("mobile"));
-        if (mobile == null && type == RandomCode.TYPE_SMSMOB) { //给原手机号码发送验证短信
+        if (type == RandomCode.TYPE_SMSODM) { //给原手机号码发送验证短信
             UserInfo user = currentUser(req);
             if (user != null) mobile = user.getMobile();
         }

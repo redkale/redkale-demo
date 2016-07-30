@@ -195,6 +195,8 @@ public class UserService extends BasedService {
             if (info == null) return new RetResult(RET_USER_NOTEXISTS, "smspwd mobile " + mobile + " not exists");
         } else if (type == RandomCode.TYPE_SMSLGN) { //手机登录
             if (info == null) return new RetResult(RET_USER_NOTEXISTS, "smslgn mobile " + mobile + " not exists");
+        } else if (type == RandomCode.TYPE_SMSODM) { //原手机
+            if (info == null) return new RetResult(RET_USER_NOTEXISTS, "smsodm mobile " + mobile + " not exists");
         } else {
             return new RetResult(RET_PARAMS_ILLEGAL, type + " is illegal");
         }

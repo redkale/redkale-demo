@@ -37,9 +37,12 @@ public class RandomCode extends BaseEntity {
 
     //修改手机号码
     public static final short TYPE_SMSMOB = 30;
-    
+
     //用户验证码登录
     public static final short TYPE_SMSLGN = 40;
+
+    //发送原手机号码
+    public static final short TYPE_SMSODM = 50;
 
     //邮件重置密码
     public static final short TYPE_MAILPWD = 60;
