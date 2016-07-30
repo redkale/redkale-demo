@@ -362,6 +362,10 @@ public class UserServlet extends BaseServlet {
 
     private void smsvercode(final short type, HttpRequest req, HttpResponse resp) throws IOException {
         String mobile = req.getRequstURIPath("mobile:", req.getParameter("mobile"));
+        if (mobile == null && type == RandomCode.TYPE_SMSMOB) { //给原手机号码发送验证短信
+            UserInfo user = currentUser(req);
+            if (user != null) mobile = user.getMobile();
+        }
         RetResult rr = service.smscode(type, mobile);
         if (finest) logger.finest(req.getRequestURI() + ", mobile = " + mobile + "---->" + rr);
         sendRetResult(resp, rr);
