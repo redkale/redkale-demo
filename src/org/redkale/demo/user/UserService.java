@@ -546,7 +546,8 @@ public class UserService extends BasedService {
         return RetResult.success();
     }
 
-    public RetResult updateMobile(int userid, String newmobile, String vercode) {
+    //precode 表示原手机号码收到的短信验证码，如果当前用户没有配置手机号码，则该值忽略
+    public RetResult updateMobile(int userid, String newmobile, String vercode, String precode) {
         int retcode = checkMobile(newmobile);
         if (retcode != 0) return RetCodes.retResult(retcode);
         RandomCode code = source.find(RandomCode.class, newmobile + "-" + vercode);
@@ -555,12 +556,22 @@ public class UserService extends BasedService {
 
         UserInfo user = findUserInfo(userid);
         if (user == null) return RetCodes.retResult(RET_USER_NOTEXISTS);
+        RandomCode rc = null;
+        if (!user.getMobile().isEmpty()) {
+            rc = source.find(RandomCode.class, user.getMobile() + "-" + precode);
+            if (rc == null) return RetCodes.retResult(RET_USER_RANDCODE_ILLEGAL);
+            if (rc.isExpired()) return RetCodes.retResult(RET_USER_RANDCODE_EXPIRED);
+        }
         source.updateColumn(UserDetail.class, user.getUserid(), "mobile", newmobile);
         source.updateColumn(UserInfo.class, user.getUserid(), "mobile", newmobile);
         user.setMobile(newmobile);
         code.setUserid(user.getUserid());
         source.insert(code.createRandomCodeHis(RandomCodeHis.RETCODE_OK));
         source.delete(RandomCode.class, code.getRandomcode());
+        if (rc != null) {
+            source.insert(rc.createRandomCodeHis(RandomCodeHis.RETCODE_OK));
+            source.delete(RandomCode.class, rc.getRandomcode());
+        }
         return RetResult.success();
     }
 

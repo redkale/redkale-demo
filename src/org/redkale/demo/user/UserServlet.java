@@ -306,11 +306,19 @@ public class UserServlet extends BaseServlet {
         sendRetResult(resp, result);
     }
 
+    //更新用户手机号码
+    @WebAction(url = "/user/updatemobile")
+    public void updatemobile(HttpRequest req, HttpResponse resp) throws IOException {
+        resp.finishJson(service.updateMobile(currentUser(req).getUserid(), req.getParameter("mobile"), req.getParameter("vercode"), req.getParameter("precode")));
+    }
+
+    //更新用户昵称
     @WebAction(url = "/user/updateusername")
     public void updateUsername(HttpRequest req, HttpResponse resp) throws IOException {
         resp.finishJson(service.updateUsername(currentUser(req).getUserid(), req.getParameter("username")));
     }
-
+    
+    //更新设备ID
     @WebAction(url = "/user/updateapptoken")
     public void updateApptoken(HttpRequest req, HttpResponse resp) throws IOException {
         String s = req.getRequstURILastPath();
@@ -318,6 +326,7 @@ public class UserServlet extends BaseServlet {
         resp.finishJson(service.updateApptoken(currentUser(req).getUserid(), req.getParameter("apptoken", s)));
     }
 
+    //更新性别
     @WebAction(url = "/user/updategender/")
     public void updateGender(HttpRequest req, HttpResponse resp) throws IOException {
         resp.finishJson(service.updateGender(currentUser(req).getUserid(), Short.parseShort(req.getRequstURILastPath())));
