@@ -13,13 +13,16 @@ import org.redkale.convert.json.*;
  * @author zhangjx
  */
 public abstract class BaseEntity implements Serializable {
-    
+
     //状态间隔10，便于以后扩展意义接近的状态值比较靠近
     //正常
     public static final short STATUS_NORMAL = 10;
 
     //待审批
     public static final short STATUS_PENDING = 20;
+
+    //审批不通过
+    public static final short STATUS_PENDNO = 30;
 
     //冻结
     public static final short STATUS_FREEZE = 40;
