@@ -205,6 +205,7 @@ public class FileService extends BaseService {
 
     public final String storeMultiJPGFile(final String dir, final String fileid, int[] widths, final ImageRatio ratio, byte[] bytes, Runnable runner) throws IOException {
         if (bytes == null) return "";
+        if (bytes.length > 2 && bytes[0] == 0x0D && bytes[1] == 0x0A) bytes = Arrays.copyOfRange(bytes, 2, bytes.length); //苹果上传可能会多出一个回车换行 $cordovaFileTransfer.upload
         final boolean jpeg = bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[bytes.length - 2] == 0xFF && bytes[bytes.length - 1] == 0xD9;
         BufferedImage image = ratio == null ? ImageIO.read(new ByteArrayInputStream(bytes)) : ratio.cut(ImageIO.read(new ByteArrayInputStream(bytes)));
         if (!jpeg) {
