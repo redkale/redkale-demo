@@ -53,8 +53,8 @@ public class FileUploadServlet extends BaseServlet {
     }
 
     @AuthIgnore
-    @WebAction(url = "/upload/filespath") // 
-    public void filespath(HttpRequest req, HttpResponse resp) throws IOException {
+    @WebAction(url = "/upload/filesroot") // 
+    public void filesroot(HttpRequest req, HttpResponse resp) throws IOException {
         String path = "";
         //10.0.0.0/8：10.0.0.0～10.255.255.255 
         //172.16.0.0/12：172.16.0.0～172.31.255.255 
