@@ -52,6 +52,16 @@ public class FileUploadServlet extends BaseServlet {
         super.init(context, config);
     }
 
+    @AuthIgnore
+    @WebAction(url = "/upload/filespath") // 
+    public void filespath(HttpRequest req, HttpResponse resp) throws IOException {
+        String path = "";
+        if (service.getLocalAddress().startsWith(req.getRemoteAddr()) || "127.0.0.1".equals(req.getRemoteAddr())) { //只能局域网访问
+            path = service.getFilespath();
+        }
+        resp.finish(path);
+    }
+
     @WebAction(url = "/upload/fres")  //上传附件
     public void tres(HttpRequest req, HttpResponse resp) throws IOException {
         uploadBin(req, resp, 10 * 1024 * 1024L);
