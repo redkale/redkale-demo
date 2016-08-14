@@ -56,7 +56,19 @@ public class FileUploadServlet extends BaseServlet {
     @WebAction(url = "/upload/filespath") // 
     public void filespath(HttpRequest req, HttpResponse resp) throws IOException {
         String path = "";
-        if (service.getLocalAddress().startsWith(req.getRemoteAddr()) || "127.0.0.1".equals(req.getRemoteAddr())) { //只能局域网访问
+        //10.0.0.0/8：10.0.0.0～10.255.255.255 
+        //172.16.0.0/12：172.16.0.0～172.31.255.255 
+        //192.168.0.0/16：192.168.0.0～192.168.255.255
+        String ip = req.getRemoteAddr();
+        if ("127.0.0.1".equals(ip) || ip.startsWith("10.") || ip.startsWith("192.168.")
+            || ip.startsWith("172.16.") || ip.startsWith("172.17.")
+            || ip.startsWith("172.18.") || ip.startsWith("172.19.")
+            || ip.startsWith("172.20.") || ip.startsWith("172.21.")
+            || ip.startsWith("172.22.") || ip.startsWith("172.23.")
+            || ip.startsWith("172.24.") || ip.startsWith("172.25.")
+            || ip.startsWith("172.26.") || ip.startsWith("172.27.")
+            || ip.startsWith("172.28.") || ip.startsWith("172.29.")
+            || ip.startsWith("172.30.") || ip.startsWith("172.31.")) { //只能局域网访问
             path = service.getFilespath();
         }
         resp.finish(path);

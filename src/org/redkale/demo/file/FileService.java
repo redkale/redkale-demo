@@ -188,10 +188,6 @@ public class FileService extends BaseService {
         return this.files.getCanonicalPath();
     }
 
-    public String getLocalAddress() {
-        return this.localAddress == null ? "" : this.localAddress;
-    }
-
     @Override
     public void destroy(AnyValue config) {
         if (syncstream != null) syncstream.close();
