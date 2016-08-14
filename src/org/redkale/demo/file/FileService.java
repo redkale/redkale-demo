@@ -112,6 +112,7 @@ public class FileService extends BaseService {
     @Override
     public void init(AnyValue config) {
         initPath();
+        if(finest) logger.finest("files.root= " + this.files.getPath()); 
         if (System.getProperty("os.name").contains("Window")) return;
         if (this.filescmd == null || this.localAddress == null) return;
         if (this.appNodes == null || this.appNodes.isEmpty()) return;
