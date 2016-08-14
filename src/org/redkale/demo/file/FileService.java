@@ -215,7 +215,7 @@ public class FileService extends BaseService {
             // 因为有的图片背景是透明色，所以用白色填充 FIXED
             g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, 1));
             g.fillRect(0, 0, w, h);
-            g.drawImage(image.getScaledInstance(w, h, Image.SCALE_SMOOTH), 0, 0, w, h, null);
+            g.drawImage(image, 0, 0, w, h, null); //image.getScaledInstance(w, h, Image.SCALE_SMOOTH)
             g.dispose();
             image = target;
         }
@@ -238,7 +238,7 @@ public class FileService extends BaseService {
                 Graphics2D g = target.createGraphics();
                 g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, 1));
                 g.fillRect(0, 0, with, height);
-                g.drawImage(srcImage.getScaledInstance(with, height, Image.SCALE_SMOOTH), 0, 0, with, height, null);
+                g.drawImage(srcImage, 0, 0, with, height, null); //srcImage.getScaledInstance(with, height, Image.SCALE_SMOOTH)
                 g.dispose();
             } else {
                 target = srcImage;
