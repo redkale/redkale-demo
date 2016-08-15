@@ -31,6 +31,10 @@ public class BaseServlet extends org.redkale.net.http.BasedHttpServlet {
 
     protected final boolean finest = logger.isLoggable(Level.FINEST);
 
+    protected static final RetResult RET_UNLOGIN = RetCodes.retResult(RetCodes.RET_USER_UNLOGIN);
+
+    protected static final RetResult RET_AUTHILLEGAL = RetCodes.retResult(RetCodes.RET_USER_AUTH_ILLEGAL);
+    
     @Resource
     protected JsonConvert convert;
 
@@ -76,16 +80,10 @@ public class BaseServlet extends org.redkale.net.http.BasedHttpServlet {
     public final boolean authenticate(int module, int actionid, HttpRequest request, HttpResponse response) throws IOException {
         UserInfo info = currentUser(request);
         if (info == null) {
-            response.addHeader("retcode", RetCodes.RET_USER_UNLOGIN);
-            response.addHeader("retmessage", "Not Login");
-            response.setStatus(203);
-            response.finish("{'success':false, 'message':'Not Login'}");
+            sendRetResult(response, RET_UNLOGIN);
             return false;
         } else if (!info.checkAuth(module, actionid)) {
-            response.addHeader("retcode", RetCodes.RET_USER_AUTH_ILLEGAL);
-            response.addHeader("retmessage", "No Authority");
-            response.setStatus(203);
-            response.finish("{'success':false, 'message':'No Authority'}");
+            sendRetResult(response, RET_AUTHILLEGAL);
             return false;
         }
         return true;
