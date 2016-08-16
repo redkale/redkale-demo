@@ -116,18 +116,18 @@ public class FileUploadServlet extends BaseServlet {
         for (MultiPart part : req.multiParts()) {
             final String mime = MimeType.getByFilename(part.getFilename());
             if (!mime.contains("image/")) { //不是图片
-                sendRetResult(resp, RetCodes.retResult(RET_UPLOAD_NOTIMAGE));
+                resp.finishJson(RetCodes.retResult(RET_UPLOAD_NOTIMAGE));
                 return;
             }
             String fileid = service.storeMultiJPGFile(dir, fileid0, widths, ratio, part.getContentBytes(max), runner);
             if (fileid.isEmpty()) {
-                sendRetResult(resp, RetCodes.retResult(RET_UPLOAD_FILETOOBIG));
+                resp.finishJson(RetCodes.retResult(RET_UPLOAD_FILETOOBIG));
             } else {
                 resp.finish("{\"success\":true,\"retcode\":0,\"fileid\":\"" + fileid + "\",\"filename\":\"" + part.getFilename() + "\",\"filelength\":" + part.getReceived() + "}");
             }
             return;
         }
-        sendRetResult(resp, RetCodes.retResult(RET_UPLOAD_NOFILE));
+        resp.finishJson(RetCodes.retResult(RET_UPLOAD_NOFILE));
     }
 
     protected void uploadBin(final HttpRequest req, HttpResponse resp, String dir, String fileid0, final boolean sync, final long max) throws IOException {
@@ -137,13 +137,13 @@ public class FileUploadServlet extends BaseServlet {
             file = service.storeFile(sync, dir, fileid0, part.getFilename(), max, part.getInputStream());
             if (file != null) fileid = file.getName();
             if (fileid.isEmpty()) {
-                sendRetResult(resp, RetCodes.retResult(RET_UPLOAD_FILETOOBIG));
+                resp.finishJson(RetCodes.retResult(RET_UPLOAD_FILETOOBIG));
             } else {
                 resp.finish("{\"success\":true,\"retcode\":0,\"fileid\":\"" + fileid + "\",\"filename\":\"" + part.getFilename() + "\",\"filelength\":" + part.getReceived() + "}");
             }
             return;
         }
-        sendRetResult(resp, RetCodes.retResult(RET_UPLOAD_NOFILE));
+        resp.finishJson(RetCodes.retResult(RET_UPLOAD_NOFILE));
     }
 
     /**

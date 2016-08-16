@@ -206,7 +206,7 @@ public class UserServlet extends BaseServlet {
                 resp.addCookie(cookie);
             }
         }
-        sendRetResult(resp, result);
+        resp.finishJson(result);
     }
 
     @AuthIgnore
@@ -222,7 +222,7 @@ public class UserServlet extends BaseServlet {
             beanaccount = bean.getMobile();
             ret = service.checkRandomCode(bean.getMobile(), map.get("vercode"), RandomCode.TYPE_SMSREG);
             if (!ret.isSuccess()) {
-                sendRetResult(resp, ret);
+                resp.finishJson(ret);
                 return;
             }
         } else if (map.containsKey("email")) {
@@ -303,7 +303,7 @@ public class UserServlet extends BaseServlet {
                 resp.addCookie(cookie);
             }
         }
-        sendRetResult(resp, result);
+        resp.finishJson(result);
     }
 
     //更新用户手机号码
@@ -375,28 +375,28 @@ public class UserServlet extends BaseServlet {
         }
         RetResult rr = service.smscode(type, mobile);
         if (finest) logger.finest(req.getRequestURI() + ", mobile = " + mobile + "---->" + rr);
-        sendRetResult(resp, rr);
+        resp.finishJson(rr);
     }
 
     //检测账号是否有效, 返回t0表示可用.给新用户注册使用
     @AuthIgnore
     @WebAction(url = "/user/checkaccount/")
     public void checkAccount(HttpRequest req, HttpResponse resp) throws IOException {
-        sendRetcode(resp, service.checkAccount(req.getRequstURILastPath()));
+        resp.finishJson(RetCodes.retResult(service.checkAccount(req.getRequstURILastPath())));
     }
 
     //检测手机号码是否有效, 返回0表示可用.给新用户注册使用
     @AuthIgnore
     @WebAction(url = "/user/checkmobile/")
     public void checkMobile(HttpRequest req, HttpResponse resp) throws IOException {
-        sendRetcode(resp, service.checkMobile(req.getRequstURILastPath()));
+        resp.finishJson(RetCodes.retResult(service.checkMobile(req.getRequstURILastPath())));
     }
 
     //检测邮箱地址是否有效, 返回0表示可用.给新用户注册使用
     @AuthIgnore
     @WebAction(url = "/user/checkemail/")
     public void checkEmail(HttpRequest req, HttpResponse resp) throws IOException {
-        sendRetcode(resp, service.checkEmail(req.getRequstURILastPath()));
+        resp.finishJson(RetCodes.retResult(service.checkEmail(req.getRequstURILastPath())));
     }
 
     //验证短信验证码
@@ -406,7 +406,7 @@ public class UserServlet extends BaseServlet {
         String mobile = req.getRequstURIPath("mobile:", req.getParameter("mobile"));
         String vercode = req.getRequstURIPath("vercode:", req.getParameter("vercode"));
         RetResult<RandomCode> ret = service.checkRandomCode(mobile, vercode, (short) 0);
-        sendRetcode(resp, ret.getRetcode());
+        resp.finishJson(RetCodes.retResult(ret.getRetcode()));
     }
 
     //获取当前用户基本信息
