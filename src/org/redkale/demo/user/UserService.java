@@ -694,7 +694,7 @@ public class UserService extends BasedService {
         if (value == null || value.isEmpty()) return value;
         try {
             synchronized (aesEncrypter) {
-                return Base64.getEncoder().encodeToString(aesEncrypter.doFinal(value.getBytes()));
+                return Utility.binToHexString(aesEncrypter.doFinal(value.getBytes()));
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -704,7 +704,7 @@ public class UserService extends BasedService {
     //AES解密
     public static String decryptAES(String value) {
         if (value == null || value.isEmpty()) return value;
-        byte[] hex = Base64.getDecoder().decode(value);
+        byte[] hex = Utility.hexToBin(value);
         try {
             synchronized (aesEncrypter) {
                 return new String(aesDecrypter.doFinal(hex));
