@@ -63,22 +63,18 @@ public class UserServlet extends BaseServlet {
         String code = req.getParameter("code");
         String state = req.getParameter("state");  //state值格式: appid_autoregflag
         if (finest) logger.finest("/user/updatewxid :  " + code + "," + state);
-        int pos = state.indexOf('_');
-        String appid = pos > 0 ? state.substring(0, pos) : state;
-        service.updateWxunionid(currentUser(req), appid, code);
+        service.updateWxunionid(currentUser(req), code);
         resp.setHeader("Location", req.getParameter("url", "/"));
         resp.finish(302, null);
     }
 
+    //需要在 “开发 - 接口权限 - 网页服务 - 网页帐号 - 网页授权获取用户基本信息”的配置选项中，修改授权回调域名
+    @AuthIgnore
     @WebAction(url = "/user/wxopenid")
     public void wxopenid(HttpRequest req, HttpResponse resp) throws IOException {
         String code = req.getParameter("code");
-        String state = req.getParameter("state");  //state值格式: appid_autoregflag
-        if (finest) logger.finest("/user/wxopenid :  " + code + "," + state);
-        int pos = state.indexOf('_');
-        String appid = pos > 0 ? state.substring(0, pos) : state;
-
-        Map<String, String> rr = wxService.getMPUserTokenByCode(appid, code);
+        if (finest) logger.finest("/user/wxopenid :  " + req);
+        Map<String, String> rr = wxService.getMPUserTokenByCode(code);
         resp.setHeader("Location", req.getParameter("url", "/"));
         resp.finish(302, null);
     }

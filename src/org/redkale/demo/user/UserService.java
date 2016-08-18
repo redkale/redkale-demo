@@ -275,7 +275,7 @@ public class UserService extends BasedService {
     public RetResult<UserInfo> wxlogin(LoginWXBean bean) {
         try {
             Map<String, String> wxmap = bean.emptyAccesstoken()
-                ? wxMPService.getMPUserTokenByCode(bean.getAppid(), bean.getCode())
+                ? wxMPService.getMPUserTokenByCode(bean.getCode())
                 : wxMPService.getMPUserTokenByOpenid(bean.getAccesstoken(), bean.getOpenid());
             final String unionid = wxmap.get("unionid");
             if (unionid == null) return RetCodes.retResult(RET_USER_WXID_ILLEGAL);
@@ -484,10 +484,10 @@ public class UserService extends BasedService {
     }
 
     //绑定微信号
-    public RetResult updateWxunionid(UserInfo user, String appid, String code) {
+    public RetResult updateWxunionid(UserInfo user, String code) {
         try {
             if (user == null) return RetCodes.retResult(RET_USER_NOTEXISTS);
-            Map<String, String> wxmap = wxMPService.getMPUserTokenByCode(appid, code);
+            Map<String, String> wxmap = wxMPService.getMPUserTokenByCode(code);
             final String wxunionid = wxmap.get("unionid");
             if (wxunionid == null || wxunionid.isEmpty()) return RetCodes.retResult(RET_USER_WXID_ILLEGAL);
             if (checkWxunionid(wxunionid) != 0) return RetCodes.retResult(RET_USER_WXID_EXISTS);
@@ -496,7 +496,7 @@ public class UserService extends BasedService {
             user.setWxunionid(wxunionid);
             return RetResult.success();
         } catch (Exception e) {
-            logger.log(Level.FINE, "updateWxunionid failed (" + user + ", " + appid + ", " + code + ")", e);
+            logger.log(Level.FINE, "updateWxunionid failed (" + user + ", " + code + ")", e);
             return RetCodes.retResult(RET_USER_WXID_BIND_FAIL);
         }
     }
