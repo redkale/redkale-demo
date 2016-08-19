@@ -129,6 +129,7 @@ public class UserServlet extends BaseServlet {
             cookie.setPath("/");
             cookie.setMaxAge(age);
             resp.addCookie(cookie);
+            rr.setRetinfo(cookie.getValue());
         }
         if (access_token == null || access_token.isEmpty()) { //WEB登录
             resp.setHeader("Location", req.getParameter("url", "/"));
@@ -200,6 +201,7 @@ public class UserServlet extends BaseServlet {
                 cookie.setPath("/");
                 cookie.setMaxAge(age);
                 resp.addCookie(cookie);
+                result.setRetinfo(cookie.getValue());
             }
         }
         resp.finishJson(result);
@@ -297,6 +299,7 @@ public class UserServlet extends BaseServlet {
                 long point = Long.parseLong(time.substring(fen + 1)); //毫秒数
                 cookie.setMaxAge(age - (System.currentTimeMillis() - point) / 1000);
                 resp.addCookie(cookie);
+                result.setRetinfo(cookie.getValue());
             }
         }
         resp.finishJson(result);
