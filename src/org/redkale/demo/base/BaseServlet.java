@@ -18,7 +18,7 @@ import org.redkale.util.*;
  *
  * @author zhangjx
  */
-public class BaseServlet extends org.redkale.net.http.BasedHttpServlet {
+public class BaseServlet extends org.redkale.net.http.HttpBaseServlet {
 
     protected static final boolean winos = System.getProperty("os.name").contains("Window");
 
