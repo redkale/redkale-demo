@@ -50,7 +50,7 @@ public final class ImageRatio {
 
     //根据高计算等比的宽度
     public int width(int h) {
-        return h * this.height / this.width;
+        return h * this.width / this.height;
     }
 
     //根据宽计算等比的高度
