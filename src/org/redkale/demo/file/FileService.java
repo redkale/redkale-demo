@@ -243,7 +243,7 @@ public class FileService extends BaseService {
         if (widths == null) widths = WIDTHS_ONEL;
         final File[] facefiles = new File[widths.length];
         srcImage = ratio == null ? srcImage : ratio.cut(srcImage);
-        final String fileid = (fileid0 == null || fileid0.isEmpty()) ? randomFileid() : fileid0;
+        final String fileid = (fileid0 == null || fileid0.isEmpty()) ? randomFileid() : fileid0; 
         for (int i = 0; i < widths.length; i++) {
             facefiles[i] = createFile((widths.length > 1 && widths[i] > 0) ? (dir + "_" + widths[i]) : dir, fileid, "jpg_tmp");
             BufferedImage target;
