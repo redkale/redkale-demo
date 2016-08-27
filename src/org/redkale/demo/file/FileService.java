@@ -112,7 +112,7 @@ public class FileService extends BaseService {
     @Override
     public void init(AnyValue config) {
         initPath();
-        if(finest) logger.finest("files.root= " + this.files.getPath()); 
+        if (finest) logger.finest("files.root= " + this.files.getPath());
         if (System.getProperty("os.name").contains("Window")) return;
         if (this.filescmd == null || this.localAddress == null) return;
         if (this.appNodes == null || this.appNodes.isEmpty()) return;
@@ -239,10 +239,11 @@ public class FileService extends BaseService {
 
     private static final int[] WIDTHS_ONEL = new int[]{0};
 
-    public final String storeMultiJPGFile(final String dir, final String fileid, int[] widths, final ImageRatio ratio, BufferedImage srcImage, Runnable runner) throws IOException {
+    public final String storeMultiJPGFile(final String dir, final String fileid0, int[] widths, final ImageRatio ratio, BufferedImage srcImage, Runnable runner) throws IOException {
         if (widths == null) widths = WIDTHS_ONEL;
         final File[] facefiles = new File[widths.length];
         srcImage = ratio == null ? srcImage : ratio.cut(srcImage);
+        final String fileid = (fileid0 == null || fileid0.isEmpty()) ? randomFileid() : fileid0;
         for (int i = 0; i < widths.length; i++) {
             facefiles[i] = createFile((widths.length > 1 && widths[i] > 0) ? (dir + "_" + widths[i]) : dir, fileid, "jpg_tmp");
             BufferedImage target;
