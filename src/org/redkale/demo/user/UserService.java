@@ -332,7 +332,12 @@ public class UserService extends BasedService {
         UserInfo user = null;
         boolean unok = true;
         if (bean != null && !bean.emptyCookieinfo() && bean.emptyAccount()) {
-            String cookie = decryptAES(bean.getCookieinfo());
+            String cookie;
+            try {
+                cookie = decryptAES(bean.getCookieinfo());
+            } catch (Exception e) {
+                return retResult(RET_USER_ACCOUNT_PWD_ILLEGAL);
+            }
             int sharp = cookie.indexOf('#');
             if (sharp > 0) bean.setApptoken(cookie.substring(0, sharp));
             int pos = cookie.indexOf('$');
