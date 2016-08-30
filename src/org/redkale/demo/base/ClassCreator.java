@@ -104,6 +104,8 @@ public class ClassCreator {
                 ctype = "float";
             } else if ("DECIMAL".equalsIgnoreCase(type)) {
                 ctype = "float";
+            } else if ("DOUBLE".equalsIgnoreCase(type)) {
+                ctype = "double";
             } else if ("VARCHAR".equalsIgnoreCase(type)) {
                 ctype = "String";
             } else if (type.contains("TEXT")) {
