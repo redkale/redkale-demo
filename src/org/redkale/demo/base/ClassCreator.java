@@ -65,9 +65,9 @@ public class ClassCreator {
 
         sb.append("package " + pkg + ";" + "\r\n\r\n");
 
-        //sb.append("import org.redkale.util.*;\r\n");
         //sb.append("import org.redkale.convert.*;\r\n");
         sb.append("import javax.persistence.*;\r\n");
+        sb.append("import org.redkale.util.*;\r\n");
         sb.append("import " + pkg.substring(0, pkg.lastIndexOf('.')) + ".base.BaseEntity;\r\n");
 
         sb.append("\r\n/**\r\n"
@@ -75,7 +75,7 @@ public class ClassCreator {
             + " * @author " + System.getProperty("user.name") + "\r\n"
             + " */\r\n");
         //if (classname.contains("Info")) sb.append("@Cacheable\r\n");
-        sb.append("public class " + classname + " extends " 
+        sb.append("public class " + classname + " extends "
             + (superclassname != null && !superclassname.isEmpty() ? superclassname : "BaseEntity") + " {\r\n\r\n");
         boolean idable = false;
         List<StringBuilder> list = new ArrayList<>();
@@ -90,6 +90,8 @@ public class ClassCreator {
                 if (incre) sb.append("\r\n    @GeneratedValue");
             } else if (columns.contains(column)) continue; //跳过被继承的重复字段
             sb.append("\r\n");
+
+            sb.append("    @Comment(\"" + remark + "\")\r\n");
             if ("createtime".equals(column)) sb.append("    @Column(updatable = false)\r\n");
             String ctype = "NULL";
             if ("INT".equalsIgnoreCase(type)) {
