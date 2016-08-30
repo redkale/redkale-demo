@@ -91,7 +91,7 @@ public class ClassCreator {
             } else if (columns.contains(column)) continue; //跳过被继承的重复字段
             sb.append("\r\n");
 
-            sb.append("    @Comment(\"" + remark + "\")\r\n");
+            sb.append("    @Comment(\"" + remark.replace('"', '\'') + "\")\r\n"); 
             if ("createtime".equals(column)) sb.append("    @Column(updatable = false)\r\n");
             String ctype = "NULL";
             if ("INT".equalsIgnoreCase(type)) {
