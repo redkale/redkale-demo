@@ -16,6 +16,8 @@ import java.util.*;
  */
 public class ClassCreator {
 
+    private static final String currentpkg = ClassCreator.class.getPackage().getName();
+
     private static final String jdbc_url = "jdbc:mysql://localhost:3306/center?autoReconnect=true&amp;characterEncoding=utf8";//数据库url
 
     private static final String jdbc_user = "root"; //数据库用户名
@@ -24,24 +26,26 @@ public class ClassCreator {
 
     public static void main(String[] args) throws Exception {
 
-        final String pkg = "org.redkale.demo.xxx";  //包名
+        String pkg = currentpkg.substring(0, currentpkg.lastIndexOf('.') + 1) + "xxx";  //与base同级的包名
 
         final String entityClass = "UserDetail";//类名
 
         final String superEntityClass = "";//父类名
 
-        final String srcPath = "D:/Java-Project/RedkaleProject/src"; //源码根路径
+        loadEntity(pkg, entityClass, superEntityClass); //Entity内容
+        
+    }
 
-        String entityBody = createEntity(pkg, entityClass, superEntityClass); //源码内容
-
-        final File entityFile = new File(srcPath, pkg.replace('.', '/') + "/" + entityClass + ".java");
-        if (entityFile.isFile()) throw new RuntimeException(entityClass + ".java 已经存在");
+    private static void loadEntity(String pkg, String classname, String superclassname) throws Exception {
+        String entityBody = createEntityContent(pkg, classname, superclassname); //源码内容
+        final File entityFile = new File("src/" + pkg.replace('.', '/') + "/" + classname + ".java");
+        if (entityFile.isFile()) throw new RuntimeException(classname + ".java 已经存在");
         FileOutputStream out = new FileOutputStream(entityFile);
         out.write(entityBody.getBytes("UTF-8"));
         out.close();
     }
 
-    private static String createEntity(String pkg, String classname, String superclassname) throws Exception {
+    private static String createEntityContent(String pkg, String classname, String superclassname) throws Exception {
         com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource source = new com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource();
         source.setUrl(jdbc_url);  //数据库url
         source.setUser(jdbc_user); //数据库账号
@@ -68,7 +72,7 @@ public class ClassCreator {
         //sb.append("import org.redkale.convert.*;\r\n");
         sb.append("import javax.persistence.*;\r\n");
         sb.append("import org.redkale.util.*;\r\n");
-        sb.append("import " + pkg.substring(0, pkg.lastIndexOf('.')) + ".base.BaseEntity;\r\n");
+        sb.append("import " + currentpkg + ".BaseEntity;\r\n");
 
         sb.append("\r\n/**\r\n"
             + " *\r\n"
@@ -91,7 +95,7 @@ public class ClassCreator {
             } else if (columns.contains(column)) continue; //跳过被继承的重复字段
             sb.append("\r\n");
 
-            sb.append("    @Comment(\"" + remark.replace('"', '\'') + "\")\r\n"); 
+            sb.append("    @Comment(\"" + remark.replace('"', '\'') + "\")\r\n");
             if ("createtime".equals(column)) sb.append("    @Column(updatable = false)\r\n");
             String ctype = "NULL";
             if ("INT".equalsIgnoreCase(type)) {
