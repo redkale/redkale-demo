@@ -69,17 +69,6 @@ public class UserInfo extends BaseEntity {
 
     protected long infotime; //用户可见资料的更新时间 通常用于客户端判断用户资料是否已修改便于主动拉取新资料
 
-    @Override
-    public int hashCode() {
-        return this.userid;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null || getClass() != obj.getClass()) return false;
-        return this.userid == ((UserInfo) obj).userid;
-    }
-
     public UserInfo copy() {
         return reproduce.copy(new UserInfo(), this);
     }

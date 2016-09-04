@@ -46,18 +46,6 @@ public class UserDetail extends UserInfo {
 
     private long updatetime;  //修改时间
 
-    @Override
-    public int hashCode() {
-        return this.userid;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
-        return (this.userid != ((UserDetail) obj).userid);
-    }
-
     public UserInfo createUserInfo() {
         return reproduce.copy(new UserInfo(), this);
     }
