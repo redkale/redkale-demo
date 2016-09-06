@@ -48,7 +48,7 @@ public class FileDownServlet extends BaseServlet {
     }
 
     @AuthIgnore
-    @WebAction(url = "/dir/")
+    @WebAction(url = "/dir/", comment = "静态资源获取根路径")
     public void dir(HttpRequest req, HttpResponse resp) throws IOException {
         download(req, resp);
     }
