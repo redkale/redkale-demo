@@ -32,7 +32,7 @@ import org.redkale.util.AnyValue;
  *
  * @author zhangjx
  */
-@WebServlet(value = {"/dir/*"}, repair = false, comment = "仅供开发阶段使用")
+@WebServlet(value = {"/dir/*"}, repair = false, comment = "静态资源获取服务")
 public class FileDownServlet extends BaseServlet {
 
     @Resource(name = "APP_HOME")
@@ -48,7 +48,7 @@ public class FileDownServlet extends BaseServlet {
     }
 
     @AuthIgnore
-    @WebAction(url = "/dir/", comment = "静态资源获取根路径")
+    @WebAction(url = "/dir/", comment = "静态资源获取根路径，仅供开发阶段使用")
     public void dir(HttpRequest req, HttpResponse resp) throws IOException {
         download(req, resp);
     }
