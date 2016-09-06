@@ -32,7 +32,7 @@ import org.redkale.util.AnyValue;
  *
  * @author zhangjx
  */
-@WebServlet(value = {"/dir/*"}, repair = false)
+@WebServlet(value = {"/dir/*"}, repair = false, comment = "仅供开发阶段使用")
 public class FileDownServlet extends BaseServlet {
 
     @Resource(name = "APP_HOME")

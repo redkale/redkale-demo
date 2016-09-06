@@ -33,7 +33,7 @@ import org.redkale.util.AnyValue;
  *
  * @author zhangjx
  */
-@WebServlet({"/upload/*"})
+@WebServlet(value = {"/upload/*"}, comment = "资源上传服务")
 public class FileUploadServlet extends BaseServlet {
 
     private static Font FONT = new Font("微软雅黑", Font.ITALIC, 12);
@@ -53,7 +53,7 @@ public class FileUploadServlet extends BaseServlet {
     }
 
     @AuthIgnore
-    @WebAction(url = "/upload/filesroot") // 
+    @WebAction(url = "/upload/filesroot", comment = "获取资源路径，仅供内部系统使用") // 
     public void filesroot(HttpRequest req, HttpResponse resp) throws IOException {
         String path = "";
         //10.0.0.0/8：10.0.0.0～10.255.255.255 
@@ -74,12 +74,7 @@ public class FileUploadServlet extends BaseServlet {
         resp.finish(path);
     }
 
-    @WebAction(url = "/upload/fres")  //上传附件
-    public void tres(HttpRequest req, HttpResponse resp) throws IOException {
-        uploadBin(req, resp, 10 * 1024 * 1024L);
-    }
-
-    @WebAction(url = "/upload/face") // 上传头像 以正方形规格存储
+    @WebAction(url = "/upload/face", comment = "上传头像 以正方形规格存储") // 
     public void face(HttpRequest req, HttpResponse resp) throws IOException {
         uploadImg(req, resp, "face", currentUser(req).getUser36id(), FileService.face_widths, ImageRatio.RATIO_1_1, 10 * 1024 * 1024L);
     }
