@@ -6,6 +6,7 @@
 package org.redkale.demo.user;
 
 import org.redkale.demo.base.BaseBean;
+import org.redkale.util.Comment;
 
 /**
  *
@@ -13,16 +14,22 @@ import org.redkale.demo.base.BaseBean;
  */
 public class UserPwdBean extends BaseBean {
 
+    @Comment("Session会话ID")
     private String sessionid;
 
+    @Comment("随机码")
     private String randomcode = "";
 
-    private String account = "";  
+    @Comment("用户账号")
+    private String account = "";
 
+    @Comment("验证码")
     private String vercode = "";
 
+    @Comment("旧密码 MD5(密码明文)")
     private String oldpwd;  //HEX-MD5(密码明文)
 
+    @Comment("新密码 MD5(密码明文)")
     private String newpwd;  //HEX-MD5(密码明文)
 
     public String getSessionid() {

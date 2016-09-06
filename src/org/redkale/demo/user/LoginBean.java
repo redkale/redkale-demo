@@ -8,6 +8,7 @@ package org.redkale.demo.user;
 import javax.persistence.Transient;
 import org.redkale.demo.base.BaseBean;
 import org.redkale.source.FilterBean;
+import org.redkale.util.Comment;
 
 /**
  *
@@ -15,25 +16,35 @@ import org.redkale.source.FilterBean;
  */
 public final class LoginBean extends BaseBean implements FilterBean {
 
+    @Comment("登录账号")
     private String account;  //登录账号: 用户名、邮箱或者手机号码(为便于区别，用户名规则：不能以数字开头或者包含@)
 
+    @Comment("用户类型")
     private short type; //用户类型
 
+    @Comment("MD5(密码明文)")
     private String password = ""; //HEX-MD5(HEX-MD5(密码明文))
 
+    @Comment("APP设备唯一标识")
     private String apptoken = ""; //APP设备唯一标识
 
+    @Comment("自动登录Cookie值")
     private String cookieinfo; //自动登录Cookie值
 
+    @Comment("User-Agent")
     private String loginagent = ""; //User-Agent
 
+    @Comment("客户端IP地址")
     private String loginip = ""; //客户端IP地址
 
+    @Comment("验证码")
     private String vercode = ""; //验证码
 
+    @Comment("COOKIE缓存天数")
     private int cacheday; //COOKIE缓存天数
 
     @Transient
+    @Comment("Session会话ID")
     private String sessionid = ""; // session ID
 
     public boolean emptyAccount() {
