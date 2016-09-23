@@ -37,7 +37,6 @@ public class BaseServlet extends org.redkale.net.http.HttpBaseServlet {
     @Resource
     protected JsonConvert convert;
 
-    //protected static httl.Engine engine;
     @Resource
     private UserService service;
 
