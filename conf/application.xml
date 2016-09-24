@@ -11,12 +11,11 @@
         </request>
         <response>
             <addheader name="X-Node" value="system.property.APP_NODE" /> 
-        </response>
+        </response>            
+        <resource-servlet >	
+        </resource-servlet>		
         <services autoload="true"/>
-        <servlets path="/pipes" autoload="true">          
-            <resource-servlet>			
-                <rewrite type="location" match="^/([^-]+)(-[^-\.]+)+\.html(.*)" forward="/$1.html"/>
-            </resource-servlet>
+        <servlets path="/pipes" >      
         </servlets>
     </server>
     <!-- SNCP 监听 Server -->
