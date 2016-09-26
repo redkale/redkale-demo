@@ -70,11 +70,11 @@ public class UserInfo extends BaseEntity {
     protected long infotime; //用户可见资料的更新时间 通常用于客户端判断用户资料是否已修改便于主动拉取新资料
 
     public UserInfo copy() {
-        return reproduce.copy(new UserInfo(), this);
+        return reproduce.apply(new UserInfo(), this);
     }
 
     public UserInfo copyTo(UserInfo dest) {
-        return reproduce.copy(dest, this);
+        return reproduce.apply(dest, this);
     }
 
     public boolean checkAuth(int moduleid, int actionid) {

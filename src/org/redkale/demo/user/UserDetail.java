@@ -47,7 +47,7 @@ public class UserDetail extends UserInfo {
     private long updatetime;  //修改时间
 
     public UserInfo createUserInfo() {
-        return reproduce.copy(new UserInfo(), this);
+        return reproduce.apply(new UserInfo(), this);
     }
 
     @Override

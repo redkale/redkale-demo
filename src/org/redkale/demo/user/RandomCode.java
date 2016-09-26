@@ -69,7 +69,7 @@ public class RandomCode extends BaseEntity {
 
     public RandomCodeHis createRandomCodeHis(int retcode) {
         RandomCodeHis his = new RandomCodeHis();
-        reproduce.copy(his, this);
+        reproduce.apply(his, this);
         his.setRetcode(retcode);
         his.setSeqid(Math.abs(System.nanoTime()));
         his.setUpdatetime(System.currentTimeMillis());
