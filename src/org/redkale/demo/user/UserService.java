@@ -104,7 +104,7 @@ public class UserService extends BasedService {
     //private final String userbundle = this.getClass().getPackage().getName() + ".userbundle";
     @Override
     public void init(AnyValue conf) {
-        updateMax0(); //init里不能调用@MultiRun方法
+        updateMax0(); //init里不能调用@RpcMultiRun方法
     }
 
     private boolean updateMax0() {
@@ -115,7 +115,7 @@ public class UserService extends BasedService {
         return rs;
     }
 
-    @MultiRun
+    @RpcMultiRun
     public boolean updateMax() {
         return updateMax0();
     }
