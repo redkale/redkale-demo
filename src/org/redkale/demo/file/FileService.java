@@ -243,7 +243,7 @@ public class FileService extends BaseService {
         if (widths == null) widths = WIDTHS_ONEL;
         final File[] facefiles = new File[widths.length];
         srcImage = ratio == null ? srcImage : ratio.cut(srcImage);
-        final String fileid = (fileid0 == null || fileid0.isEmpty()) ? randomFileid() : fileid0; 
+        final String fileid = (fileid0 == null || fileid0.isEmpty()) ? randomFileid() : fileid0;
         for (int i = 0; i < widths.length; i++) {
             facefiles[i] = createFile((widths.length > 1 && widths[i] > 0) ? (dir + "_" + widths[i]) : dir, fileid, "jpg_tmp");
             BufferedImage target;
@@ -315,6 +315,26 @@ public class FileService extends BaseService {
         Files.move(temp.toPath(), file.toPath(), REPLACE_EXISTING, ATOMIC_MOVE);
         if (sync) asyncFile(file);
         return file;
+    }
+
+    public final boolean renameTo(String dir, int[] widths, String oldfileid, String newfileid) {
+        if (oldfileid == null || oldfileid.isEmpty()) return false;
+        if (newfileid == null || newfileid.isEmpty()) return false;
+        File oldfile = new File(files, dir + "/" + hashPath(oldfileid));
+        if (oldfile.isFile()) {
+            File newfile = new File(files, dir + "/" + hashPath(newfileid));
+            newfile.getParentFile().mkdirs();
+            oldfile.renameTo(newfile);
+        }
+        if (widths == null) return true;
+        for (int i = 0; i < widths.length; i++) {
+            oldfile = new File(files, dir + "_" + widths[i] + "/" + hashPath(oldfileid));
+            if (!oldfile.isFile()) continue;
+            File newfile = new File(files, dir + "_" + widths[i] + "/" + hashPath(newfileid));
+            newfile.getParentFile().mkdirs();
+            oldfile.renameTo(newfile);
+        }
+        return true;
     }
 
     final void asyncFile(File... files) {
