@@ -33,7 +33,7 @@ public class ClassCreator {
         final String superEntityClass = "";//父类名
 
         loadEntity(pkg, entityClass, superEntityClass); //Entity内容
-        
+
     }
 
     private static void loadEntity(String pkg, String classname, String superclassname) throws Exception {
@@ -69,11 +69,11 @@ public class ClassCreator {
 
         sb.append("package " + pkg + ";" + "\r\n\r\n");
 
-        //sb.append("import org.redkale.convert.*;\r\n");
         sb.append("import javax.persistence.*;\r\n");
         sb.append("import org.redkale.util.*;\r\n");
-        sb.append("import " + currentpkg + ".BaseEntity;\r\n");
-
+        if (superclassname == null || superclassname.isEmpty()) {
+            sb.append("import " + currentpkg + ".BaseEntity;\r\n");
+        }
         sb.append("\r\n/**\r\n"
             + " *\r\n"
             + " * @author " + System.getProperty("user.name") + "\r\n"
@@ -94,9 +94,10 @@ public class ClassCreator {
                 if (incre) sb.append("\r\n    @GeneratedValue");
             } else if (columns.contains(column)) continue; //跳过被继承的重复字段
             sb.append("\r\n");
-
-            sb.append("    @Comment(\"" + remark.replace('"', '\'') + "\")\r\n");
-            if ("createtime".equals(column)) sb.append("    @Column(updatable = false)\r\n");
+            
+            int length = 0;
+            int precision = 0;
+            int scale = 0;
             String ctype = "NULL";
             if ("INT".equalsIgnoreCase(type)) {
                 ctype = "int";
@@ -108,15 +109,27 @@ public class ClassCreator {
                 ctype = "float";
             } else if ("DECIMAL".equalsIgnoreCase(type)) {
                 ctype = "float";
+                precision = rs.getInt("COLUMN_SIZE");
+                scale = rs.getShort("DECIMAL_DIGITS");
             } else if ("DOUBLE".equalsIgnoreCase(type)) {
                 ctype = "double";
+                precision = rs.getInt("COLUMN_SIZE");
+                scale = rs.getShort("DECIMAL_DIGITS");
             } else if ("VARCHAR".equalsIgnoreCase(type)) {
                 ctype = "String";
+                length = rs.getInt("COLUMN_SIZE");
             } else if (type.contains("TEXT")) {
                 ctype = "String";
             } else if (type.contains("BLOB")) {
                 ctype = "byte[]";
             }
+            sb.append("    @Column(");
+            if ("createtime".equals(column)) sb.append("updatable = false, ");
+            if(length > 0) sb.append("length = ").append(length).append(", ");
+            if(precision > 0) sb.append("precision = ").append(precision).append(", ");
+            if(scale > 0) sb.append("scale = ").append(scale).append(", ");            
+            sb.append("comment = \"" + remark.replace('"', '\'') + "\")\r\n");
+            
             sb.append("    private " + ctype + " " + column);
             if ("String".equals(ctype)) sb.append(" = \"\"");
             sb.append("; //" + remark + "\r\n");
