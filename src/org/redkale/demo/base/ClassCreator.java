@@ -70,7 +70,7 @@ public class ClassCreator {
         sb.append("package " + pkg + ";" + "\r\n\r\n");
 
         sb.append("import javax.persistence.*;\r\n");
-        sb.append("import org.redkale.util.*;\r\n");
+        //sb.append("import org.redkale.util.*;\r\n");
         if (superclassname == null || superclassname.isEmpty()) {
             sb.append("import " + currentpkg + ".BaseEntity;\r\n");
         }
@@ -132,7 +132,7 @@ public class ClassCreator {
             
             sb.append("    private " + ctype + " " + column);
             if ("String".equals(ctype)) sb.append(" = \"\"");
-            sb.append("; //" + remark + "\r\n");
+            sb.append(";\r\n"); //sb.append("; //" + remark + "\r\n");
 
             char[] chs2 = column.toCharArray();
             chs2[0] = toUpperCase(chs2[0]);
