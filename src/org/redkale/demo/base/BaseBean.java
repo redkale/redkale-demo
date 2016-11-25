@@ -15,6 +15,6 @@ public abstract class BaseBean {
 
     @Override
     public String toString() {
-        return JsonFactory.root().getConvert().convertTo(this);
+        return JsonConvert.root().convertTo(this);
     }
 }
