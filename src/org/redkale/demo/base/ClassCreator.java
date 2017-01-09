@@ -51,6 +51,32 @@ public class ClassCreator {
         source.setUser(jdbc_user); //数据库账号
         source.setPassword(jdbc_pwd); //数据库密码
         Connection conn = source.getConnection();
+        String catalog = conn.getCatalog();
+        String tableComment = "";
+        Statement stmt = conn.createStatement();
+        ResultSet tcs = stmt.executeQuery("SHOW CREATE TABLE " + classname.toLowerCase());
+        Map<String, String> uniques = new HashMap<>();
+        Map<String, String> indexs = new HashMap<>();
+        if (tcs.next()) {
+            final String createsql = tcs.getString(2);
+            for (String str : createsql.split("\n")) {
+                str = str.trim();
+                if (str.startsWith("UNIQUE KEY ")) {
+                    str = str.substring(str.indexOf('`') + 1);
+                    uniques.put(str.substring(0, str.indexOf('`')), str.substring(str.indexOf('(') + 1, str.indexOf(')')));
+                } else if (str.startsWith("KEY ")) {
+                    str = str.substring(str.indexOf('`') + 1);
+                    indexs.put(str.substring(0, str.indexOf('`')), str.substring(str.indexOf('(') + 1, str.indexOf(')')));
+                }
+            }
+            int pos = createsql.indexOf("COMMENT='");
+            if (pos > 0) {
+                tableComment = createsql.substring(pos + "COMMENT='".length(), createsql.lastIndexOf('\''));
+            } else {
+                tableComment = "";
+            }
+        }
+        stmt.close();
         DatabaseMetaData meta = conn.getMetaData();
         final Set<String> columns = new HashSet<>();
         if (superclassname != null && !superclassname.isEmpty()) {
@@ -78,7 +104,30 @@ public class ClassCreator {
             + " *\r\n"
             + " * @author " + System.getProperty("user.name") + "\r\n"
             + " */\r\n");
-        //if (classname.contains("Info")) sb.append("@Cacheable\r\n");
+        //if (classname.contains("Info")) sb.append("@Cacheable\r\n");        
+        sb.append("@Table(catalog = \"" + catalog + "\"");
+        if (!tableComment.isEmpty()) sb.append(", comment = \"" + tableComment + "\"");
+        if (!uniques.isEmpty()) {
+            sb.append("\r\n        , uniqueConstraints = {");
+            boolean first = true;
+            for (Map.Entry<String, String> en : uniques.entrySet()) {
+                if (!first) sb.append(", ");
+                sb.append("@UniqueConstraint(name = \"" + en.getKey() + "\", columnNames = {" + en.getValue().replace('`', '"') + "})");
+                first = false;
+            }
+            sb.append("}");
+        }
+        if (!indexs.isEmpty()) {
+            sb.append("\r\n        , indexes = {");
+            boolean first = true;
+            for (Map.Entry<String, String> en : indexs.entrySet()) {
+                if (!first) sb.append(", ");
+                sb.append("@Index(name = \"" + en.getKey() + "\", columnList = \"" + en.getValue().replace("`", "") + "\")");
+                first = false;
+            }
+            sb.append("}");
+        }
+        sb.append(")\r\n");
         sb.append("public class " + classname + " extends "
             + (superclassname != null && !superclassname.isEmpty() ? superclassname : "BaseEntity") + " {\r\n\r\n");
         boolean idable = false;
