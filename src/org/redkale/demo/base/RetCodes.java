@@ -157,6 +157,13 @@ public abstract class RetCodes {
         return new RetResult(retcode, info);
     }
 
+    public static RetResult set(RetResult result, int retcode, Object... args) {
+        if (retcode == 0) return result.retcode(0).retinfo("");
+        if (args == null || args.length < 1) return result.retcode(retcode).retinfo(retInfo(retcode));
+        String info = MessageFormat.format(retInfo(retcode), args);
+        return result.retcode(retcode).retinfo(info);
+    }
+
     public static String retInfo(int retcode) {
         if (retcode == 0) return "成功";
         return rets.getOrDefault(retcode, "未知错误");
