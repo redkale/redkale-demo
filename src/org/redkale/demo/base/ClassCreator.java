@@ -137,6 +137,7 @@ public class ClassCreator {
             String column = rs.getString("COLUMN_NAME");
             String type = rs.getString("TYPE_NAME");
             String remark = rs.getString("REMARKS");
+            String def = rs.getString("COLUMN_DEF");
             if (!idable) {
                 idable = true;
                 sb.append("    @Id");
@@ -180,8 +181,13 @@ public class ClassCreator {
             sb.append("comment = \"" + remark.replace('"', '\'') + "\")\r\n");
             
             sb.append("    private " + ctype + " " + column);
-            if ("String".equals(ctype)) sb.append(" = \"\"");
-            sb.append(";\r\n"); //sb.append("; //" + remark + "\r\n");
+            if (def != null && !"0".equals(def)) { 
+                String d = def.replace('\'', '\"');
+                sb.append(" = ").append(d.isEmpty() ? "\"\"" : d);
+            } else if ("String".equals(ctype)) {
+                sb.append(" = \"\"");
+            }
+            sb.append(";\r\n");
 
             char[] chs2 = column.toCharArray();
             chs2[0] = toUpperCase(chs2[0]);
