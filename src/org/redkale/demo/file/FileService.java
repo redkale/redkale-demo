@@ -5,7 +5,6 @@
  */
 package org.redkale.demo.file;
 
-import com.sun.image.codec.jpeg.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -262,10 +261,11 @@ public class FileService extends BaseService {
             if (facefiles[i].getParentFile().isFile()) facefiles[i].getParentFile().delete();
             facefiles[i].getParentFile().mkdirs();
             FileOutputStream out = new FileOutputStream(facefiles[i]);
-            JPEGImageEncoder encoder = JPEGCodec.createJPEGEncoder(out);
-            JPEGEncodeParam param = encoder.getDefaultJPEGEncodeParam(target);
-            encoder.setJPEGEncodeParam(param);
-            encoder.encode(target);
+//            com.sun.image.codec.jpeg.JPEGImageEncoder encoder = com.sun.image.codec.jpeg.JPEGCodec.createJPEGEncoder(out);
+//            com.sun.image.codec.jpeg.JPEGEncodeParam param = encoder.getDefaultJPEGEncodeParam(target);
+//            encoder.setJPEGEncodeParam(param);
+//            encoder.encode(target);
+            ImageIO.write(target, "jpeg", out);
             out.close();
         }
         String rs = "";
