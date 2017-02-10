@@ -516,10 +516,10 @@ public class UserService extends BasedService {
         ud.setUserid(userid);
         ud.setUsername(username);
         ud.setInfotime(System.currentTimeMillis());
-        source.updateColumns(ud, "username", "infotime");
+        source.updateColumn(ud, "username", "infotime");
         user.setUsername(username);
         user.setInfotime(ud.getInfotime());
-        source.updateColumns(user, "username", "infotime");
+        source.updateColumn(user, "username", "infotime");
         return RetResult.success();
     }
 
