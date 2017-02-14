@@ -69,7 +69,7 @@ public final class ImageRatio {
         final int oheight = image.getHeight();
         final int nheight = height(image.getWidth());
         if (oheight > nheight) { //太高了
-            return image.getSubimage(0, (oheight- nheight) / 2, image.getWidth(), nheight);
+            return image.getSubimage(0, (oheight - nheight) / 2, image.getWidth(), nheight);
         } else if (oheight < nheight) { //太宽了
             int nwidth = width(image.getHeight());
             return image.getSubimage((image.getWidth() - nwidth) / 2, 0, nwidth, image.getHeight());
