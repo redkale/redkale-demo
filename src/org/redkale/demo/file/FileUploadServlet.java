@@ -156,6 +156,7 @@ public class FileUploadServlet extends BaseServlet {
         graphics.setFont(FONT);
         if (fontColor == null) fontColor = COLOR;
         graphics.setColor(fontColor);
+        graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, 0.3f));
         for (int i = 0; i < texts.length; i++) {
             if (texts[i] == null || texts[i].trim().isEmpty()) continue;
             FontRenderContext context = graphics.getFontRenderContext();
