@@ -6,6 +6,8 @@
 package org.redkale.demo.file;
 
 import java.awt.image.BufferedImage;
+import java.lang.reflect.*;
+import java.util.*;
 import org.redkale.convert.*;
 import org.redkale.convert.json.JsonConvert;
 import org.redkale.util.*;
@@ -20,13 +22,36 @@ public final class ImageRatio {
 
     public static final ImageRatio RATIO_3_2 = new ImageRatio(3, 2);
 
+    public static final ImageRatio RATIO_3_5 = new ImageRatio(3, 5);
+
     public static final ImageRatio RATIO_4_3 = new ImageRatio(4, 3);
 
+    public static final ImageRatio RATIO_5_3 = new ImageRatio(5, 3);
+
     public static final ImageRatio RATIO_8_5 = new ImageRatio(8, 5);
+
+    public static final ImageRatio RATIO_15_7 = new ImageRatio(15, 7);
 
     public static final ImageRatio RATIO_16_9 = new ImageRatio(16, 9);
 
     public static final ImageRatio RATIO_16_10 = new ImageRatio(16, 10);
+
+    private static final ImageRatio[] ratios;
+
+    static {
+        List<ImageRatio> list = new ArrayList<>();
+        for (Field field : ImageRatio.class.getFields()) {
+            if (field.getType() != ImageRatio.class) continue;
+            if (!Modifier.isStatic(field.getModifiers())) continue;
+            if (!Modifier.isFinal(field.getModifiers())) continue;
+            try {
+                list.add((ImageRatio) field.get(null));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        ratios = list.toArray(new ImageRatio[list.size()]);
+    }
 
     private final int width;
 
@@ -39,12 +64,9 @@ public final class ImageRatio {
 
     public static ImageRatio create(int width, int height) {
         if (width < 1 || height < 1) return null;
-        if (width == RATIO_1_1.width && height == RATIO_1_1.height) return RATIO_1_1;
-        if (width == RATIO_3_2.width && height == RATIO_3_2.height) return RATIO_3_2;
-        if (width == RATIO_4_3.width && height == RATIO_4_3.height) return RATIO_4_3;
-        if (width == RATIO_8_5.width && height == RATIO_8_5.height) return RATIO_8_5;
-        if (width == RATIO_16_9.width && height == RATIO_16_9.height) return RATIO_16_9;
-        if (width == RATIO_16_10.width && height == RATIO_16_10.height) return RATIO_16_10;
+        for (ImageRatio ratio : ratios) {
+            if (width == ratio.width && height == ratio.height) return ratio;
+        }
         return new ImageRatio(width, height);
     }
 
