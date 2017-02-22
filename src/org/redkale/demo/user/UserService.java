@@ -5,11 +5,13 @@
  */
 package org.redkale.demo.user;
 
+import org.redkale.demo.notice.RandomCodeHis;
+import org.redkale.demo.notice.SmsService;
+import org.redkale.demo.notice.RandomCode;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.security.*;
 import java.util.*;
-import java.util.concurrent.atomic.*;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
@@ -22,6 +24,9 @@ import static org.redkale.demo.base.RetCodes.*;
 import org.redkale.demo.base.*;
 import static org.redkale.demo.base.UserInfo.*;
 import org.redkale.demo.file.FileService;
+import org.redkale.demo.info.MobileGroupService;
+import org.redkale.demo.notice.*;
+import org.redkale.demo.user.BasedService;
 import static org.redkale.demo.user.UserDetail.*;
 import org.redkalex.email.EmailService;
 import org.redkalex.weixin.WeiXinMPService;
@@ -34,6 +39,7 @@ import org.redkale.util.*;
  *
  * @author zhangjx
  */
+@Comment("用户服务模块")
 public class UserService extends BasedService {
 
     private static final MessageDigest sha1;
@@ -79,8 +85,6 @@ public class UserService extends BasedService {
         aesDecrypter = cipher; //解密
     }
 
-    protected final AtomicInteger maxid = new AtomicInteger(200000000);
-
     private final int sessionExpireSeconds = 30 * 60;
 
     @Resource(name = "usersessions")
@@ -101,90 +105,75 @@ public class UserService extends BasedService {
     @Resource
     private JsonConvert convert;
 
+    @Resource
+    private RandomService randomCodeService;
+
+    @Resource
+    private MobileGroupService mobileGroupService;
+
     //private final String userbundle = this.getClass().getPackage().getName() + ".userbundle";
     @Override
     public void init(AnyValue conf) {
-        updateMax0(); //init里不能调用@RpcMultiRun方法
-    }
 
-    private boolean updateMax0() {
-        boolean rs = false;
-        Number max = source.getNumberResult(UserDetail.class, FilterFunc.MAX, "userid");
-        if (max != null && max.intValue() > 200000000) maxid.set(max.intValue());
-        rs |= max != null;
-        return rs;
-    }
-
-    @RpcMultiRun
-    public boolean updateMax() {
-        return updateMax0();
     }
 
     @Override
     public void destroy(AnyValue conf) {
     }
 
-    //根据用户ID查找用户
     public UserInfo findUserInfo(int userid) {
         if (userid == UserInfo.USERID_SYSTEM) return UserInfo.USER_SYSTEM;
         return source.find(UserInfo.class, userid);
     }
 
-    //根据账号查找用户
+    @Comment("根据账号查找用户")
     public UserInfo findUserInfoByAccount(String account) {
         if (account == null || account.isEmpty()) return null;
         return source.find(UserInfo.class, FilterNode.create("account", IGNORECASEEQUAL, account));
     }
 
-    //根据手机号码查找用户
+    @Comment("根据手机号码查找用户")
     public UserInfo findUserInfoByMobile(String mobile) {
         if (mobile == null || mobile.isEmpty()) return null;
         return source.find(UserInfo.class, FilterNode.create("mobile", EQUAL, mobile));
     }
 
-    //根据邮箱地址查找用户
+    @Comment("根据邮箱地址查找用户")
     public UserInfo findUserInfoByEmail(String email) {
         if (email == null || email.isEmpty()) return null;
         return source.find(UserInfo.class, FilterNode.create("email", IGNORECASEEQUAL, email));
     }
 
-    //根据微信绑定ID查找用户
+    @Comment("根据微信绑定ID查找用户")
     public UserInfo findUserInfoByWxunionid(String wxunionid) {
         if (wxunionid == null || wxunionid.isEmpty()) return null;
         return source.find(UserInfo.class, FilterNode.create("wxunionid", EQUAL, wxunionid));
     }
 
-    //根据QQ绑定ID查找用户
+    @Comment("根据QQ绑定ID查找用户")
     public UserInfo findUserInfoByQqopenid(String qqopenid) {
         if (qqopenid == null || qqopenid.isEmpty()) return null;
         return source.find(UserInfo.class, FilterNode.create("qqopenid", EQUAL, qqopenid));
     }
 
-    //根据APP设备ID查找用户
+    @Comment("根据APP设备ID查找用户")
     public UserInfo findUserInfoByApptoken(String apptoken) {
         if (apptoken == null || apptoken.isEmpty()) return null;
         return source.find(UserInfo.class, FilterNode.create("apptoken", EQUAL, apptoken));
     }
 
-    //查询用户列表， 通常用于后台管理系统查询
+    @Comment("查询用户列表， 通常用于后台管理系统查询")
     public Sheet<UserDetail> queryUserDetail(FilterNode node, Flipper flipper) {
         return source.querySheet(UserDetail.class, flipper, node);
     }
 
-    //根据登录态获取当前用户信息
+    @Comment("根据登录态获取当前用户信息")
     public UserInfo current(String sessionid) {
         Integer userid = sessions.getAndRefresh(sessionid, sessionExpireSeconds);
         return userid == null ? null : findUserInfo(userid);
     }
 
-    /**
-     * 发送短信验证码
-     *
-     * @param type
-     * @param mobile
-     *
-     * @return
-     */
+    @Comment("发送短信验证码")
     public RetResult smscode(final short type, String mobile) {
         if (mobile == null) return new RetResult(RET_USER_MOBILE_ILLEGAL, type + " mobile is null"); //手机号码无效
         if (mobile.indexOf('+') == 0) mobile = mobile.substring(1);
@@ -200,7 +189,7 @@ public class UserService extends BasedService {
         } else {
             return new RetResult(RET_PARAMS_ILLEGAL, type + " is illegal");
         }
-        List<RandomCode> codes = source.queryList(RandomCode.class, FilterNode.create("randomcode", FilterExpress.LIKE, mobile + "-%"));
+        List<RandomCode> codes = randomCodeService.queryRandomCodeByMobile(mobile);
         if (!codes.isEmpty()) {
             RandomCode last = codes.get(codes.size() - 1);
             if (last.getCreatetime() + 60 * 1000 > System.currentTimeMillis()) return RetCodes.retResult(RET_USER_MOBILE_SMSFREQUENT);
@@ -217,11 +206,11 @@ public class UserService extends BasedService {
         if (info != null) code.setUserid(info.getUserid());
         code.setRandomcode(mobile + "-" + smscode);
         code.setType(type);
-        source.insert(code);
+        randomCodeService.createRandomCode(code);
         return RetResult.success();
     }
 
-    //QQ登录
+    @Comment("QQ登录")
     public RetResult<UserInfo> qqlogin(LoginQQBean bean) {
         try {
             String qqappid = "xxxx";
@@ -238,6 +227,9 @@ public class UserService extends BasedService {
                 detail.setQqopenid(bean.getOpenid());
                 detail.setRegagent(bean.getLoginagent());
                 detail.setRegaddr(bean.getLoginaddr());
+                detail.setAppos(bean.getAppos());
+                detail.setApptoken(bean.getApptoken());
+                detail.setRegtype(REGTYPE_QQOPEN);
                 String genstr = jsonmap.getOrDefault("gender", "");
                 detail.setGender("男".equals(genstr) ? UserInfo.GENDER_MALE : ("女".equals(genstr) ? UserInfo.GENDER_FEMALE : (short) 0));
                 if (finer) logger.fine(bean + " --qqlogin-->" + convert.convertTo(jsonmap));
@@ -271,7 +263,7 @@ public class UserService extends BasedService {
         }
     }
 
-    //微信登陆
+    @Comment("微信登陆")
     public RetResult<UserInfo> wxlogin(LoginWXBean bean) {
         try {
             Map<String, String> wxmap = bean.emptyAccesstoken()
@@ -286,7 +278,9 @@ public class UserService extends BasedService {
                 UserDetail detail = new UserDetail();
                 detail.setUsername(wxmap.getOrDefault("nickname", "wx-user"));
                 detail.setWxunionid(unionid);
+                detail.setAppos(bean.getAppos());
                 detail.setApptoken(bean.getApptoken());
+                detail.setRegtype(REGTYPE_WEIXIN);
                 detail.setRegagent(bean.getLoginagent());
                 detail.setRegaddr(bean.getLoginaddr());
                 detail.setGender((short) (Short.parseShort(wxmap.getOrDefault("sex", "0")) * 2));
@@ -326,7 +320,7 @@ public class UserService extends BasedService {
         }
     }
 
-    //用户密码登录
+    @Comment("用户密码登录")
     public RetResult<UserInfo> login(LoginBean bean) {
         final RetResult<UserInfo> result = new RetResult();
         UserInfo user = null;
@@ -403,23 +397,17 @@ public class UserService extends BasedService {
             result.setRetcode(0);
             result.setResult(user);
             if (!user.getApptoken().equals(bean.getApptoken())) { //用户设备变更了
+                user.setAppos(bean.getAppos());
                 user.setApptoken(bean.getApptoken());
-                source.updateColumn(UserDetail.class, user.getUserid(), "apptoken", bean.getApptoken());
-                source.updateColumn(UserInfo.class, user.getUserid(), "apptoken", bean.getApptoken());
+                source.updateColumn(UserDetail.class, user.getUserid(), ColumnValue.mov("appos", bean.getAppos()), ColumnValue.mov("apptoken", bean.getApptoken()));
+                source.updateColumn(UserInfo.class, user.getUserid(), ColumnValue.mov("appos", bean.getAppos()), ColumnValue.mov("apptoken", bean.getApptoken()));
             }
         }
         this.sessions.set(sessionExpireSeconds, bean.getSessionid(), result.getResult().getUserid());
         return result;
     }
 
-    /**
-     *
-     * 用户注册
-     *
-     * @param user
-     *
-     * @return
-     */
+    @Comment("用户注册")
     public RetResult<UserInfo> register(UserDetail user) {
         RetResult<UserInfo> result = new RetResult();
         if (user == null) return RetCodes.retResult(RET_USER_SIGNUP_ILLEGAL);
@@ -448,27 +436,28 @@ public class UserService extends BasedService {
             user.setRegtype(REGTYPE_ACCOUNT);
             if (user.getPassword().isEmpty()) return RetCodes.retResult(RET_USER_PASSWORD_ILLEGAL);
         }
-        user.setUserid(maxid.incrementAndGet());
         user.setCreatetime(System.currentTimeMillis());
-        user.setInfotime(0);
         user.setUpdatetime(0);
         if (!user.getPassword().isEmpty()) {
             user.setPassword(digestPassword(secondPasswordMD5(user.getPassword())));
         }
         user.setStatus(UserInfo.STATUS_NORMAL);
-        try {
-            source.insert(user);
-        } catch (RuntimeException e) {
-            logger.log(Level.WARNING, "register user error (" + user + ")", e);
-            if (updateMax()) {
-                user.setUserid(maxid.incrementAndGet());
+        int maxid = source.getNumberResult(UserDetail.class, FilterFunc.MAX, 2_0000_0000, "userid", (FilterNode) null).intValue();
+        boolean ok = false;
+        for (int i = 0; i < 20; i++) {
+            try {
+                user.setUserid(maxid + 1);
                 source.insert(user);
-            } else {
-                throw e;
+                ok = true;
+                break;
+            } catch (Exception e) { //并发时可能会重复创建， 忽略异常
+                logger.log(Level.INFO, "create custuser error: " + user, e);
+                maxid = source.getNumberResult(UserDetail.class, FilterFunc.MAX, 2_0000_0000, "userid", (FilterNode) null).intValue();
             }
         }
-        //------------------------扩展信息-----------------------------
+        if (!ok) return RetCodes.retResult(RET_PARAMS_ILLEGAL);
 
+        //------------------------扩展信息-----------------------------
         UserInfo info = user.createUserInfo();
         source.insert(info);
         result.setResult(info);
@@ -476,19 +465,20 @@ public class UserService extends BasedService {
         return result;
     }
 
-    //注销登录
+    @Comment("注销登录")
     public boolean logout(final String sessionid) {
         UserInfo user = current(sessionid);
         if (user != null && !user.getApptoken().isEmpty()) {
+            user.setAppos("");
             user.setApptoken("");
-            source.updateColumn(UserDetail.class, user.getUserid(), "apptoken", "");
-            source.updateColumn(UserInfo.class, user.getUserid(), "apptoken", "");
+            source.updateColumn(UserDetail.class, user.getUserid(), ColumnValue.mov("appos", ""), ColumnValue.mov("apptoken", ""));
+            source.updateColumn(UserInfo.class, user.getUserid(), ColumnValue.mov("appos", ""), ColumnValue.mov("apptoken", ""));
         }
         sessions.remove(sessionid);
         return true;
     }
 
-    //绑定微信号
+    @Comment("绑定微信号")
     public RetResult updateWxunionid(UserInfo user, String code) {
         try {
             if (user == null) return RetCodes.retResult(RET_USER_NOTEXISTS);
@@ -515,31 +505,21 @@ public class UserService extends BasedService {
         UserDetail ud = new UserDetail();
         ud.setUserid(userid);
         ud.setUsername(username);
-        ud.setInfotime(System.currentTimeMillis());
-        source.updateColumn(ud, "username", "infotime");
+        source.updateColumn(ud, "username");
         user.setUsername(username);
-        user.setInfotime(ud.getInfotime());
-        source.updateColumn(user, "username", "infotime");
+        source.updateColumn(user, "username");
         return RetResult.success();
     }
 
-    public RetResult updateApptoken(int userid, String apptoken) {
+    public RetResult updateApptoken(int userid, String appos, String apptoken) {
         UserInfo user = findUserInfo(userid);
         if (user == null) return RetCodes.retResult(RET_USER_NOTEXISTS);
+        if (appos == null) appos = "";
         if (apptoken == null) apptoken = "";
-        source.updateColumn(UserDetail.class, user.getUserid(), "apptoken", apptoken);
-        source.updateColumn(UserInfo.class, user.getUserid(), "apptoken", apptoken);
+        source.updateColumn(UserDetail.class, user.getUserid(), ColumnValue.mov("appos", appos.toLowerCase()), ColumnValue.mov("apptoken", apptoken));
+        source.updateColumn(UserInfo.class, user.getUserid(), ColumnValue.mov("appos", appos.toLowerCase()), ColumnValue.mov("apptoken", apptoken));
+        user.setAppos(appos.toLowerCase());
         user.setApptoken(apptoken);
-        return RetResult.success();
-    }
-
-    public RetResult updateInfotime(int userid) {
-        UserInfo user = findUserInfo(userid);
-        if (user == null) return RetCodes.retResult(RET_USER_NOTEXISTS);
-        long t = System.currentTimeMillis();
-        source.updateColumn(UserDetail.class, user.getUserid(), "infotime", t);
-        source.updateColumn(UserInfo.class, user.getUserid(), "infotime", t);
-        user.setInfotime(t);
         return RetResult.success();
     }
 
@@ -599,7 +579,7 @@ public class UserService extends BasedService {
                 if (code == null || code.getType() != RandomCode.TYPE_SMSPWD) return retResult(RET_USER_RANDCODE_ILLEGAL);
                 if (code.isExpired()) return RetCodes.retResult(RET_USER_RANDCODE_EXPIRED);
 
-                user = findUserInfo(code.getUserid());
+                user = findUserInfo((int) code.getUserid());
                 if (user == null) return RetCodes.retResult(RET_USER_NOTEXISTS);
 
                 source.updateColumn(UserDetail.class, user.getUserid(), "password", newpwd);

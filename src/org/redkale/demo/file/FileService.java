@@ -214,7 +214,7 @@ public class FileService extends BaseService {
     static final int[] face_widths = {64, 128, 512}; //头像有三种规格: 64*64、128*128 512*512
 
     public final String storeFace(int userid, BufferedImage srcImage) throws IOException {
-        return storeMultiJPGFile("face", Integer.toString(userid, 36), face_widths, ImageRatio.RATIO_1_1, srcImage, () -> userService.updateInfotime(userid));
+        return storeMultiJPGFile("face", Integer.toString(userid, 36), face_widths, ImageRatio.RATIO_1_1, srcImage, null);
     }
 
     public final String storeMultiJPGFile(final String dir, final String fileid, int[] widths, final ImageRatio ratio, byte[] bytes, Runnable runner) throws IOException {
@@ -276,9 +276,6 @@ public class FileService extends BaseService {
             rs = newfile.getName();
         }
         if (runner != null) runner.run();
-        if (runner == null && "face".equals(dir)) {
-            userService.updateInfotime(Integer.parseInt(fileid, 36));
-        }
         asyncFile(facefiles);
         return rs;
     }

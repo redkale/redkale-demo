@@ -18,7 +18,7 @@ public class ClassCreator {
 
     private static final String currentpkg = ClassCreator.class.getPackage().getName();
 
-    private static final String jdbc_url = "jdbc:mysql://localhost:3306/center?autoReconnect=true&amp;characterEncoding=utf8";//数据库url
+    private static final String jdbc_url = "jdbc:mysql://localhost:3306/redemo_info?autoReconnect=true&amp;characterEncoding=utf8";//数据库url
 
     private static final String jdbc_user = "root"; //数据库用户名
 
@@ -26,7 +26,7 @@ public class ClassCreator {
 
     public static void main(String[] args) throws Exception {
 
-        String pkg = currentpkg.substring(0, currentpkg.lastIndexOf('.') + 1) + "xxx";  //与base同级的包名
+        String pkg = currentpkg.substring(0, currentpkg.lastIndexOf('.') + 1) + "user";  //与base同级的包名
 
         final String entityClass = "UserDetail";//类名
 
@@ -144,7 +144,7 @@ public class ClassCreator {
                 if (incre) sb.append("\r\n    @GeneratedValue");
             } else if (columns.contains(column)) continue; //跳过被继承的重复字段
             sb.append("\r\n");
-            
+
             int length = 0;
             int precision = 0;
             int scale = 0;
@@ -175,13 +175,13 @@ public class ClassCreator {
             }
             sb.append("    @Column(");
             if ("createtime".equals(column)) sb.append("updatable = false, ");
-            if(length > 0) sb.append("length = ").append(length).append(", ");
-            if(precision > 0) sb.append("precision = ").append(precision).append(", ");
-            if(scale > 0) sb.append("scale = ").append(scale).append(", ");            
+            if (length > 0) sb.append("length = ").append(length).append(", ");
+            if (precision > 0) sb.append("precision = ").append(precision).append(", ");
+            if (scale > 0) sb.append("scale = ").append(scale).append(", ");
             sb.append("comment = \"" + remark.replace('"', '\'') + "\")\r\n");
-            
+
             sb.append("    private " + ctype + " " + column);
-            if (def != null && !"0".equals(def)) { 
+            if (def != null && !"0".equals(def)) {
                 String d = def.replace('\'', '\"');
                 sb.append(" = ").append(d.isEmpty() ? "\"\"" : d);
             } else if ("String".equals(ctype)) {

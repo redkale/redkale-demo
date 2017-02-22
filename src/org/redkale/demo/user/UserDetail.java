@@ -16,6 +16,8 @@ import org.redkale.util.*;
  */
 @Cacheable
 @LogLevel("FINER")
+@Table(catalog = "redemo_info", comment = "用户信息表", indexes = {
+    @Index(name = "m", columnList = "mobile")})
 public class UserDetail extends UserInfo {
 
     private static final Reproduce<UserInfo, UserDetail> reproduce = Reproduce.create(UserInfo.class, UserDetail.class);
@@ -30,20 +32,22 @@ public class UserDetail extends UserInfo {
 
     public static final short REGTYPE_QQOPEN = 50; //QQ注册
 
-    @Column(updatable = false)
-    private short regtype;  //注册类型
+    @Column(updatable = false, comment = "[注册类型]: 10:账号注册; 20:手机注册; 30:邮箱注册; 40:微信注册; 50:QQ注册")
+    private short regtype;
 
-    @Column(updatable = false)
-    private long createtime; //注册时间
+    @Column(updatable = false, comment = "[创建时间]")
+    private long createtime;
 
-    @Column(updatable = false)
+    @Column(updatable = false, length = 255, comment = "[注册终端]")
     private String regagent = "";//注册终端
 
-    @Column(updatable = false)
+    @Column(updatable = false, length = 64, comment = "[注册IP]")
     private String regaddr = "";//注册IP
 
+    @Column(length = 255, comment = "[备注]")
     private String remark = ""; //备注
 
+    @Column(comment = "[更新时间]")
     private long updatetime;  //修改时间
 
     public UserInfo createUserInfo() {

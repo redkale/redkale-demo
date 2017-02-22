@@ -24,6 +24,8 @@ public class LoginQQBean extends BaseBean {
 
     protected String sessionid;
 
+    protected String appos = "";
+    
     protected String apptoken = "";
 
     public boolean emptyAccesstoken() {
@@ -82,6 +84,14 @@ public class LoginQQBean extends BaseBean {
 
     public void setSessionid(String sessionid) {
         this.sessionid = sessionid;
+    }
+
+    public String getAppos() {
+        return appos;
+    }
+
+    public void setAppos(String appos) {
+        this.appos = appos;
     }
 
 }

@@ -5,7 +5,7 @@
  */
 package org.redkale.demo.base;
 
-import javax.persistence.Id;
+import javax.persistence.*;
 import org.redkale.convert.*;
 import org.redkale.source.VirtualEntity;
 import org.redkale.util.Reproduce;
@@ -31,7 +31,7 @@ public class UserInfo extends BaseEntity {
     public static final short GENDER_FEMALE = 4;
 
     //平台的虚拟用户ID
-    public static final int USERID_SYSTEM = 100000000;
+    public static final int USERID_SYSTEM = 2_0000_0000;
 
     public static final UserInfo USER_SYSTEM = new UserInfo();
 
@@ -43,31 +43,47 @@ public class UserInfo extends BaseEntity {
     }
 
     @Id
+    @Column(comment = "[用户ID] 值从2_0000_0001开始; 36进制固定长度为6位")
     protected int userid;  //用户ID
 
+    @Column(length = 128, comment = "[用户昵称]")
     protected String username = "";  //用户昵称
 
+    @Column(comment = "[用户类型]")
     protected short type;    //用户类型 （前端不可见）
 
+    @Column(length = 128, comment = "密码")
     protected String password = ""; //密码（前端不可见） 数据库存放的密码规则为: HEX-SHA1( HEX-MD5( HEX-MD5(明文)+"-REDKALE" ) +"-REDKALE" )
 
+    @Column(length = 128, comment = "[用户账号]")
     protected String account = "";  //用户账号（前端不可见）
 
+    @Column(length = 128, comment = "[手机号码]")
     protected String mobile = "";  //手机号码（前端不可见）
 
+    @Column(comment = "运营商; 2:移动; 4:联通; 8:电信;")
+    protected int mobnet;
+
+    @Column(length = 128, comment = "[邮箱地址]")
     protected String email = "";  //邮箱  （前端不可见）
 
+    @Column(length = 255, comment = "微信openid")
     protected String wxunionid = "";  //微信openid （前端不可见）
 
+    @Column(length = 255, comment = "QQ openid")
     protected String qqopenid = "";  //QQ openid （前端不可见）
 
+    @Column(length = 16, comment = "APP的设备系统(小写); android/ios/web/wap")
+    protected String appos = "";//APP的设备系统 （前端不可见） 
+
+    @Column(length = 255, comment = "APP的设备ID")
     protected String apptoken = "";  //APP的设备ID （前端不可见） 通常用于IOS的APNS推送
 
+    @Column(comment = "[状态]: 10:正常;20:待审批;30:审批不通过;40:冻结;50:隐藏;60:关闭;70:过期;80:删除;")
     protected short status;    //状态 （前端不可见）  值见BaseEntity的STATUS常量
 
+    @Column(comment = "[性别]：2：男； 4:女；")
     protected short gender; //性别; 2:男;  4:女; 值见BaseEntity的GENDER常量
-
-    protected long infotime; //用户可见资料的更新时间 通常用于客户端判断用户资料是否已修改便于主动拉取新资料
 
     public UserInfo copy() {
         return reproduce.apply(new UserInfo(), this);
@@ -101,12 +117,20 @@ public class UserInfo extends BaseEntity {
         return this.status == STATUS_FREEZE;
     }
 
-    public long getInfotime() {
-        return infotime;
+    public int getMobnet() {
+        return mobnet;
     }
 
-    public void setInfotime(long infotime) {
-        this.infotime = infotime;
+    public void setMobnet(int mobnet) {
+        this.mobnet = mobnet;
+    }
+
+    public String getAppos() {
+        return appos;
+    }
+
+    public void setAppos(String appos) {
+        this.appos = appos;
     }
 
     public int getUserid() {

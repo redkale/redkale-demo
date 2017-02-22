@@ -25,6 +25,9 @@ public final class LoginBean extends BaseBean implements FilterBean {
     @Comment("MD5(密码明文)")
     private String password = ""; //HEX-MD5(HEX-MD5(密码明文))
 
+    @Comment("APP的设备系统(小写); android/ios/web/wap")
+    private String appos = "";//APP的设备系统
+
     @Comment("APP设备唯一标识")
     private String apptoken = ""; //APP设备唯一标识
 
@@ -149,6 +152,16 @@ public final class LoginBean extends BaseBean implements FilterBean {
     public void setApptoken(String apptoken) {
         if (apptoken != null) {
             this.apptoken = apptoken.trim();
+        }
+    }
+
+    public String getAppos() {
+        return appos;
+    }
+
+    public void setAppos(String appos) {
+        if (appos != null) {
+            this.appos = appos.trim().toLowerCase();
         }
     }
 

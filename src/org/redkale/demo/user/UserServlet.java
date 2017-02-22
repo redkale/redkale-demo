@@ -5,6 +5,7 @@
  */
 package org.redkale.demo.user;
 
+import org.redkale.demo.notice.RandomCode;
 import java.io.IOException;
 import java.net.HttpCookie;
 import java.util.Map;
@@ -319,7 +320,7 @@ public class UserServlet extends BaseServlet {
     public void updateApptoken(HttpRequest req, HttpResponse resp) throws IOException {
         String s = req.getRequstURILastPath();
         if ("updateapptoken".equalsIgnoreCase(s)) s = "";
-        resp.finishJson(service.updateApptoken(currentUser(req).getUserid(), req.getParameter("apptoken", s)));
+        resp.finishJson(service.updateApptoken(currentUser(req).getUserid(), req.getParameter("appos", req.getRequstURIPath("appos:", "")), req.getParameter("apptoken", s)));
     }
 
     //更新性别
