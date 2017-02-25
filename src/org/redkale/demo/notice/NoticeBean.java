@@ -7,13 +7,13 @@ package org.redkale.demo.notice;
 
 import org.redkale.demo.base.BaseBean;
 import org.redkale.source.FilterBean;
-
-
+import org.redkale.util.Comment;
 
 /**
  *
  * @author zhangjx
  */
+@Comment("消息推送过滤类")
 public class NoticeBean extends BaseBean implements FilterBean {
 
     private int userid; //用户ID

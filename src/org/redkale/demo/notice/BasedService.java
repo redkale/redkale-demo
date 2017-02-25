@@ -9,6 +9,6 @@ import org.redkale.source.DataSource;
  */
 public abstract class BasedService extends BaseService {
 
-    @Resource(name = "demo_notice")
+    @Resource(name = "redemo_notice")
     protected DataSource source;
 }

@@ -5,13 +5,17 @@
  */
 package org.redkale.demo.info;
 
+import org.redkale.util.Comment;
+
 /**
  *
  * @author zhangjx
  */
+@Comment("手机所属地服务模块")
 public class MobileGroupService extends BasedService {
 
-    public MobileGroup findMobileGroup(final String mobile) {
+    @Comment("根据手机号查询手机所属地信息")
+    public MobileGroup findMobileGroup(@Comment("11位手机号码") final String mobile) {
         return source.find(MobileGroup.class, (mobile.length() > 7) ? mobile.substring(0, 7) : mobile);
     }
 }

@@ -15,7 +15,7 @@ import org.redkale.util.*;
  * @author zhangjx
  */
 @Entity
-@Table(catalog = "demo_notice")
+@Table(catalog = "redemo_notice")
 public class RandomCode extends BaseEntity {
 
     private static final Reproduce<RandomCodeHis, RandomCode> reproduce = Reproduce.create(RandomCodeHis.class, RandomCode.class);
@@ -52,7 +52,7 @@ public class RandomCode extends BaseEntity {
     private String randomcode;
 
     @Column(updatable = false, comment = "用户ID")
-    private long userid; //C端用户ID
+    private long userid; //用户ID
 
     @Column(comment = "验证码类型")
     private short type;

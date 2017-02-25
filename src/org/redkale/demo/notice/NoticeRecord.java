@@ -13,7 +13,7 @@ import org.redkale.source.*;
  *
  * @author zhangjx
  */
-@Table(catalog = "demo_notice")
+@Table(catalog = "redemo_notice", comment = "消息推送表")
 @DistributeTable(strategy = NoticeRecord.TableStrategy.class)
 public class NoticeRecord extends BaseEntity {
 
@@ -31,8 +31,8 @@ public class NoticeRecord extends BaseEntity {
     @Column(comment = "UUID")
     private String noticeid; //消息ID
 
-    @Column(updatable = false, comment = "C端用户ID")
-    private long custuserid; //C端用户ID
+    @Column(updatable = false, comment = "用户ID")
+    private long userid; //用户ID
 
     @Column(comment = "状态; 10:未发送; 20:已发送; 30:发送失败;")
     private short status; //状态; 10:未发送; 20:已发送; 30:发送失败;
@@ -60,12 +60,12 @@ public class NoticeRecord extends BaseEntity {
         this.noticeid = noticeid;
     }
 
-    public long getCustuserid() {
-        return custuserid;
+    public long getUserid() {
+        return userid;
     }
 
-    public void setCustuserid(long custuserid) {
-        this.custuserid = custuserid;
+    public void setUserid(long userid) {
+        this.userid = userid;
     }
 
     public short getStatus() {
@@ -133,7 +133,7 @@ public class NoticeRecord extends BaseEntity {
 
         private String getTable(String table, long createtime) {
             int pos = table.indexOf('.');
-            return "demo_notice." + table.substring(pos + 1) + "_" + String.format(format, createtime);
+            return "redemo_notice." + table.substring(pos + 1) + "_" + String.format(format, createtime);
         }
     }
 }

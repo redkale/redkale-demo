@@ -5,16 +5,15 @@
  */
 package org.redkale.demo.notice;
 
-import org.redkale.net.http.RestService;
 import org.redkale.source.Flipper;
-import org.redkale.util.Sheet;
+import org.redkale.util.*;
 
 /**
  *
  * @author zhangjx
  */
 
-@RestService(ignore = true)
+@Comment("消息推送服务")
 public class NoticeService extends BasedService {
 
     public Sheet<NoticeRecord> queryNoticeRecord(NoticeBean bean, Flipper flipper) {

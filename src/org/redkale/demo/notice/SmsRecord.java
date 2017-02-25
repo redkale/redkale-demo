@@ -8,7 +8,7 @@ import org.redkale.source.*;
  *
  * @author zhangjx
  */
-@Table(catalog = "demo_notice")
+@Table(catalog = "redemo_notice")
 @DistributeTable(strategy = SmsRecord.TableStrategy.class)
 public class SmsRecord extends BaseEntity {
 
@@ -200,7 +200,7 @@ public class SmsRecord extends BaseEntity {
 
         private String getTable(String table, long createtime) {
             int pos = table.indexOf('.');
-            return "demo_notice." + table.substring(pos + 1) + "_" + String.format(format, createtime);
+            return "redemo_notice." + table.substring(pos + 1) + "_" + String.format(format, createtime);
         }
     }
 }

@@ -451,7 +451,7 @@ public class UserService extends BasedService {
                 ok = true;
                 break;
             } catch (Exception e) { //并发时可能会重复创建， 忽略异常
-                logger.log(Level.INFO, "create custuser error: " + user, e);
+                logger.log(Level.INFO, "create userdetail error: " + user, e);
                 maxid = source.getNumberResult(UserDetail.class, FilterFunc.MAX, 2_0000_0000, "userid", (FilterNode) null).intValue();
             }
         }

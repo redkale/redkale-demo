@@ -13,7 +13,7 @@ import org.redkale.source.*;
  *
  * @author zhangjx
  */
-@Table(catalog = "demo_notice")
+@Table(catalog = "redemo_notice")
 @DistributeTable(strategy = RandomCodeHis.TableStrategy.class)
 public class RandomCodeHis extends BaseEntity {
 
@@ -33,8 +33,8 @@ public class RandomCodeHis extends BaseEntity {
     @Column(length = 128, comment = "手机-验证码数据对")
     private String randomcode;
 
-    @Column(updatable = false, comment = "C端用户ID")
-    private long custuserid; //C端用户ID
+    @Column(updatable = false, comment = "[所属用户ID]")
+    private long userid; //用户ID
 
     @Column(comment = "验证码类型")
     private short type;
@@ -72,12 +72,12 @@ public class RandomCodeHis extends BaseEntity {
         this.updatetime = updatetime;
     }
 
-    public long getCustuserid() {
-        return custuserid;
+    public long getUserid() {
+        return userid;
     }
 
-    public void setCustuserid(long custuserid) {
-        this.custuserid = custuserid;
+    public void setUserid(long userid) {
+        this.userid = userid;
     }
 
     public short getType() {
