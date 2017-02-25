@@ -9,14 +9,15 @@ import java.io.*;
 import static java.lang.Character.toUpperCase;
 import java.sql.*;
 import java.util.*;
+import static java.lang.Character.toUpperCase;
 
 /**
  *
  * @author zhangjx
  */
-public class ClassCreator {
+public class AutoClassCreator {
 
-    private static final String currentpkg = ClassCreator.class.getPackage().getName();
+    private static final String currentpkg = AutoClassCreator.class.getPackage().getName();
 
     private static final String jdbc_url = "jdbc:mysql://localhost:3306/redemo_info?autoReconnect=true&amp;characterEncoding=utf8";//数据库url
 
