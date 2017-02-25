@@ -13,7 +13,7 @@ import org.redkale.source.*;
  *
  * @author zhangjx
  */
-@Table(catalog = "redemo_notice")
+@Table(catalog = "redemo_notice", comment = "验证码历史表")
 @DistributeTable(strategy = RandomCodeHis.TableStrategy.class)
 public class RandomCodeHis extends BaseEntity {
 

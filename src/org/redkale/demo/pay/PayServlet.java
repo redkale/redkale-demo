@@ -36,7 +36,7 @@ public class PayServlet extends HttpBaseServlet {
     private PayService service;
 
     @AuthIgnore
-    @WebAction(url = "/pay/check/") ///pay/check/{payno}
+    @WebAction(url = "/pay/check/", comment = "根据支付单号检查支付结果") ///pay/check/{payno}
     public void checkPay(HttpRequest req, HttpResponse resp) throws IOException {
         if (info) logger.info("" + req);
         String payno = req.getRequstURILastPath();
@@ -89,7 +89,7 @@ public class PayServlet extends HttpBaseServlet {
     }
 
     @AuthIgnore
-    @WebAction(url = "/pay/union/nodify")
+    @WebAction(url = "/pay/union/nodify", comment = "银联支付异步通知")
     public void unionnodify(HttpRequest req, HttpResponse resp) throws IOException {
         resp.finish(service.notify(unionNodifyRequest(logger, req)).getRetinfo());
     }
@@ -101,7 +101,7 @@ public class PayServlet extends HttpBaseServlet {
     }
 
     @AuthIgnore
-    @WebAction(url = "/pay/weixin/nodify")
+    @WebAction(url = "/pay/weixin/nodify", comment = "微信支付异步通知")
     public void weixinnodify(HttpRequest req, HttpResponse resp) throws IOException {
         resp.finish(service.notify(weixinNodifyRequest(logger, req)).getRetinfo());
     }
@@ -160,7 +160,7 @@ public class PayServlet extends HttpBaseServlet {
     }
 
     @AuthIgnore
-    @WebAction(url = "/pay/alipay/nodify")
+    @WebAction(url = "/pay/alipay/nodify", comment = "支付宝支付异步通知")
     public void alipaynodify(HttpRequest req, HttpResponse resp) throws IOException {
         resp.finish(service.notify(alipayNodifyRequest(service, logger, req)).getRetinfo());
     }

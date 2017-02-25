@@ -10,7 +10,6 @@ import java.util.concurrent.*;
 import javax.annotation.Resource;
 import org.redkale.demo.base.RetCodes;
 import static org.redkale.demo.base.RetCodes.*;
-import org.redkale.net.http.RestService;
 import org.redkale.service.RetResult;
 import org.redkale.source.*;
 import org.redkale.util.*;
@@ -19,7 +18,7 @@ import org.redkale.util.*;
  *
  * @author zhangjx
  */
-@RestService(ignore = true)
+@Comment("验证码服务")
 public class RandomService extends BasedService {
 
     @Resource(name = "property.schedule.task")

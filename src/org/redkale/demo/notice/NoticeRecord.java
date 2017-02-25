@@ -28,7 +28,7 @@ public class NoticeRecord extends BaseEntity {
 
     @Id
     @GeneratedValue
-    @Column(comment = "UUID")
+    @Column(length = 64, comment = "UUID")
     private String noticeid; //消息ID
 
     @Column(updatable = false, comment = "用户ID")
@@ -40,13 +40,13 @@ public class NoticeRecord extends BaseEntity {
     @Column(length = 16, comment = "APP的设备系统(小写); android/ios")
     private String appos = "";
 
-    @Column(updatable = false, comment = "设备推送ID")
+    @Column(length = 128, updatable = false, comment = "设备推送ID")
     private String apptoken = "";  //设备推送ID
 
-    @Column(updatable = false, comment = "短信内容")
+    @Column(length = 4096, updatable = false, comment = "短信内容")
     private String content = ""; //短信内容
 
-    @Column(comment = "返回结果")
+    @Column(length = 4096, comment = "返回结果")
     private String resultdesc = ""; //返回结果
 
     @Column(updatable = false, comment = "创建时间")

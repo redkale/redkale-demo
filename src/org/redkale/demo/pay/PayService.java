@@ -5,13 +5,12 @@
  */
 package org.redkale.demo.pay;
 
-import java.io.*;
 import java.util.*;
 import java.util.logging.Level;
 import javax.annotation.Resource;
 import org.redkale.convert.json.*;
 import org.redkale.service.RetResult;
-import org.redkale.util.Utility;
+import org.redkale.util.*;
 import org.redkalex.pay.*;
 import static org.redkalex.pay.PayRetCodes.*;
 
@@ -19,6 +18,7 @@ import static org.redkalex.pay.PayRetCodes.*;
  *
  * @author zhangjx
  */
+@Comment("支付服务")
 public class PayService extends BasedService {
 
     private static final JsonConvert convert = JsonFactory.create().skipAllIgnore(true).getConvert();
@@ -42,12 +42,12 @@ public class PayService extends BasedService {
         return payService.getEhkingPayService();
     }
 
-    //主动查询支付结果, 页面调用
+    @Comment("主动查询支付结果, 页面调用")
     public RetResult<PayRecord> checkPay(String payno) {
         return checkPay(findPayRecord(payno), true);
     }
 
-    //固定返回支付成功结果， 用于调试
+    @Comment("固定返回支付成功结果， 用于调试")
     public RetResult<PayRecord> testCheckPay(String payno) {
         PayRecord pay = findPayRecord(payno);
         if (pay == null) return RetResult.success();
@@ -58,7 +58,7 @@ public class PayService extends BasedService {
         return new RetResult<>(pay);
     }
 
-    //固定返回支付成功结果， 用于调试
+    @Comment("固定返回支付成功结果， 用于调试")
     public RetResult<Map<String, String>> testPrepay(final PayRecord pay) {
         pay.setCreatetime(System.currentTimeMillis());
         String create36time = Long.toString(pay.getCreatetime(), 36);
@@ -79,7 +79,7 @@ public class PayService extends BasedService {
         return rr;
     }
 
-    //主动查询支付结果, 定时任务调用
+    @Comment("主动查询支付结果, 定时任务调用")
     public RetResult<PayRecord> checkPay(PayRecord pay, final boolean forceFail) {
         if (pay == null) return RetResult.success();
         if (pay.getPaystatus() != Pays.PAYSTATUS_UNPAY && pay.getPaystatus() != Pays.PAYSTATUS_UNREFUND) return RetResult.success();//已经更新过了
@@ -113,7 +113,7 @@ public class PayService extends BasedService {
         return new RetResult(resp.getRetcode(), resp.getRetinfo()).result(pay);
     }
 
-    //手机支付回调
+    @Comment("手机支付回调")
     public RetResult<PayRecord> notify(final PayNotifyRequest request) {
         final PayNotifyResponse resp = payService.notify(request);
         PayRecord pay = findPayRecord(resp.getPayno());
@@ -147,7 +147,7 @@ public class PayService extends BasedService {
         return new RetResult<>(pay).retinfo(resp.getResult());   //支付的回调参数处理完必须输出success字样
     }
 
-    //微信公众号、手机支付时调用
+    @Comment("微信公众号、手机支付时调用")
     public RetResult<Map<String, String>> prepay(final PayRecord pay) {
         pay.setCreatetime(System.currentTimeMillis());
         String create36time = Long.toString(pay.getCreatetime(), 36);
@@ -169,13 +169,9 @@ public class PayService extends BasedService {
         return rr;
     }
 
+    @Comment("根据payno查找单个PayRecord")
     public PayRecord findPayRecord(String payno) {
         return source.find(PayRecord.class, payno);
     }
 
-    public static void main(String[] args) throws Throwable {
-        File file = new File("D:\\Java-Projects\\DiancallPlatfProject\\conf\\apiclient_cert.p12");
-        byte[] bs = Utility.readBytes(new FileInputStream(file));
-        System.out.println(Base64.getEncoder().encodeToString(bs)); 
-    }
 }

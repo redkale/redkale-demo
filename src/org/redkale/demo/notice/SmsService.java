@@ -8,7 +8,6 @@ package org.redkale.demo.notice;
 import java.io.IOException;
 import java.net.URLEncoder;
 import javax.annotation.Resource;
-import org.redkale.net.http.RestService;
 import org.redkale.source.Flipper;
 import org.redkale.util.*;
 
@@ -18,7 +17,7 @@ import org.redkale.util.*;
  *
  * @author zhangjx
  */
-@RestService(ignore = true)
+@Comment("短信服务")
 public class SmsService extends BasedService {
 
     @Resource(name = "property.sms.sendurl")
@@ -26,7 +25,7 @@ public class SmsService extends BasedService {
 
     @Resource(name = "property.sms.account")
     private String smsaccount = "xxxxxxx";
- 
+
     @Resource(name = "property.sms.password")
     private String smspassword = "yyyy";
 
@@ -58,7 +57,8 @@ public class SmsService extends BasedService {
         return ok;
     }
 
-    public Sheet<SmsRecord> querySmsRecord(SmsBean bean, Flipper flipper) {
+    @Comment("查询短信记录列表")
+    public Sheet<SmsRecord> querySmsRecord(@Comment("过滤条件") SmsBean bean, @Comment("翻页对象") Flipper flipper) {
         Flipper.sortIfAbsent(flipper, "createtime DESC");
         return source.querySheet(SmsRecord.class, flipper, bean);
     }
