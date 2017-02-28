@@ -6,10 +6,8 @@
 package org.redkale.demo.base;
 
 import java.io.*;
-import static java.lang.Character.toUpperCase;
 import java.sql.*;
 import java.util.*;
-import static java.lang.Character.toUpperCase;
 
 /**
  *
@@ -191,7 +189,7 @@ public class AutoClassCreator {
             sb.append(";\r\n");
 
             char[] chs2 = column.toCharArray();
-            chs2[0] = toUpperCase(chs2[0]);
+            chs2[0] = Character.toUpperCase(chs2[0]);
             String sgname = new String(chs2);
 
             StringBuilder setter = new StringBuilder();
