@@ -150,6 +150,11 @@ public abstract class RetCodes {
         }
     }
 
+    public static RetResult retResult(int retcode) {
+        if (retcode == 0) return RetResult.success();
+        return new RetResult(retcode, retInfo(retcode));
+    }
+    
     public static RetResult retResult(int retcode, Object... args) {
         if (retcode == 0) return RetResult.success();
         if (args == null || args.length < 1) return new RetResult(retcode, retInfo(retcode));
