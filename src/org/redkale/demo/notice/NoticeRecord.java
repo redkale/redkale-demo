@@ -5,6 +5,7 @@
  */
 package org.redkale.demo.notice;
 
+import java.io.Serializable;
 import javax.persistence.*;
 import org.redkale.demo.base.BaseEntity;
 import org.redkale.source.*;
@@ -27,8 +28,7 @@ public class NoticeRecord extends BaseEntity {
     public static final short NOTICESTATUS_SENDNO = 30;
 
     @Id
-    @GeneratedValue
-    @Column(length = 64, comment = "UUID")
+    @Column(length = 64, comment = "消息ID 值=create36time(9位)+UUID(32位)")
     private String noticeid; //消息ID
 
     @Column(updatable = false, comment = "用户ID")
@@ -134,6 +134,12 @@ public class NoticeRecord extends BaseEntity {
         private String getTable(String table, long createtime) {
             int pos = table.indexOf('.');
             return "redemo_notice." + table.substring(pos + 1) + "_" + String.format(format, createtime);
+        }
+
+        @Override
+        public String getTable(String table, Serializable primary) {
+            String id = (String) primary;
+            return getTable(table, Long.parseLong(id.substring(0, 9), 36));
         }
     }
 }

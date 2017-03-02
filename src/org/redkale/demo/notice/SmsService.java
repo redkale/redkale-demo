@@ -52,6 +52,7 @@ public class SmsService extends BasedService {
         message.setResultdesc(resultdesc);
         if (source != null) {
             message.setStatus(ok ? SmsRecord.SMSSTATUS_SENDOK : SmsRecord.SMSSTATUS_SENDNO);
+            message.setSmsid(Utility.format36time(message.getCreatetime()) + Utility.uuid());
             source.insert(message);
         }
         return ok;

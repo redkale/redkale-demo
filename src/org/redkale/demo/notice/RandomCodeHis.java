@@ -5,6 +5,7 @@
  */
 package org.redkale.demo.notice;
 
+import java.io.Serializable;
 import javax.persistence.*;
 import org.redkale.demo.base.BaseEntity;
 import org.redkale.source.*;
@@ -26,8 +27,7 @@ public class RandomCodeHis extends BaseEntity {
     public static final short RETCODE_OK = 4;
 
     @Id
-    @GeneratedValue
-    @Column(length = 64, comment = "UUID")
+    @Column(length = 64, comment = "记录ID 值=create36time(9位)+UUID(32位)")
     private String seqid = "";
 
     @Column(length = 128, comment = "手机-验证码数据对")
@@ -113,5 +113,21 @@ public class RandomCodeHis extends BaseEntity {
             return table + "_" + String.format(format, bean.getCreatetime());
         }
 
+        @Override
+        public String getTable(String table, Serializable primary) {
+            String id = (String) primary;
+            return getTable(table, Long.parseLong(id.substring(0, 9), 36));
+        }
+
+        @Override
+        public String getTable(String table, FilterNode node) {
+            Range.LongRange createtime = (Range.LongRange) node.findValue("createtime");
+            return getTable(table, createtime.getMin());
+        }
+
+        private String getTable(String table, long createtime) {
+            int pos = table.indexOf('.');
+            return "redemo_notice." + table.substring(pos + 1) + "_" + String.format(format, createtime);
+        }
     }
 }

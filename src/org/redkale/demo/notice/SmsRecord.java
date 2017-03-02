@@ -1,5 +1,6 @@
 package org.redkale.demo.notice;
 
+import java.io.Serializable;
 import javax.persistence.*;
 import org.redkale.demo.base.BaseEntity;
 import org.redkale.source.*;
@@ -38,18 +39,17 @@ public class SmsRecord extends BaseEntity {
     public static final short CODETYPE_LGN = RandomCode.TYPE_SMSLGN;
 
     @Id
-    @GeneratedValue
-    @Column(length = 64, comment = "短信ID UUID")
+    @Column(length = 64, comment = "短信ID 值=create36time(9位)+UUID(32位)")
     private String smsid = "";
 
     @Column(comment = "短信类型; 10:验证码；20:营销短信；")
     private short smstype;
 
     @Column(comment = "验证码类型; 10:手机注册；20:重置密码；30:修改手机；40:登录；")
-    private short codetype; 
+    private short codetype;
 
     @Column(comment = "状态; 10:未发送; 20:已发送; 30:发送失败;")
-    private short status; 
+    private short status;
 
     @Column(comment = "群发的短信条数")
     private int smscount;
@@ -58,19 +58,19 @@ public class SmsRecord extends BaseEntity {
     private int mobcount = 1;
 
     @Column(length = 32, comment = "手机号码")
-    private String mobile = ""; 
+    private String mobile = "";
 
     @Column(length = 2048, comment = "群发的手机号码集合，多个用;隔开,最多100条")
-    private String mobiles = ""; 
+    private String mobiles = "";
 
     @Column(length = 1024, comment = "短信内容")
     private String content = "";
 
     @Column(length = 1024, comment = "返回结果")
-    private String resultdesc = ""; 
+    private String resultdesc = "";
 
     @Column(updatable = false, comment = "生成时间，单位毫秒")
-    private long createtime; 
+    private long createtime;
 
     @Transient
     @Column(comment = "用户ID")
@@ -201,6 +201,12 @@ public class SmsRecord extends BaseEntity {
         private String getTable(String table, long createtime) {
             int pos = table.indexOf('.');
             return "redemo_notice." + table.substring(pos + 1) + "_" + String.format(format, createtime);
+        }
+
+        @Override
+        public String getTable(String table, Serializable primary) {
+            String id = (String) primary;
+            return getTable(table, Long.parseLong(id.substring(0, 9), 36));
         }
     }
 }

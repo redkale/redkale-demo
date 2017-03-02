@@ -1,5 +1,6 @@
 package org.redkale.demo.pay;
 
+import java.io.Serializable;
 import javax.persistence.*;
 import org.redkale.demo.base.BaseEntity;
 import org.redkale.source.*;
@@ -13,8 +14,7 @@ import org.redkale.source.*;
 public class PayAction extends BaseEntity {
 
     @Id
-    @GeneratedValue
-    @Column(length = 64, comment = "UUID")
+    @Column(length = 64, comment = "记录ID 值=create36time(9位)+UUID(32位)")
     private String payactid = "";
 
     @Column(length = 128, comment = "支付编号")
@@ -97,8 +97,24 @@ public class PayAction extends BaseEntity {
 
         @Override
         public String getTable(String table, PayAction bean) {
+            return getTable(table, bean.getCreatetime());
+        }
+
+        private String getTable(String table, long createtime) {
             int pos = table.indexOf('.');
-            return "redemo_pay_act." + table.substring(pos + 1) + "_" + String.format(format, bean.getCreatetime());
+            return "redemo_pay_act." + table.substring(pos + 1) + "_" + String.format(format, createtime);
+        }
+
+        @Override
+        public String getTable(String table, Serializable primary) {
+            String id = (String) primary;
+            return getTable(table, Long.parseLong(id.substring(0, 9), 36));
+        }
+
+        @Override
+        public String getTable(String table, FilterNode node) {
+            Range.LongRange createtime = (Range.LongRange) node.findValue("createtime");
+            return getTable(table, createtime.getMin());
         }
 
     }

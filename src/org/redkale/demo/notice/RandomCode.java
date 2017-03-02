@@ -71,6 +71,7 @@ public class RandomCode extends BaseEntity {
         RandomCodeHis his = reproduce.apply(new RandomCodeHis(), this);
         his.setRetcode(retcode);
         his.setUpdatetime(System.currentTimeMillis());
+        his.setSeqid(Utility.format36time(his.getCreatetime()) + Utility.uuid());
         return his;
     }
 

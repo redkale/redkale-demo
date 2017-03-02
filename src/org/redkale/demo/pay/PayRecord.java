@@ -275,16 +275,24 @@ public class PayRecord extends BaseEntity {
 
         @Override
         public String getTable(String table, Serializable primary) {
-            final String payno = (String) primary;
-            int len = payno.length();
-            String create36time = payno.substring(len - 9);
+            final String id = (String) primary;
+            return getTable(table, Long.parseLong(id.substring(id.length() - 9), 36));
+        }
+
+        private String getTable(String table, long createtime) {
             int pos = table.indexOf('.');
-            return "redemo_pay." + table.substring(pos + 1) + "_" + String.format(format, Long.parseLong(create36time, 36));
+            return "redemo_pay." + table.substring(pos + 1) + "_" + String.format(format, createtime);
         }
 
         @Override
         public String getTable(String table, PayRecord bean) {
             return getTable(table, bean.getPayno());
+        }
+
+        @Override
+        public String getTable(String table, FilterNode node) {
+            Range.LongRange createtime = (Range.LongRange) node.findValue("createtime");
+            return getTable(table, createtime.getMin());
         }
 
     }
