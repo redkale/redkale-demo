@@ -5,7 +5,6 @@
  */
 package org.redkale.demo.base;
 
-import java.lang.reflect.*;
 import java.text.MessageFormat;
 import java.util.*;
 import org.redkale.service.*;
@@ -127,34 +126,13 @@ public abstract class RetCodes {
     public static final int RET_USER_APPTOKEN_ILLEGAL = 30020030;
 
     //-----------------------------------------------------------------------------------------------------------
-    protected static final Map<Integer, String> rets = new HashMap<>();
-
-    static {
-        load(RetCodes.class);
-    }
-
-    protected static void load(Class clazz) {
-        for (Field field : clazz.getFields()) {
-            if (!Modifier.isStatic(field.getModifiers())) continue;
-            if (field.getType() != int.class) continue;
-            RetLabel info = field.getAnnotation(RetLabel.class);
-            if (info == null) continue;
-            int value;
-            try {
-                value = field.getInt(null);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                continue;
-            }
-            rets.put(value, info.value());
-        }
-    }
+    protected static final Map<Integer, String> rets = RetLabel.RetLoader.load(RetCodes.class);
 
     public static RetResult retResult(int retcode) {
         if (retcode == 0) return RetResult.success();
         return new RetResult(retcode, retInfo(retcode));
     }
-    
+
     public static RetResult retResult(int retcode, Object... args) {
         if (retcode == 0) return RetResult.success();
         if (args == null || args.length < 1) return new RetResult(retcode, retInfo(retcode));
