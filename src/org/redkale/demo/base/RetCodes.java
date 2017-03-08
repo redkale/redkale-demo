@@ -5,17 +5,16 @@
  */
 package org.redkale.demo.base;
 
-import java.text.MessageFormat;
-import java.util.*;
 import org.redkale.service.*;
 
 /**
  *
  * @author zhangjx
  */
-public abstract class RetCodes {
+public abstract class RetCodes extends RetLabel.AbstractRetCode {
 
-    protected RetCodes() {
+    static {
+        load(RetCodes.class);
     }
 
     //2000_0001 - 2999_9999 预留给 Redkale的扩展包redkalex使用
@@ -125,30 +124,4 @@ public abstract class RetCodes {
     @RetLabel("用户设备ID无效")
     public static final int RET_USER_APPTOKEN_ILLEGAL = 30020030;
 
-    //-----------------------------------------------------------------------------------------------------------
-    protected static final Map<Integer, String> rets = RetLabel.RetLoader.load(RetCodes.class);
-
-    public static RetResult retResult(int retcode) {
-        if (retcode == 0) return RetResult.success();
-        return new RetResult(retcode, retInfo(retcode));
-    }
-
-    public static RetResult retResult(int retcode, Object... args) {
-        if (retcode == 0) return RetResult.success();
-        if (args == null || args.length < 1) return new RetResult(retcode, retInfo(retcode));
-        String info = MessageFormat.format(retInfo(retcode), args);
-        return new RetResult(retcode, info);
-    }
-
-    public static RetResult set(RetResult result, int retcode, Object... args) {
-        if (retcode == 0) return result.retcode(0).retinfo("");
-        if (args == null || args.length < 1) return result.retcode(retcode).retinfo(retInfo(retcode));
-        String info = MessageFormat.format(retInfo(retcode), args);
-        return result.retcode(retcode).retinfo(info);
-    }
-
-    public static String retInfo(int retcode) {
-        if (retcode == 0) return "成功";
-        return rets.getOrDefault(retcode, "未知错误");
-    }
 }
