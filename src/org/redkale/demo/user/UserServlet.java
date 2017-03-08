@@ -48,7 +48,7 @@ public class UserServlet extends BaseServlet {
 
     //用户注销
     @AuthIgnore
-    @WebAction(url = "/user/logout")
+    @WebMapping(url = "/user/logout")
     public void logout(HttpRequest req, HttpResponse resp) throws IOException {
         String sessionid = req.getSessionid(false);
         if (sessionid != null) service.logout(sessionid);
@@ -59,7 +59,7 @@ public class UserServlet extends BaseServlet {
         resp.finish("{\"success\":true}");
     }
 
-    @WebAction(url = "/user/updatewxid")
+    @WebMapping(url = "/user/updatewxid")
     public void updateWxunionid(HttpRequest req, HttpResponse resp) throws IOException {
         String code = req.getParameter("code");
         String state = req.getParameter("state");  //state值格式: appid_autoregflag
@@ -71,7 +71,7 @@ public class UserServlet extends BaseServlet {
 
     //需要在 “开发 - 接口权限 - 网页服务 - 网页帐号 - 网页授权获取用户基本信息”的配置选项中，修改授权回调域名
     @AuthIgnore
-    @WebAction(url = "/user/wxopenid")
+    @WebMapping(url = "/user/wxopenid")
     public void wxopenid(HttpRequest req, HttpResponse resp) throws IOException {
         String code = req.getParameter("code");
         if (finest) logger.finest("/user/wxopenid :  " + req);
@@ -92,7 +92,7 @@ public class UserServlet extends BaseServlet {
      * @throws IOException
      */
     @AuthIgnore
-    @WebAction(url = "/user/wxlogin")
+    @WebMapping(url = "/user/wxlogin")
     public void wxlogin(HttpRequest req, HttpResponse resp) throws IOException {
         String code = req.getParameter("code");
         String state = req.getParameter("state");  //state值格式: appid_autoregflag
@@ -140,7 +140,7 @@ public class UserServlet extends BaseServlet {
     }
 
     @AuthIgnore
-    @WebAction(url = "/user/qqlogin")
+    @WebMapping(url = "/user/qqlogin")
     public void qqlogin(HttpRequest req, HttpResponse resp) throws IOException {
         String access_token = req.getParameter("access_token");
         String openid = req.getParameter("openid");
@@ -180,7 +180,7 @@ public class UserServlet extends BaseServlet {
      * @throws IOException
      */
     @AuthIgnore
-    @WebAction(url = "/user/login")
+    @WebMapping(url = "/user/login")
     public void login(HttpRequest req, HttpResponse resp) throws IOException {
         LoginBean bean = req.getJsonParameter(LoginBean.class, "bean");
         if (bean == null) bean = new LoginBean();
@@ -207,7 +207,7 @@ public class UserServlet extends BaseServlet {
     }
 
     @AuthIgnore
-    @WebAction(url = "/user/signup")   //待定
+    @WebMapping(url = "/user/signup")   //待定
     public void signup(HttpRequest req, HttpResponse resp) throws IOException {
         long s = System.currentTimeMillis();
         Map<String, String> map = convert.convertFrom(JsonConvert.TYPE_MAP_STRING_STRING, req.getParameter("bean"));
@@ -265,7 +265,7 @@ public class UserServlet extends BaseServlet {
      * @throws IOException
      */
     @AuthIgnore
-    @WebAction(url = "/user/updatepwd")
+    @WebMapping(url = "/user/updatepwd")
     public void updatepwd(HttpRequest req, HttpResponse resp) throws IOException {
         UserPwdBean bean = req.getJsonParameter(UserPwdBean.class, "bean");
         UserInfo curr = currentUser(req);
@@ -304,19 +304,19 @@ public class UserServlet extends BaseServlet {
     }
 
     //更新用户手机号码
-    @WebAction(url = "/user/updatemobile")
+    @WebMapping(url = "/user/updatemobile")
     public void updatemobile(HttpRequest req, HttpResponse resp) throws IOException {
         resp.finishJson(service.updateMobile(currentUser(req).getUserid(), req.getParameter("mobile"), req.getParameter("vercode"), req.getParameter("precode")));
     }
 
     //更新用户昵称
-    @WebAction(url = "/user/updateusername")
+    @WebMapping(url = "/user/updateusername")
     public void updateUsername(HttpRequest req, HttpResponse resp) throws IOException {
         resp.finishJson(service.updateUsername(currentUser(req).getUserid(), req.getParameter("username")));
     }
 
     //更新设备ID
-    @WebAction(url = "/user/updateapptoken")
+    @WebMapping(url = "/user/updateapptoken")
     public void updateApptoken(HttpRequest req, HttpResponse resp) throws IOException {
         String s = req.getRequstURILastPath();
         if ("updateapptoken".equalsIgnoreCase(s)) s = "";
@@ -324,42 +324,42 @@ public class UserServlet extends BaseServlet {
     }
 
     //更新性别
-    @WebAction(url = "/user/updategender/")
+    @WebMapping(url = "/user/updategender/")
     public void updateGender(HttpRequest req, HttpResponse resp) throws IOException {
         resp.finishJson(service.updateGender(currentUser(req).getUserid(), Short.parseShort(req.getRequstURILastPath())));
     }
 
     //发送修改密码验证码
     @AuthIgnore
-    @WebAction(url = "/user/smspwdcode")
+    @WebMapping(url = "/user/smspwdcode")
     public void smscode(HttpRequest req, HttpResponse resp) throws IOException {
         smsvercode(RandomCode.TYPE_SMSPWD, req, resp);
     }
 
     //发送手机修改验证码
     @AuthIgnore
-    @WebAction(url = "/user/smsmobcode")
+    @WebMapping(url = "/user/smsmobcode")
     public void smsmob(HttpRequest req, HttpResponse resp) throws IOException {
         smsvercode(RandomCode.TYPE_SMSMOB, req, resp);
     }
 
     //发送原手机验证码
     @AuthIgnore
-    @WebAction(url = "/user/smsodmcode")
+    @WebMapping(url = "/user/smsodmcode")
     public void smsodm(HttpRequest req, HttpResponse resp) throws IOException {
         smsvercode(RandomCode.TYPE_SMSODM, req, resp);
     }
 
     //发送手机注册验证码
     @AuthIgnore
-    @WebAction(url = "/user/smsregcode")
+    @WebMapping(url = "/user/smsregcode")
     public void smsreg(HttpRequest req, HttpResponse resp) throws IOException {
         smsvercode(RandomCode.TYPE_SMSREG, req, resp);
     }
 
     //发送手机登录验证码
     @AuthIgnore
-    @WebAction(url = "/user/smslgncode")
+    @WebMapping(url = "/user/smslgncode")
     public void smslgn(HttpRequest req, HttpResponse resp) throws IOException {
         smsvercode(RandomCode.TYPE_SMSLGN, req, resp);
     }
@@ -377,28 +377,28 @@ public class UserServlet extends BaseServlet {
 
     //检测账号是否有效, 返回t0表示可用.给新用户注册使用
     @AuthIgnore
-    @WebAction(url = "/user/checkaccount/")
+    @WebMapping(url = "/user/checkaccount/")
     public void checkAccount(HttpRequest req, HttpResponse resp) throws IOException {
         resp.finishJson(RetCodes.retResult(service.checkAccount(req.getRequstURILastPath())));
     }
 
     //检测手机号码是否有效, 返回0表示可用.给新用户注册使用
     @AuthIgnore
-    @WebAction(url = "/user/checkmobile/")
+    @WebMapping(url = "/user/checkmobile/")
     public void checkMobile(HttpRequest req, HttpResponse resp) throws IOException {
         resp.finishJson(RetCodes.retResult(service.checkMobile(req.getRequstURILastPath())));
     }
 
     //检测邮箱地址是否有效, 返回0表示可用.给新用户注册使用
     @AuthIgnore
-    @WebAction(url = "/user/checkemail/")
+    @WebMapping(url = "/user/checkemail/")
     public void checkEmail(HttpRequest req, HttpResponse resp) throws IOException {
         resp.finishJson(RetCodes.retResult(service.checkEmail(req.getRequstURILastPath())));
     }
 
     //验证短信验证码
     @AuthIgnore
-    @WebAction(url = "/user/checkcode")
+    @WebMapping(url = "/user/checkcode")
     public void checkcode(HttpRequest req, HttpResponse resp) throws IOException {
         String mobile = req.getRequstURIPath("mobile:", req.getParameter("mobile"));
         String vercode = req.getRequstURIPath("vercode:", req.getParameter("vercode"));
@@ -408,14 +408,14 @@ public class UserServlet extends BaseServlet {
 
     //获取当前用户基本信息
     @AuthIgnore
-    @WebAction(url = "/user/myinfo")
+    @WebMapping(url = "/user/myinfo")
     public void myinfo(HttpRequest req, HttpResponse resp) throws IOException {
         resp.finishJson(currentUser(req));
     }
 
     //获取当前用户基本信息（js格式）
     @AuthIgnore
-    @WebAction(url = "/user/js/myinfo")
+    @WebMapping(url = "/user/js/myinfo")
     public void myinfojs(HttpRequest req, HttpResponse resp) throws IOException {
         UserInfo user = currentUser(req);
         resp.setContentType("application/javascript; charset=utf-8");
@@ -428,20 +428,20 @@ public class UserServlet extends BaseServlet {
 
     //获取个人基本信息
     @AuthIgnore
-    @WebAction(url = "/user/info/")
+    @WebMapping(url = "/user/info/")
     public void info(HttpRequest req, HttpResponse resp) throws IOException {
         resp.finishJson(service.findUserInfo(Integer.parseInt(req.getRequstURILastPath(), 36)));
     }
 
     //获取当前用户详细信息
-    @WebAction(url = "/user/mydetail")
+    @WebMapping(url = "/user/mydetail")
     public void mydetail(HttpRequest req, HttpResponse resp) throws IOException {
         resp.finish(userConvert.convertTo(service.findUserDetail(currentUser(req).getUserid())));
     }
 
     //获取当前用户详细信息（js格式）
     @AuthIgnore
-    @WebAction(url = "/user/js/mydetail")
+    @WebMapping(url = "/user/js/mydetail")
     public void mydetailjs(HttpRequest req, HttpResponse resp) throws IOException {
         UserInfo user = currentUser(req);
         resp.setContentType("application/javascript; charset=utf-8");
