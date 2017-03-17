@@ -50,17 +50,17 @@ public class BaseServlet extends org.redkale.net.http.HttpBaseServlet {
      *
      * @param request  HTTP请求对象
      * @param response HTTP响应对象
+     * @param next     执行下一步的HttpServlet
      *
-     * @return
      * @throws IOException
      */
     @Override
-    public boolean preExecute(final HttpRequest request, final HttpResponse response) throws IOException {
+    public void preExecute(final HttpRequest request, final HttpResponse response, HttpServlet next) throws IOException {
         if (finer) response.setRecycleListener((req, resp) -> {  //记录处理时间比较长的请求
                 long e = System.currentTimeMillis() - ((HttpRequest) req).getCreatetime();
                 if (e > 200) logger.finer("http-execute-cost-time: " + e + " ms. request = " + req);
             });
-        return true;
+        next.execute(request, response);
     }
 
     /**
@@ -70,21 +70,21 @@ public class BaseServlet extends org.redkale.net.http.HttpBaseServlet {
      * @param actionid 操作ID，为0通常无需判断
      * @param request  HTTP请求对象
      * @param response HTTP响应对象
+     * @param next     执行下一步的HttpServlet
      *
-     * @return
      * @throws IOException
      */
     @Override
-    public final boolean authenticate(int module, int actionid, HttpRequest request, HttpResponse response) throws IOException {
+    public final void authenticate(int module, int actionid, HttpRequest request, HttpResponse response, HttpServlet next) throws IOException {
         UserInfo info = currentUser(request);
         if (info == null) {
             response.finishJson(RET_UNLOGIN);
-            return false;
+            return;
         } else if (!info.checkAuth(module, actionid)) {
             response.finishJson(RET_AUTHILLEGAL);
-            return false;
+            return;
         }
-        return true;
+        next.execute(request, response);
     }
 
     /**
