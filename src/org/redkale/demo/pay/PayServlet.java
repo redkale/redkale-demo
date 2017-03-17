@@ -166,7 +166,7 @@ public class PayServlet extends HttpBaseServlet {
     }
 
     @Override
-    public boolean authenticate(int moduleid, int actionid, HttpRequest request, HttpResponse response) throws IOException {
-        return true;
+    public void authenticate(int moduleid, int actionid, HttpRequest request, HttpResponse response, HttpServlet next) throws IOException {
+        next.execute(request, response);
     }
 }
