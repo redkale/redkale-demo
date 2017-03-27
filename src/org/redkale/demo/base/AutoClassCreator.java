@@ -91,13 +91,22 @@ public class AutoClassCreator {
 //           System.out.println(rsd.getColumnName(i));
 //       }     
         StringBuilder sb = new StringBuilder();
+        StringBuilder tostring = new StringBuilder();
 
         sb.append("package " + pkg + ";" + "\r\n\r\n");
 
         sb.append("import javax.persistence.*;\r\n");
         //sb.append("import org.redkale.util.*;\r\n");
         if (superclassname == null || superclassname.isEmpty()) {
-            sb.append("import " + currentpkg + ".BaseEntity;\r\n");
+            try {
+                Class.forName(currentpkg + ".BaseEntity2");
+                sb.append("import " + currentpkg + ".BaseEntity;\r\n");
+            } catch (Throwable t) {
+                sb.append("import org.redkale.convert.json.*;\r\n");
+                tostring.append("\r\n    @Override\r\n    public String toString() {\r\n");
+                tostring.append("        return JsonConvert.root().convertTo(this);\r\n");
+                tostring.append("    }\r\n");
+            }
         }
         sb.append("\r\n/**\r\n"
             + " *\r\n"
@@ -127,8 +136,8 @@ public class AutoClassCreator {
             sb.append("}");
         }
         sb.append(")\r\n");
-        sb.append("public class " + classname + " extends "
-            + (superclassname != null && !superclassname.isEmpty() ? superclassname : "BaseEntity") + " {\r\n\r\n");
+        sb.append("public class " + classname
+            + (superclassname != null && !superclassname.isEmpty() ? (" extends " + superclassname) : (tostring.length() == 0 ? " extends BaseEntity" : " implements java.io.Serializable")) + " {\r\n\r\n");
         boolean idable = false;
         List<StringBuilder> list = new ArrayList<>();
         while (rs.next()) {
@@ -207,6 +216,7 @@ public class AutoClassCreator {
         for (StringBuilder item : list) {
             sb.append(item);
         }
+        sb.append(tostring);
         sb.append("}\r\n");
         return sb.toString();
     }
