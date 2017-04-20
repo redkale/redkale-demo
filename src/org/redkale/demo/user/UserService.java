@@ -238,7 +238,7 @@ public class UserService extends BasedService {
                     rr.setRetinfo(jsonmap.get(bean.getOpenid()));
                     String headimgurl = jsonmap.get("figureurl_qq_2");
                     if (headimgurl != null) {
-                        super.submit(() -> {
+                        super.runAsync(() -> {
                             try {
                                 byte[] bytes = Utility.getHttpBytesContent(headimgurl);
                                 BufferedImage image = ImageIO.read(new ByteArrayInputStream(bytes));
@@ -290,7 +290,7 @@ public class UserService extends BasedService {
                     rr.setRetinfo(wxmap.get("openid"));
                     String headimgurl = wxmap.get("headimgurl");
                     if (headimgurl != null) {
-                        super.submit(() -> {
+                        super.runAsync(() -> {
                             try {
                                 byte[] bytes = Utility.getHttpBytesContent(headimgurl);
                                 BufferedImage image = ImageIO.read(new ByteArrayInputStream(bytes));
