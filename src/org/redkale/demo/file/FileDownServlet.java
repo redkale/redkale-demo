@@ -47,8 +47,7 @@ public class FileDownServlet extends BaseServlet {
         this.files.mkdirs();
     }
 
-    @AuthIgnore
-    @WebMapping(url = "/dir/", comment = "静态资源获取根路径，仅供开发阶段使用")
+    @HttpMapping(url = "/dir/", comment = "静态资源获取根路径，仅供开发阶段使用")
     public void dir(HttpRequest req, HttpResponse resp) throws IOException {
         download(req, resp);
     }

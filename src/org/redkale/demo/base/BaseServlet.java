@@ -18,7 +18,8 @@ import org.redkale.util.*;
  *
  * @author zhangjx
  */
-public class BaseServlet extends org.redkale.net.http.HttpBaseServlet {
+@HttpUserType(UserInfo.class)
+public class BaseServlet extends HttpServlet {
 
     protected static final boolean winos = System.getProperty("os.name").contains("Window");
 
@@ -50,53 +51,38 @@ public class BaseServlet extends org.redkale.net.http.HttpBaseServlet {
      *
      * @param request  HTTP请求对象
      * @param response HTTP响应对象
-     * @param next     执行下一步的HttpServlet
      *
      * @throws IOException
      */
     @Override
-    public void preExecute(final HttpRequest request, final HttpResponse response, HttpServlet next) throws IOException {
+    public void preExecute(final HttpRequest request, final HttpResponse response) throws IOException {
         if (finer) response.recycleListener((req, resp) -> {  //记录处理时间比较长的请求
                 long e = System.currentTimeMillis() - ((HttpRequest) req).getCreatetime();
                 if (e > 200) logger.finer("http-execute-cost-time: " + e + " ms. request = " + req);
             });
-        next.execute(request, response);
+        request.setCurrentUser(currentUser(service, request));
+        response.nextEvent();
     }
 
     /**
      * 校验用户的登录态
      *
-     * @param module   模块ID，为0通常无需判断
-     * @param actionid 操作ID，为0通常无需判断
      * @param request  HTTP请求对象
      * @param response HTTP响应对象
-     * @param next     执行下一步的HttpServlet
      *
      * @throws IOException
      */
     @Override
-    public final void authenticate(int module, int actionid, HttpRequest request, HttpResponse response, HttpServlet next) throws IOException {
-        UserInfo info = currentUser(request);
+    public final void authenticate(HttpRequest request, HttpResponse response) throws IOException {
+        UserInfo info = request.currentUser();
         if (info == null) {
             response.finishJson(RET_UNLOGIN);
             return;
-        } else if (!info.checkAuth(module, actionid)) {
+        } else if (!info.checkAuth(request.getModuleid(), request.getActionid())) {
             response.finishJson(RET_AUTHILLEGAL);
             return;
         }
-        next.execute(request, response);
-    }
-
-    /**
-     * 获取当前用户对象，没有返回null
-     *
-     * @param req HTTP请求对象
-     *
-     * @return
-     * @throws IOException
-     */
-    protected final UserInfo currentUser(HttpRequest req) throws IOException {
-        return currentUser(service, req);
+        response.nextEvent();
     }
 
     /**
@@ -109,15 +95,12 @@ public class BaseServlet extends org.redkale.net.http.HttpBaseServlet {
      * @throws IOException
      */
     public static final UserInfo currentUser(UserService service, HttpRequest req) throws IOException {
-        UserInfo user = (UserInfo) req.getAttribute("$_CURRENT_USER");
+        UserInfo user = (UserInfo) req.currentUser();
         if (user != null) return user;
         String sessionid = req.getSessionid(false);
         if (sessionid == null || sessionid.isEmpty()) sessionid = req.getParameter("token");
         if (sessionid != null && !sessionid.isEmpty()) user = service.current(sessionid);
-        if (user != null) {
-            req.setAttribute("$_CURRENT_USER", user);
-            return user;
-        }
+        if (user != null) return user;
         String autologin = req.getCookie(UserServlet.COOKIE_AUTOLOGIN);
         if (autologin == null) return null;
         autologin = autologin.replace('"', ' ').trim();
@@ -128,7 +111,6 @@ public class BaseServlet extends org.redkale.net.http.HttpBaseServlet {
         bean.setSessionid(req.changeSessionid());
         RetResult<UserInfo> result = service.login(bean);
         user = result.getResult();
-        if (result.isSuccess()) req.setAttribute("$_CURRENT_USER", user);
         return user;
     }
 

@@ -52,8 +52,7 @@ public class FileUploadServlet extends BaseServlet {
         super.init(context, config);
     }
 
-    @AuthIgnore
-    @WebMapping(url = "/upload/filesroot", comment = "获取资源路径，仅供内部系统使用") // 
+    @HttpMapping(url = "/upload/filesroot", comment = "获取资源路径，仅供内部系统使用") // 
     public void filesroot(HttpRequest req, HttpResponse resp) throws IOException {
         String path = "";
         //10.0.0.0/8：10.0.0.0～10.255.255.255 
@@ -74,9 +73,10 @@ public class FileUploadServlet extends BaseServlet {
         resp.finish(path);
     }
 
-    @WebMapping(url = "/upload/face", comment = "上传头像 以正方形规格存储") // 
+    @HttpMapping(url = "/upload/face", auth = true, comment = "上传头像 以正方形规格存储") // 
     public void face(HttpRequest req, HttpResponse resp) throws IOException {
-        uploadImg(req, resp, "face", currentUser(req).getUser36id(), FileService.face_widths, ImageRatio.RATIO_1_1, 10 * 1024 * 1024L);
+        UserInfo user = req.currentUser();
+        uploadImg(req, resp, "face", user.getUser36id(), FileService.face_widths, ImageRatio.RATIO_1_1, 10 * 1024 * 1024L);
     }
 
     protected void uploadBin(HttpRequest req, HttpResponse resp, long max) throws IOException {
