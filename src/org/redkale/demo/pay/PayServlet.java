@@ -18,7 +18,7 @@ import java.util.logging.*;
  * @author zhangjx
  */
 //@WebServlet({"/pay/*"})
-public class PayServlet extends HttpBaseServlet {
+public class PayServlet extends HttpServlet {
 
     protected static final boolean winos = System.getProperty("os.name").contains("Window");
 
@@ -35,8 +35,7 @@ public class PayServlet extends HttpBaseServlet {
     @Resource
     private PayService service;
 
-    @AuthIgnore
-    @WebMapping(url = "/pay/check/", comment = "根据支付单号检查支付结果") ///pay/check/{payno}
+    @HttpMapping(url = "/pay/check/", auth = false, comment = "根据支付单号检查支付结果") ///pay/check/{payno}
     public void checkPay(HttpRequest req, HttpResponse resp) throws IOException {
         if (info) logger.info("" + req);
         String payno = req.getRequstURILastPath();
@@ -88,8 +87,7 @@ public class PayServlet extends HttpBaseServlet {
         return new PayNotifyRequest(Pays.PAYTYPE_UNION, map);
     }
 
-    @AuthIgnore
-    @WebMapping(url = "/pay/union/nodify", comment = "银联支付异步通知")
+    @HttpMapping(url = "/pay/union/nodify", auth = false, comment = "银联支付异步通知")
     public void unionnodify(HttpRequest req, HttpResponse resp) throws IOException {
         resp.finish(service.notify(unionNodifyRequest(logger, req)).getRetinfo());
     }
@@ -100,8 +98,7 @@ public class PayServlet extends HttpBaseServlet {
         return new PayNotifyRequest(Pays.PAYTYPE_WEIXIN, body);
     }
 
-    @AuthIgnore
-    @WebMapping(url = "/pay/weixin/nodify", comment = "微信支付异步通知")
+    @HttpMapping(url = "/pay/weixin/nodify", auth = false, comment = "微信支付异步通知")
     public void weixinnodify(HttpRequest req, HttpResponse resp) throws IOException {
         resp.finish(service.notify(weixinNodifyRequest(logger, req)).getRetinfo());
     }
@@ -159,14 +156,9 @@ public class PayServlet extends HttpBaseServlet {
         return bean;
     }
 
-    @AuthIgnore
-    @WebMapping(url = "/pay/alipay/nodify", comment = "支付宝支付异步通知")
+    @HttpMapping(url = "/pay/alipay/nodify", auth = false, comment = "支付宝支付异步通知")
     public void alipaynodify(HttpRequest req, HttpResponse resp) throws IOException {
         resp.finish(service.notify(alipayNodifyRequest(service, logger, req)).getRetinfo());
-    }
+    } 
 
-    @Override
-    public void authenticate(int moduleid, int actionid, HttpRequest request, HttpResponse response, HttpServlet next) throws IOException {
-        next.execute(request, response);
-    }
 }
