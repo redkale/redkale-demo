@@ -26,9 +26,7 @@ import static org.redkale.demo.base.UserInfo.*;
 import org.redkale.demo.file.FileService;
 import org.redkale.demo.info.MobileGroupService;
 import org.redkale.demo.notice.*;
-import org.redkale.demo.user.BasedService;
 import static org.redkale.demo.user.UserDetail.*;
-import org.redkalex.email.EmailService;
 import org.redkalex.weixin.WeiXinMPService;
 import org.redkale.service.*;
 import org.redkale.source.*;
@@ -95,9 +93,6 @@ public class UserService extends BasedService {
 
     @Resource
     private WeiXinMPService wxMPService;
-
-    @Resource
-    private EmailService emailService;
 
     @Resource
     private SmsService smsService;
