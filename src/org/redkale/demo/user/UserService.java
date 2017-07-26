@@ -389,6 +389,7 @@ public class UserService extends BasedService {
                     return RetCodes.retResult(RET_USER_ACCOUNT_PWD_ILLEGAL); //用户或密码错误   
                 }
             }
+            if (user.isFrobid()) return RetCodes.retResult(RET_USER_FREEZED);
             result.setRetcode(0);
             result.setResult(user);
             if (!user.getApptoken().equals(bean.getApptoken())) { //用户设备变更了
