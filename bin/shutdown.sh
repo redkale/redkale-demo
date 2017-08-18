@@ -4,7 +4,7 @@ export LC_ALL="zh_CN.UTF-8"
 
 APP_HOME=`dirname "$0"`
 
-if [ ! -a "$APP_HOME"/conf/application.xml ]; then 
+if [ ! -f "$APP_HOME"/conf/application.xml ]; then 
      APP_HOME="$APP_HOME"/..  
 fi
 
@@ -15,4 +15,4 @@ do
 done
 export CLASSPATH=$CLASSPATH:$lib
 echo "$APP_HOME"
-java -DSHUTDOWN=true  -DAPP_HOME="$APP_HOME"  org.redkale.boot.Application
+java -DCMD=SHUTDOWN  -DAPP_HOME="$APP_HOME"  org.redkale.boot.Application
