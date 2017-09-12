@@ -20,7 +20,7 @@ public class PayAction extends BaseEntity {
     @Column(length = 128, comment = "支付编号")
     private String payno = "";
 
-    @Column(comment = "支付类型;10:银联;20:微信;30:支付宝;40:易宝;")
+    @Column(comment = "支付类型:  10: 信用/虚拟支付; 11:人工支付; 12:银联支付; 13:微信支付; 14:支付宝支付;15:易宝支付;")
     private short paytype = 10;
 
     @Column(length = 1024, comment = "请求的URL")

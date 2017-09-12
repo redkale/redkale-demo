@@ -25,10 +25,10 @@ public class PayRecord extends BaseEntity {
     @Column(length = 128, comment = "支付APP应用ID")
     private String appid = "";
 
-    @Column(comment = "支付类型;10:银联;20:微信;30:支付宝;40:易宝;")
+    @Column(comment = "支付类型:  10: 信用/虚拟支付; 11:人工支付; 12:银联支付; 13:微信支付; 14:支付宝支付;15:易宝支付;")
     private short paytype = 10;
 
-    @Column(comment = "支付渠道: 10:APP支付; 20:网页支付; 30:机器支付;")
+    @Column(comment = "支付渠道:  10: 信用/虚拟支付; 20:人工支付; 30:APP支付; 40:网页支付; 50:机器支付;")
     private short payway = 10;
 
     @Column(length = 64, comment = "付款人用户信息")
