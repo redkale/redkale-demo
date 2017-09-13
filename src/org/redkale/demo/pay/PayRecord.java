@@ -70,6 +70,9 @@ public class PayRecord extends BaseEntity {
     @Column(comment = "支付结束时间，单位毫秒")
     private long finishtime;
 
+    @Column(updatable = false, length = 64, comment = "客户端请求的HOST")
+    private String clienthost = "";
+    
     @Column(length = 128, comment = "客户端生成时的IP")
     private String clientaddr = "";
 
@@ -87,6 +90,7 @@ public class PayRecord extends BaseEntity {
         req.setPayway(this.getPayway());
         req.setPaymoney(this.getMoney());
         req.setAppid(this.getAppid());
+        req.setClienthost(this.getClienthost());
         req.setClientAddr(this.getClientaddr());
         req.setPaytitle(this.getPaytitle());
         req.setPaybody(this.getPaybody());
@@ -251,6 +255,14 @@ public class PayRecord extends BaseEntity {
 
     public long getFinishtime() {
         return this.finishtime;
+    }
+
+    public String getClienthost() {
+        return clienthost;
+    }
+
+    public void setClienthost(String clienthost) {
+        this.clienthost = clienthost;
     }
 
     public void setClientaddr(String clientaddr) {
