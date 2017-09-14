@@ -124,6 +124,7 @@ public class PayService extends BasedService {
         payact.setPaytype(resp.getPaytype());
         payact.setRequestjson(convert.convertTo(request));
         payact.setResponsetext(convert.convertTo(resp));
+        payact.setPayactid(Utility.format36time(payact.getCreatetime()) + Utility.uuid());
         source.insert(payact);
         if (pay.getPaystatus() != Pays.PAYSTATUS_UNPAY && pay.getPaystatus() != Pays.PAYSTATUS_UNREFUND) { //已经更新过了
             logger.log(Level.WARNING, "pay (" + pay + ") status error, req = " + request + ", resp = " + resp);
