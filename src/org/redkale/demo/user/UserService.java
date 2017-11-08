@@ -86,7 +86,7 @@ public class UserService extends BasedService {
     private final int sessionExpireSeconds = 30 * 60;
 
     @Resource(name = "usersessions")
-    protected CacheSource<String, Integer> sessions;
+    protected CacheSource<Integer> sessions;
 
     @Resource
     protected FileService fileService;
