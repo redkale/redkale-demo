@@ -99,7 +99,7 @@ public class AutoClassCreator {
         //sb.append("import org.redkale.util.*;\r\n");
         if (superclassname == null || superclassname.isEmpty()) {
             try {
-                Class.forName(currentpkg + ".BaseEntity2");
+                Class.forName(currentpkg + ".BaseEntity");
                 sb.append("import " + currentpkg + ".BaseEntity;\r\n");
             } catch (Throwable t) {
                 sb.append("import org.redkale.convert.json.*;\r\n");
