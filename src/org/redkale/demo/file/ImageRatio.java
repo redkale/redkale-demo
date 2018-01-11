@@ -107,7 +107,7 @@ public final class ImageRatio {
     private static Creator<ImageRatio> creator() {
         return new Creator<ImageRatio>() {
             @Override
-            @Creator.ConstructorParameters({"width", "height"})
+            @ConstructorParameters({"width", "height"})
             public ImageRatio create(Object... params) {
                 return new ImageRatio((params[0] == null ? 0 : (Integer) params[0]), (params[1] == null ? 0 : (Integer) params[1]));
             }
