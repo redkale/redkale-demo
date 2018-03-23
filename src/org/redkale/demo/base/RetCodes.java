@@ -7,6 +7,7 @@ package org.redkale.demo.base;
 
 import java.text.MessageFormat;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import org.redkale.service.*;
 
 /**
@@ -135,6 +136,14 @@ public abstract class RetCodes {
         if (args == null || args.length < 1) return new RetResult(retcode, retInfo(retcode));
         String info = MessageFormat.format(retInfo(retcode), args);
         return new RetResult(retcode, info);
+    }
+
+    public static <T> CompletableFuture<RetResult<T>> retResultFuture(int retcode) {
+        return CompletableFuture.completedFuture(retResult(retcode));
+    }
+
+    public static <T> CompletableFuture<RetResult<T>> retResultFuture(int retcode, Object... args) {
+        return CompletableFuture.completedFuture(retResult(retcode, args));
     }
 
     public static RetResult set(RetResult result, int retcode, Object... args) {
