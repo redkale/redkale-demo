@@ -1,33 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<application port="5001">   
+<application port="2001">   
     
-    <resources>  
+    <resources>          
+        <properties>
+            <property name="system.property.convert.json.tiny" value="false"/>
+        </properties>
     </resources> 
 
-    <server protocol="HTTP" port="6001"> 
+    <server protocol="HTTP" port="5001"> 
         <request>
             <remoteaddr value="request.headers.X-RemoteAddress"/>
         </request>
+
         <response>
             <addheader name="X-Node" value="system.property.APP_NODE" /> 
         </response>            
-        <resource-servlet >	
-        </resource-servlet>		
+	
         <services autoload="true"/>
-        <servlets path="/pipes" >      
-        </servlets>
+        <servlets path="/pipes" />  		
     </server>
-    <!-- SNCP 监听 Server -->
-    <server protocol="SNCP" port="7001"> 
-        <services autoload="true">
-            <!--
-            <service name="usersessions" value="org.redkale.service.CacheSourceService" groups="USERSESSION">
-                <property name="key-type" value="java.lang.String"/>
-                <property name="value-type" value="java.lang.Integer"/>
-            </service>
-            -->
-        </services>
-    </server>
+
+    <server protocol="SNCP" port="7001">                 
+        <services autoload="true"/>
+    </server> 
+
+    <server protocol="WATCH" port="9001">                 
+        <services autoload="true"/>
+    </server> 
     
 </application>
