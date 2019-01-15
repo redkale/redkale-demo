@@ -92,6 +92,7 @@ public class PayService extends BasedService {
         payact.setPaytype(pay.getPaytype());
         payact.setRequestjson(convert.convertTo(request));
         payact.setResponsetext(convert.convertTo(resp));
+        payact.setPayactid(Utility.format36time(payact.getCreatetime()) + Utility.uuid());
         source.insert(payact);
         if (resp.isSuccess()) { //查询结果成功，并不表示支付成功
             if (resp.getPaystatus() != Pays.PAYSTATUS_UNPAY //不能将未支付状态更新到pay中， 否则notify发现是未支付状态会跳过pay的更新
