@@ -141,7 +141,8 @@ public class AutoClassCreator {
         boolean idable = false;
         List<StringBuilder> list = new ArrayList<>();
         while (rs.next()) {
-            boolean incre = rs.getBoolean("IS_AUTOINCREMENT");
+            Object pk = rs.getObject("IS_AUTOINCREMENT");
+            boolean incre = (pk instanceof CharSequence) ? ("YES".equalsIgnoreCase(pk.toString())) : rs.getBoolean("IS_AUTOINCREMENT");
             String column = rs.getString("COLUMN_NAME");
             String type = rs.getString("TYPE_NAME");
             String remark = rs.getString("REMARKS");

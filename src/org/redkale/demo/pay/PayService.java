@@ -129,7 +129,7 @@ public class PayService extends BasedService {
         source.insert(payact);
         if (pay.getPaystatus() != Pays.PAYSTATUS_UNPAY && pay.getPaystatus() != Pays.PAYSTATUS_UNREFUND) { //已经更新过了
             logger.log(Level.WARNING, "pay (" + pay + ") status error, req = " + request + ", resp = " + resp);
-            return new RetResult(PayRetCodes.RETPAY_STATUS_ERROR, resp.getResult()).result(pay);
+            return new RetResult(PayRetCodes.RETPAY_STATUS_ERROR, resp.getNotifytext()).result(pay);
         }
         if (resp.isSuccess()) { //支付成功
             pay.setPayedmoney(pay.getMoney());
@@ -146,7 +146,7 @@ public class PayService extends BasedService {
             source.updateColumn(pay, "paystatus", "thirdpayno", "responsetext", "finishtime");
         }
         if (!resp.isSuccess()) return new RetResult(resp.getRetcode(), resp.getRetinfo()).result(pay);
-        return new RetResult<>(pay).retinfo(resp.getResult());   //支付的回调参数处理完必须输出success字样
+        return new RetResult<>(pay).retinfo(resp.getNotifytext());   //支付的回调参数处理完必须输出success字样
     }
 
     @Comment("微信公众号、手机支付时调用")
