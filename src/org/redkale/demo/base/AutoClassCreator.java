@@ -8,6 +8,8 @@ package org.redkale.demo.base;
 import java.io.*;
 import java.sql.*;
 import java.util.*;
+import java.util.function.Function;
+import org.redkale.source.*;
 
 /**
  *
@@ -45,180 +47,197 @@ public class AutoClassCreator {
     }
 
     private static String createEntityContent(String pkg, String classname, String superclassname) throws Exception {
-        com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource source = new com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource();
-        source.setUrl(jdbc_url);  //数据库url
-        source.setUser(jdbc_user); //数据库账号
-        source.setPassword(jdbc_pwd); //数据库密码
-        Connection conn = source.getConnection();
-        String catalog = conn.getCatalog();
-        String tableComment = "";
-        Statement stmt = conn.createStatement();
-        ResultSet tcs = stmt.executeQuery("SHOW CREATE TABLE " + classname.toLowerCase());
-        Map<String, String> uniques = new HashMap<>();
-        Map<String, String> indexs = new HashMap<>();
-        if (tcs.next()) {
-            final String createsql = tcs.getString(2);
-            for (String str : createsql.split("\n")) {
-                str = str.trim();
-                if (str.startsWith("UNIQUE KEY ")) {
-                    str = str.substring(str.indexOf('`') + 1);
-                    uniques.put(str.substring(0, str.indexOf('`')), str.substring(str.indexOf('(') + 1, str.indexOf(')')));
-                } else if (str.startsWith("KEY ")) {
-                    str = str.substring(str.indexOf('`') + 1);
-                    indexs.put(str.substring(0, str.indexOf('`')), str.substring(str.indexOf('(') + 1, str.indexOf(')')));
-                }
-            }
-            int pos = createsql.indexOf("COMMENT='");
-            if (pos > 0) {
-                tableComment = createsql.substring(pos + "COMMENT='".length(), createsql.lastIndexOf('\''));
-            } else {
-                tableComment = "";
-            }
-        }
-        stmt.close();
-        DatabaseMetaData meta = conn.getMetaData();
+        Properties prop = new Properties();
+        prop.setProperty(DataSources.JDBC_URL, jdbc_url);
+        prop.setProperty(DataSources.JDBC_USER, jdbc_user);
+        prop.setProperty(DataSources.JDBC_PWD, jdbc_pwd);
+        DataSqlSource source = (DataSqlSource) DataSources.createDataSource("", prop);
+
+        final StringBuilder sb = new StringBuilder();
+        final StringBuilder tostring = new StringBuilder();
+        final StringBuilder tableComment = new StringBuilder();
+        final Map<String, String> uniques = new HashMap<>();
+        final Map<String, String> indexs = new HashMap<>();
         final Set<String> columns = new HashSet<>();
+        source.directQuery("SHOW CREATE TABLE " + classname.toLowerCase(), new Function<ResultSet, String>() {
+            @Override
+            public String apply(ResultSet tcs) {
+                try {
+                    tcs.next();
+                    final String createsql = tcs.getString(2);
+                    for (String str : createsql.split("\n")) {
+                        str = str.trim();
+                        if (str.startsWith("UNIQUE KEY ")) {
+                            str = str.substring(str.indexOf('`') + 1);
+                            uniques.put(str.substring(0, str.indexOf('`')), str.substring(str.indexOf('(') + 1, str.indexOf(')')));
+                        } else if (str.startsWith("KEY ")) {
+                            str = str.substring(str.indexOf('`') + 1);
+                            indexs.put(str.substring(0, str.indexOf('`')), str.substring(str.indexOf('(') + 1, str.indexOf(')')));
+                        }
+                    }
+                    int pos = createsql.indexOf("COMMENT='");
+                    if (pos > 0) {
+                        tableComment.append(createsql.substring(pos + "COMMENT='".length(), createsql.lastIndexOf('\'')));
+                    } else {
+                        tableComment.append("");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return "";
+            }
+        });
+
         if (superclassname != null && !superclassname.isEmpty()) {
-            ResultSet rs = meta.getColumns(null, "%", superclassname.toLowerCase(), null);
-            while (rs.next()) {
-                columns.add(rs.getString("COLUMN_NAME"));
-            }
-            rs.close();
+            source.directQuery("SELECT * FROM information_schema.columns WHERE  table_name = '" + superclassname.toLowerCase() + "'", new Function<ResultSet, String>() {
+                @Override
+                public String apply(ResultSet rs) {
+                    try {
+                        while (rs.next()) {
+                            columns.add(rs.getString("COLUMN_NAME"));
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    return "";
+                }
+            });
         }
-        ResultSet rs = meta.getColumns(null, "%", classname.toLowerCase(), null);
-//       ResultSetMetaData rsd = rs.getMetaData();
-//       for(int i =1 ; i<=rsd.getColumnCount();i++) {
-//           System.out.println(rsd.getColumnName(i));
-//       }     
-        StringBuilder sb = new StringBuilder();
-        StringBuilder tostring = new StringBuilder();
+        source.directQuery("SELECT * FROM information_schema.columns WHERE  table_name = '" + classname.toLowerCase() + "'", new Function<ResultSet, String>() {
+            @Override
+            public String apply(ResultSet rs) {
+                try {
+                    sb.append("package " + pkg + ";" + "\r\n\r\n");
+                    sb.append("import javax.persistence.*;\r\n");
+                    //sb.append("import org.redkale.util.*;\r\n");
+                    if (superclassname == null || superclassname.isEmpty()) {
+                        try {
+                            Class.forName("com.fentch.platf.base.BaseEntity");
+                            sb.append("import com.fentch.platf.base.BaseEntity;\r\n");
+                        } catch (Throwable t) {
+                            sb.append("import org.redkale.convert.json.*;\r\n");
+                            tostring.append("\r\n    @Override\r\n    public String toString() {\r\n");
+                            tostring.append("        return JsonConvert.root().convertTo(this);\r\n");
+                            tostring.append("    }\r\n");
+                        }
+                    }
+                    sb.append("\r\n/**\r\n"
+                        + " *\r\n"
+                        + " * @author " + System.getProperty("user.name") + "\r\n"
+                        + " */\r\n");
+                    //if (classname.contains("Info")) sb.append("@Cacheable\r\n");        
+                    sb.append("@Table(comment = \"" + tableComment + "\"");
+                    if (!uniques.isEmpty()) {
+                        sb.append("\r\n        , uniqueConstraints = {");
+                        boolean first = true;
+                        for (Map.Entry<String, String> en : uniques.entrySet()) {
+                            if (!first) sb.append(", ");
+                            sb.append("@UniqueConstraint(name = \"" + en.getKey() + "\", columnNames = {" + en.getValue().replace('`', '"') + "})");
+                            first = false;
+                        }
+                        sb.append("}");
+                    }
+                    if (!indexs.isEmpty()) {
+                        sb.append("\r\n        , indexes = {");
+                        boolean first = true;
+                        for (Map.Entry<String, String> en : indexs.entrySet()) {
+                            if (!first) sb.append(", ");
+                            sb.append("@Index(name = \"" + en.getKey() + "\", columnList = \"" + en.getValue().replace("`", "") + "\")");
+                            first = false;
+                        }
+                        sb.append("}");
+                    }
+                    sb.append(")\r\n");
+                    sb.append("public class " + classname
+                        + (superclassname != null && !superclassname.isEmpty() ? (" extends " + superclassname) : (tostring.length() == 0 ? " extends BaseEntity" : " implements java.io.Serializable")) + " {\r\n\r\n");
+                    boolean idable = false;
+                    List<StringBuilder> list = new ArrayList<>();
+                    while (rs.next()) {
+                        String column = rs.getString("COLUMN_NAME");
+                        String type = rs.getString("DATA_TYPE").toUpperCase();
+                        String remark = rs.getString("COLUMN_COMMENT");
+                        String def = rs.getString("COLUMN_DEFAULT");
+                        if (!idable) {
+                            idable = true;
+                            sb.append("    @Id");
+                        } else if (columns.contains(column)) continue; //跳过被继承的重复字段
+                        sb.append("\r\n");
 
-        sb.append("package " + pkg + ";" + "\r\n\r\n");
+                        int length = 0;
+                        int precision = 0;
+                        int scale = 0;
+                        String ctype = "NULL";
+                        String precisionstr = rs.getString("NUMERIC_PRECISION");
+                        String scalestr = rs.getString("NUMERIC_SCALE");
+                        if ("INT".equalsIgnoreCase(type)) {
+                            ctype = "int";
+                        } else if ("BIGINT".equalsIgnoreCase(type)) {
+                            ctype = "long";
+                        } else if ("SMALLINT".equalsIgnoreCase(type)) {
+                            ctype = "short";
+                        } else if ("FLOAT".equalsIgnoreCase(type)) {
+                            ctype = "float";
+                        } else if ("DECIMAL".equalsIgnoreCase(type)) {
+                            ctype = "float";
+                            precision = precisionstr == null ? 0 : Integer.parseInt(precisionstr);
+                            scale = scalestr == null ? 0 : Integer.parseInt(scalestr);
+                        } else if ("DOUBLE".equalsIgnoreCase(type)) {
+                            ctype = "double";
+                            precision = precisionstr == null ? 0 : Integer.parseInt(precisionstr);
+                            scale = scalestr == null ? 0 : Integer.parseInt(scalestr);
+                        } else if ("VARCHAR".equalsIgnoreCase(type)) {
+                            ctype = "String";
+                            String maxsize = rs.getString("CHARACTER_MAXIMUM_LENGTH");
+                            length = maxsize == null ? 0 : Integer.parseInt(maxsize);
+                        } else if (type.contains("TEXT")) {
+                            ctype = "String";
+                        } else if (type.contains("BLOB")) {
+                            ctype = "byte[]";
+                        }
+                        sb.append("    @Column(");
+                        if ("createtime".equals(column)) sb.append("updatable = false, ");
+                        if (length > 0) sb.append("length = ").append(length).append(", ");
+                        if (precision > 0) sb.append("precision = ").append(precision).append(", ");
+                        if (scale > 0) sb.append("scale = ").append(scale).append(", ");
+                        sb.append("comment = \"" + remark.replace('"', '\'') + "\")\r\n");
 
-        sb.append("import javax.persistence.*;\r\n");
-        //sb.append("import org.redkale.util.*;\r\n");
-        if (superclassname == null || superclassname.isEmpty()) {
-            try {
-                Class.forName(currentpkg + ".BaseEntity");
-                sb.append("import " + currentpkg + ".BaseEntity;\r\n");
-            } catch (Throwable t) {
-                sb.append("import org.redkale.convert.json.*;\r\n");
-                tostring.append("\r\n    @Override\r\n    public String toString() {\r\n");
-                tostring.append("        return JsonConvert.root().convertTo(this);\r\n");
-                tostring.append("    }\r\n");
+                        sb.append("    private " + ctype + " " + column);
+                        if (def != null && !"0".equals(def)) {
+                            String d = def.replace('\'', '\"');
+                            sb.append(" = ").append(d.isEmpty() ? "\"\"" : d.toString());
+                        } else if ("String".equals(ctype)) {
+                            sb.append(" = \"\"");
+                        }
+                        sb.append(";\r\n");
+
+                        char[] chs2 = column.toCharArray();
+                        chs2[0] = Character.toUpperCase(chs2[0]);
+                        String sgname = new String(chs2);
+
+                        StringBuilder setter = new StringBuilder();
+                        setter.append("\r\n    public void set" + sgname + "(" + ctype + " " + column + ") {\r\n");
+                        setter.append("        this." + column + " = " + column + ";\r\n");
+                        setter.append("    }\r\n");
+                        list.add(setter);
+
+                        StringBuilder getter = new StringBuilder();
+                        getter.append("\r\n    public " + ctype + " get" + sgname + "() {\r\n");
+                        getter.append("        return this." + column + ";\r\n");
+                        getter.append("    }\r\n");
+                        list.add(getter);
+                    }
+                    for (StringBuilder item : list) {
+                        sb.append(item);
+                    }
+                    sb.append(tostring);
+                    sb.append("}\r\n");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } 
+                return "";
             }
-        }
-        sb.append("\r\n/**\r\n"
-            + " *\r\n"
-            + " * @author " + System.getProperty("user.name") + "\r\n"
-            + " */\r\n");
-        //if (classname.contains("Info")) sb.append("@Cacheable\r\n");        
-        sb.append("@Table(catalog = \"" + catalog + "\"");
-        if (!tableComment.isEmpty()) sb.append(", comment = \"" + tableComment + "\"");
-        if (!uniques.isEmpty()) {
-            sb.append("\r\n        , uniqueConstraints = {");
-            boolean first = true;
-            for (Map.Entry<String, String> en : uniques.entrySet()) {
-                if (!first) sb.append(", ");
-                sb.append("@UniqueConstraint(name = \"" + en.getKey() + "\", columnNames = {" + en.getValue().replace('`', '"') + "})");
-                first = false;
-            }
-            sb.append("}");
-        }
-        if (!indexs.isEmpty()) {
-            sb.append("\r\n        , indexes = {");
-            boolean first = true;
-            for (Map.Entry<String, String> en : indexs.entrySet()) {
-                if (!first) sb.append(", ");
-                sb.append("@Index(name = \"" + en.getKey() + "\", columnList = \"" + en.getValue().replace("`", "") + "\")");
-                first = false;
-            }
-            sb.append("}");
-        }
-        sb.append(")\r\n");
-        sb.append("public class " + classname
-            + (superclassname != null && !superclassname.isEmpty() ? (" extends " + superclassname) : (tostring.length() == 0 ? " extends BaseEntity" : " implements java.io.Serializable")) + " {\r\n\r\n");
-        boolean idable = false;
-        List<StringBuilder> list = new ArrayList<>();
-        while (rs.next()) {
-            Object pk = rs.getObject("IS_AUTOINCREMENT");
-            boolean incre = (pk instanceof CharSequence) ? ("YES".equalsIgnoreCase(pk.toString())) : rs.getBoolean("IS_AUTOINCREMENT");
-            String column = rs.getString("COLUMN_NAME");
-            String type = rs.getString("TYPE_NAME");
-            String remark = rs.getString("REMARKS");
-            String def = rs.getString("COLUMN_DEF");
-            if (!idable) {
-                idable = true;
-                sb.append("    @Id");
-                if (incre) sb.append("\r\n    @GeneratedValue");
-            } else if (columns.contains(column)) continue; //跳过被继承的重复字段
-            sb.append("\r\n");
+        });
 
-            int length = 0;
-            int precision = 0;
-            int scale = 0;
-            String ctype = "NULL";
-            if ("INT".equalsIgnoreCase(type)) {
-                ctype = "int";
-            } else if ("BIGINT".equalsIgnoreCase(type)) {
-                ctype = "long";
-            } else if ("SMALLINT".equalsIgnoreCase(type)) {
-                ctype = "short";
-            } else if ("FLOAT".equalsIgnoreCase(type)) {
-                ctype = "float";
-            } else if ("DECIMAL".equalsIgnoreCase(type)) {
-                ctype = "float";
-                precision = rs.getInt("COLUMN_SIZE");
-                scale = rs.getShort("DECIMAL_DIGITS");
-            } else if ("DOUBLE".equalsIgnoreCase(type)) {
-                ctype = "double";
-                precision = rs.getInt("COLUMN_SIZE");
-                scale = rs.getShort("DECIMAL_DIGITS");
-            } else if ("VARCHAR".equalsIgnoreCase(type)) {
-                ctype = "String";
-                length = rs.getInt("COLUMN_SIZE");
-            } else if (type.contains("TEXT")) {
-                ctype = "String";
-            } else if (type.contains("BLOB")) {
-                ctype = "byte[]";
-            }
-            sb.append("    @Column(");
-            if ("createtime".equals(column)) sb.append("updatable = false, ");
-            if (length > 0) sb.append("length = ").append(length).append(", ");
-            if (precision > 0) sb.append("precision = ").append(precision).append(", ");
-            if (scale > 0) sb.append("scale = ").append(scale).append(", ");
-            sb.append("comment = \"" + remark.replace('"', '\'') + "\")\r\n");
-
-            sb.append("    private " + ctype + " " + column);
-            if (def != null && !"0".equals(def)) {
-                String d = def.replace('\'', '\"');
-                sb.append(" = ").append(d.isEmpty() ? "\"\"" : d);
-            } else if ("String".equals(ctype)) {
-                sb.append(" = \"\"");
-            }
-            sb.append(";\r\n");
-
-            char[] chs2 = column.toCharArray();
-            chs2[0] = Character.toUpperCase(chs2[0]);
-            String sgname = new String(chs2);
-
-            StringBuilder setter = new StringBuilder();
-            setter.append("\r\n    public void set" + sgname + "(" + ctype + " " + column + ") {\r\n");
-            setter.append("        this." + column + " = " + column + ";\r\n");
-            setter.append("    }\r\n");
-            list.add(setter);
-
-            StringBuilder getter = new StringBuilder();
-            getter.append("\r\n    public " + ctype + " get" + sgname + "() {\r\n");
-            getter.append("        return this." + column + ";\r\n");
-            getter.append("    }\r\n");
-            list.add(getter);
-        }
-        for (StringBuilder item : list) {
-            sb.append(item);
-        }
-        sb.append(tostring);
-        sb.append("}\r\n");
         return sb.toString();
     }
 }
