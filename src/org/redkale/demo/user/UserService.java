@@ -38,7 +38,7 @@ import org.redkale.util.*;
  * @author zhangjx
  */
 @Comment("用户服务模块")
-public class UserService extends BasedService {
+public class UserService extends BaseService {
 
     private static final MessageDigest sha1;
 
@@ -106,7 +106,6 @@ public class UserService extends BasedService {
     @Resource
     private MobileGroupService mobileGroupService;
 
-    //private final String userbundle = this.getClass().getPackage().getName() + ".userbundle";
     @Override
     public void init(AnyValue conf) {
 

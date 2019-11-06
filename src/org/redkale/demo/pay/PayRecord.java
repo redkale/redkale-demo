@@ -11,7 +11,7 @@ import org.redkalex.pay.*;
  *
  * @author zhangjx
  */
-@Table(catalog = "redemo_pay", comment = "支付表")
+@Table(comment = "支付表")
 @DistributeTable(strategy = PayRecord.TableStrategy.class)
 public class PayRecord extends BaseEntity {
 

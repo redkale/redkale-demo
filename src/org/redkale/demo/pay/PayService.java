@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.logging.Level;
 import javax.annotation.Resource;
 import org.redkale.convert.json.*;
+import org.redkale.demo.base.BaseService;
 import org.redkale.service.RetResult;
 import org.redkale.util.*;
 import org.redkalex.pay.*;
@@ -19,7 +20,7 @@ import static org.redkalex.pay.PayRetCodes.*;
  * @author zhangjx
  */
 @Comment("支付服务")
-public class PayService extends BasedService {
+public class PayService extends BaseService {
 
     private static final JsonConvert convert = JsonFactory.create().skipAllIgnore(true).getConvert();
 

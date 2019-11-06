@@ -19,7 +19,7 @@ public class AutoClassCreator {
 
     private static final String currentpkg = AutoClassCreator.class.getPackage().getName();
 
-    private static final String jdbc_url = "jdbc:mysql://localhost:3306/redemo_info?autoReconnect=true&amp;characterEncoding=utf8";//数据库url
+    private static final String jdbc_url = "jdbc:mysql://localhost:3306/redemo_platf?autoReconnect=true&amp;characterEncoding=utf8";//数据库url
 
     private static final String jdbc_user = "root"; //数据库用户名
 

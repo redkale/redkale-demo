@@ -5,6 +5,7 @@
  */
 package org.redkale.demo.notice;
 
+import org.redkale.demo.base.BaseService;
 import org.redkale.source.Flipper;
 import org.redkale.util.*;
 
@@ -14,7 +15,7 @@ import org.redkale.util.*;
  */
 
 @Comment("消息推送服务")
-public class NoticeService extends BasedService {
+public class NoticeService extends BaseService {
 
     public Sheet<NoticeRecord> queryNoticeRecord(NoticeBean bean, Flipper flipper) {
         Flipper.sortIfAbsent(flipper, "createtime DESC");

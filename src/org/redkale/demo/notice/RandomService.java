@@ -8,7 +8,7 @@ package org.redkale.demo.notice;
 import java.util.List;
 import java.util.concurrent.*;
 import javax.annotation.Resource;
-import org.redkale.demo.base.RetCodes;
+import org.redkale.demo.base.*;
 import static org.redkale.demo.base.RetCodes.*;
 import org.redkale.service.RetResult;
 import org.redkale.source.*;
@@ -19,7 +19,7 @@ import org.redkale.util.*;
  * @author zhangjx
  */
 @Comment("验证码服务")
-public class RandomService extends BasedService {
+public class RandomService extends BaseService {
 
     @Resource(name = "property.schedule.task")
     private boolean task;

@@ -9,7 +9,7 @@ import org.redkale.source.*;
  *
  * @author zhangjx
  */
-@Table(catalog = "redemo_notice")
+@Table(comment = "发送短信记录表")
 @DistributeTable(strategy = SmsRecord.TableStrategy.class)
 public class SmsRecord extends BaseEntity {
 

@@ -9,7 +9,7 @@ import org.redkale.source.*;
  *
  * @author zhangjx
  */
-@Table(catalog = "redemo_pay", comment = "支付接口结果表")
+@Table(comment = "支付接口结果表")
 @DistributeTable(strategy = PayAction.TableStrategy.class)
 public class PayAction extends BaseEntity {
 

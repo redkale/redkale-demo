@@ -1,5 +1,5 @@
 
-/*!40101 SET NAMES utf8 */;
+/*!40101 SET NAMES UTF8MB4 */;
 
 /*!40101 SET SQL_MODE=''*/;
 
@@ -7,9 +7,9 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-CREATE DATABASE /*!32312 IF NOT EXISTS*/`redemo_pay` /*!40100 DEFAULT CHARACTER SET latin1 */;
+CREATE DATABASE /*!32312 IF NOT EXISTS*/`redemo_platf` /*!40100 DEFAULT CHARACTER SET latin1 */;
 
-USE `redemo_pay`;
+USE `redemo_platf`;
 
 /*Table structure for table `payaction` */
 
@@ -24,7 +24,7 @@ CREATE TABLE `payaction` (
   `responsetext` varchar(5120) NOT NULL DEFAULT '' COMMENT '支付接口返回的原始结果',
   `createtime` bigint(20) NOT NULL DEFAULT '0' COMMENT '创建时间，单位毫秒',
   PRIMARY KEY (`payactid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='支付接口结果表';
+) ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4 COMMENT='支付接口结果表';
 
 /*Data for the table `payaction` */
 
@@ -54,7 +54,7 @@ CREATE TABLE `payrecord` (
   `clienthost` varchar(64) NOT NULL DEFAULT '' COMMENT '客户端请求的HOST',
   `clientaddr` varchar(128) NOT NULL DEFAULT '' COMMENT '客户端生成时的IP',
   PRIMARY KEY (`payno`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='支付表';
+) ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4 COMMENT='支付表';
 
 /*Data for the table `payrecord` */
 
@@ -67,7 +67,7 @@ CREATE TABLE `payrecord` (
 
 
 
-/*!40101 SET NAMES utf8 */;
+/*!40101 SET NAMES UTF8MB4 */;
 
 /*!40101 SET SQL_MODE=''*/;
 
@@ -75,9 +75,7 @@ CREATE TABLE `payrecord` (
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-CREATE DATABASE /*!32312 IF NOT EXISTS*/`redemo_notice` /*!40100 DEFAULT CHARACTER SET latin1 */;
 
-USE `redemo_notice`;
 
 /*Table structure for table `noticerecord` */
 
@@ -93,7 +91,7 @@ CREATE TABLE `noticerecord` (
   `resultdesc` varchar(4096) NOT NULL DEFAULT '' COMMENT '消息体',
   `createtime` bigint(20) NOT NULL DEFAULT '0' COMMENT '创建时间',
   PRIMARY KEY (`noticeid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='消息推送表';
+) ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4 COMMENT='消息推送表';
 
 /*Data for the table `noticerecord` */
 
@@ -107,7 +105,7 @@ CREATE TABLE `randomcode` (
   `type` smallint(5) NOT NULL DEFAULT '0' COMMENT '[类型]: 10:手机号码注册;20:短信重置密码;30:修改手机号码;40:用户验证码登录;50:发送原手机号码;60:邮件重置密码;70:更改邮箱绑定;',
   `createtime` bigint(20) NOT NULL DEFAULT '0' COMMENT '[创建时间]',
   PRIMARY KEY (`randomcode`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4;
 
 /*Data for the table `randomcode` */
 
@@ -124,7 +122,7 @@ CREATE TABLE `randomcodehis` (
   `retcode` int(11) NOT NULL DEFAULT '0' COMMENT '[结果]: 2: 过期; 4已处理;',
   `updatetime` bigint(20) NOT NULL DEFAULT '0' COMMENT '[更新时间]',
   PRIMARY KEY (`seqid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4;
 
 /*Data for the table `randomcodehis` */
 
@@ -145,7 +143,7 @@ CREATE TABLE `smsrecord` (
   `resultdesc` varchar(1024) NOT NULL DEFAULT '' COMMENT '返回结果',
   `createtime` bigint(20) NOT NULL DEFAULT '0' COMMENT '生成时间，单位毫秒',
   PRIMARY KEY (`smsid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='短信发送记录表';
+) ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4 COMMENT='短信发送记录表';
 
 /*Data for the table `smsrecord` */
 
@@ -157,7 +155,7 @@ CREATE TABLE `smsrecord` (
 
 
 
-/*!40101 SET NAMES utf8 */;
+/*!40101 SET NAMES UTF8MB4 */;
 
 /*!40101 SET SQL_MODE=''*/;
 
@@ -165,9 +163,6 @@ CREATE TABLE `smsrecord` (
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-CREATE DATABASE /*!32312 IF NOT EXISTS*/`redemo_info` /*!40100 DEFAULT CHARACTER SET latin1 */;
-
-USE `redemo_info`;
 
 /*Table structure for table `mobilegroup` */
 
@@ -181,7 +176,7 @@ CREATE TABLE `mobilegroup` (
   `areacode` varchar(32) NOT NULL DEFAULT '' COMMENT '区号',
   `postcode` varchar(32) NOT NULL DEFAULT '' COMMENT '邮政编码',
   PRIMARY KEY (`mobprefix`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='手机号码归属地信息';
+) ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4 COMMENT='手机号码归属地信息';
 
 /*Data for the table `mobilegroup` */
 
@@ -212,7 +207,7 @@ CREATE TABLE `userdetail` (
   `regaddr` varchar(64) NOT NULL DEFAULT '' COMMENT '[注册IP]',
   PRIMARY KEY (`userid`),
   KEY `m` (`mobile`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户信息表';
+) ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4 COMMENT='用户信息表';
 
 /*Data for the table `userdetail` */
 

@@ -14,8 +14,7 @@ import org.redkale.util.*;
  *
  * @author zhangjx
  */
-@Entity
-@Table(catalog = "redemo_notice", comment = "有效验证码表")
+@Table(comment = "有效验证码表")
 public class RandomCode extends BaseEntity {
 
     private static final Reproduce<RandomCodeHis, RandomCode> reproduce = Reproduce.create(RandomCodeHis.class, RandomCode.class);

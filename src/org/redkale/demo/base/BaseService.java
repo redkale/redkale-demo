@@ -6,7 +6,9 @@
 package org.redkale.demo.base;
 
 import java.util.logging.*;
+import javax.annotation.Resource;
 import org.redkale.service.*;
+import org.redkale.source.DataSource;
 
 /**
  *
@@ -22,4 +24,6 @@ public abstract class BaseService extends AbstractService {
 
     protected final boolean finest = logger.isLoggable(Level.FINEST);
 
+    @Resource(name = "platf")
+    protected DataSource source;
 }

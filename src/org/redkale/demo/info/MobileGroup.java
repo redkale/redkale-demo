@@ -7,7 +7,7 @@ import org.redkale.demo.base.BaseEntity;
  *
  * @author zhangjx
  */
-@Table(catalog = "redemo_info", comment = "手机号码归属地信息")
+@Table(comment = "手机号码归属地信息")
 public class MobileGroup extends BaseEntity {
 
     public static final int MOBNET_YIDONG = 2; //移动运营商

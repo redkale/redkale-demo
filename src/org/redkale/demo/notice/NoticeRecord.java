@@ -14,7 +14,7 @@ import org.redkale.source.*;
  *
  * @author zhangjx
  */
-@Table(catalog = "redemo_notice", comment = "消息推送表")
+@Table(comment = "消息推送表")
 @DistributeTable(strategy = NoticeRecord.TableStrategy.class)
 public class NoticeRecord extends BaseEntity {
 
