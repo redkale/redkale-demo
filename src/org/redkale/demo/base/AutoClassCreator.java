@@ -58,7 +58,8 @@ public class AutoClassCreator {
         final StringBuilder tableComment = new StringBuilder();
         final Map<String, String> uniques = new HashMap<>();
         final Map<String, String> indexs = new HashMap<>();
-        final Set<String> columns = new HashSet<>();
+        final List<String> columns = new ArrayList<>();
+        final Set<String> superColumns = new HashSet<>();
         source.directQuery("SHOW CREATE TABLE " + classname.toLowerCase(), new Function<ResultSet, String>() {
             @Override
             public String apply(ResultSet tcs) {
@@ -67,7 +68,10 @@ public class AutoClassCreator {
                     final String createsql = tcs.getString(2);
                     for (String str : createsql.split("\n")) {
                         str = str.trim();
-                        if (str.startsWith("UNIQUE KEY ")) {
+                        if (str.startsWith("`")) {
+                            str = str.substring(str.indexOf('`') + 1);
+                            columns.add(str.substring(0, str.indexOf('`')));
+                        } else if (str.startsWith("UNIQUE KEY ")) {
                             str = str.substring(str.indexOf('`') + 1);
                             uniques.put(str.substring(0, str.indexOf('`')), str.substring(str.indexOf('(') + 1, str.indexOf(')')));
                         } else if (str.startsWith("KEY ")) {
@@ -94,7 +98,7 @@ public class AutoClassCreator {
                 public String apply(ResultSet rs) {
                     try {
                         while (rs.next()) {
-                            columns.add(rs.getString("COLUMN_NAME"));
+                            superColumns.add(rs.getString("COLUMN_NAME"));
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -112,8 +116,8 @@ public class AutoClassCreator {
                     //sb.append("import org.redkale.util.*;\r\n");
                     if (superclassname == null || superclassname.isEmpty()) {
                         try {
-                            Class.forName("com.fentch.platf.base.BaseEntity");
-                            sb.append("import com.fentch.platf.base.BaseEntity;\r\n");
+                            Class.forName("org.redkale.demo.base.BaseEntity");
+                            sb.append("import org.redkale.demo.base.BaseEntity;\r\n");
                         } catch (Throwable t) {
                             sb.append("import org.redkale.convert.json.*;\r\n");
                             tostring.append("\r\n    @Override\r\n    public String toString() {\r\n");
@@ -150,18 +154,21 @@ public class AutoClassCreator {
                     sb.append(")\r\n");
                     sb.append("public class " + classname
                         + (superclassname != null && !superclassname.isEmpty() ? (" extends " + superclassname) : (tostring.length() == 0 ? " extends BaseEntity" : " implements java.io.Serializable")) + " {\r\n\r\n");
-                    boolean idable = false;
-                    List<StringBuilder> list = new ArrayList<>();
+                    Map<String, StringBuilder> columnMap = new HashMap<>();
+                    Map<String, StringBuilder> getsetMap = new HashMap<>();
                     while (rs.next()) {
                         String column = rs.getString("COLUMN_NAME");
                         String type = rs.getString("DATA_TYPE").toUpperCase();
                         String remark = rs.getString("COLUMN_COMMENT");
                         String def = rs.getString("COLUMN_DEFAULT");
-                        if (!idable) {
-                            idable = true;
-                            sb.append("    @Id");
-                        } else if (columns.contains(column)) continue; //跳过被继承的重复字段
-                        sb.append("\r\n");
+                        String key = rs.getString("COLUMN_KEY");
+                        StringBuilder fieldsb = new StringBuilder();
+                        if (key != null && key.contains("PRI")) {
+                            fieldsb.append("    @Id");
+                        } else if (superColumns.contains(column)) {  //跳过被继承的重复字段
+                            continue;
+                        }
+                        fieldsb.append("\r\n");
 
                         int length = 0;
                         int precision = 0;
@@ -194,37 +201,45 @@ public class AutoClassCreator {
                         } else if (type.contains("BLOB")) {
                             ctype = "byte[]";
                         }
-                        sb.append("    @Column(");
-                        if ("createtime".equals(column)) sb.append("updatable = false, ");
-                        if (length > 0) sb.append("length = ").append(length).append(", ");
-                        if (precision > 0) sb.append("precision = ").append(precision).append(", ");
-                        if (scale > 0) sb.append("scale = ").append(scale).append(", ");
-                        sb.append("comment = \"" + remark.replace('"', '\'') + "\")\r\n");
+                        fieldsb.append("    @Column(");
+                        if ("createtime".equals(column)) fieldsb.append("updatable = false, ");
+                        if (length > 0) fieldsb.append("length = ").append(length).append(", ");
+                        if (precision > 0) fieldsb.append("precision = ").append(precision).append(", ");
+                        if (scale > 0) fieldsb.append("scale = ").append(scale).append(", ");
+                        fieldsb.append("comment = \"" + remark.replace('"', '\'') + "\")\r\n");
 
-                        sb.append("    private " + ctype + " " + column);
+                        fieldsb.append("    private " + ctype + " " + column);
                         if (def != null && !"0".equals(def)) {
                             String d = def.replace('\'', '\"');
-                            sb.append(" = ").append(d.isEmpty() ? "\"\"" : d.toString());
+                            fieldsb.append(" = ").append(d.isEmpty() ? "\"\"" : d.toString());
                         } else if ("String".equals(ctype)) {
-                            sb.append(" = \"\"");
+                            fieldsb.append(" = \"\"");
                         }
-                        sb.append(";\r\n");
+                        fieldsb.append(";\r\n");
 
                         char[] chs2 = column.toCharArray();
                         chs2[0] = Character.toUpperCase(chs2[0]);
                         String sgname = new String(chs2);
 
-                        StringBuilder setter = new StringBuilder();
-                        setter.append("\r\n    public void set" + sgname + "(" + ctype + " " + column + ") {\r\n");
-                        setter.append("        this." + column + " = " + column + ";\r\n");
-                        setter.append("    }\r\n");
-                        list.add(setter);
+                        StringBuilder setgetsb = new StringBuilder();
+                        setgetsb.append("\r\n    public void set" + sgname + "(" + ctype + " " + column + ") {\r\n");
+                        setgetsb.append("        this." + column + " = " + column + ";\r\n");
+                        setgetsb.append("    }\r\n");
 
-                        StringBuilder getter = new StringBuilder();
-                        getter.append("\r\n    public " + ctype + " get" + sgname + "() {\r\n");
-                        getter.append("        return this." + column + ";\r\n");
-                        getter.append("    }\r\n");
-                        list.add(getter);
+                        setgetsb.append("\r\n    public " + ctype + " get" + sgname + "() {\r\n");
+                        setgetsb.append("        return this." + column + ";\r\n");
+                        setgetsb.append("    }\r\n");
+                        columnMap.put(column, fieldsb);
+                        getsetMap.put(column, setgetsb);
+                    }
+                    List<StringBuilder> list = new ArrayList<>();
+                    for (String column : columns) {
+                        if (superColumns.contains(column)) continue;
+                        list.add(columnMap.get(column));
+                    }
+                    for (String column : columns) {
+                        if (superColumns.contains(column)) continue;
+                        list.add(getsetMap.get(column));
                     }
                     for (StringBuilder item : list) {
                         sb.append(item);
@@ -233,7 +248,7 @@ public class AutoClassCreator {
                     sb.append("}\r\n");
                 } catch (Exception e) {
                     e.printStackTrace();
-                } 
+                }
                 return "";
             }
         });
