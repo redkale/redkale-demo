@@ -5,9 +5,12 @@
  */
 package org.redkale.demo.file;
 
-import java.awt.image.BufferedImage;
+import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.image.*;
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.List;
 import org.redkale.convert.*;
 import org.redkale.convert.json.JsonConvert;
 import org.redkale.util.*;
@@ -89,14 +92,36 @@ public final class ImageRatio {
     //将图片按比例从中间裁剪
     public BufferedImage cut(final BufferedImage image) {
         final int oheight = image.getHeight();
-        final int nheight = height(image.getWidth());
-        if (oheight > nheight) { //太高了
-            return image.getSubimage(0, (oheight - nheight) / 2, image.getWidth(), nheight);
-        } else if (oheight < nheight) { //太宽了
-            int nwidth = width(image.getHeight());
-            return image.getSubimage((image.getWidth() - nwidth) / 2, 0, nwidth, image.getHeight());
-        }
-        return image;
+            final int nheight = height(image.getWidth());
+            if (oheight >= nheight) { //太高了
+                BufferedImage newimg = image.getSubimage(0, (oheight - nheight) / 2, image.getWidth(), nheight);
+                AffineTransformOp ato = new AffineTransformOp(AffineTransform.getScaleInstance((this.width + 0.0) / newimg.getWidth(), (this.height + 0.0) / newimg.getHeight()), null);
+                BufferedImage rsimg = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+                //ato.filter(newimg, rsimg);
+                Graphics2D g2d = rsimg.createGraphics();
+                rsimg = g2d.getDeviceConfiguration().createCompatibleImage(width, height, Transparency.TRANSLUCENT);
+                g2d.dispose();
+                g2d = rsimg.createGraphics();
+                Image from = newimg.getScaledInstance(width, height, Image.SCALE_AREA_AVERAGING);
+                g2d.drawImage(from, 0, 0, null);
+                g2d.dispose();
+                return rsimg;
+            } else if (oheight < nheight) { //太宽了
+                int nwidth = width(image.getHeight());
+                BufferedImage newimg = image.getSubimage((image.getWidth() - nwidth) / 2, 0, nwidth, image.getHeight());
+                AffineTransformOp ato = new AffineTransformOp(AffineTransform.getScaleInstance((this.width + 0.0) / newimg.getWidth(), (this.height + 0.0) / newimg.getHeight()), null);
+                BufferedImage rsimg = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+                //ato.filter(newimg, rsimg);
+                Graphics2D g2d = rsimg.createGraphics();
+                rsimg = g2d.getDeviceConfiguration().createCompatibleImage(width, height, Transparency.TRANSLUCENT);
+                g2d.dispose();
+                g2d = rsimg.createGraphics();
+                Image from = newimg.getScaledInstance(width, height, Image.SCALE_AREA_AVERAGING);
+                g2d.drawImage(from, 0, 0, null);
+                g2d.dispose();
+                return rsimg;
+            }
+            return image;
     }
 
     @Override

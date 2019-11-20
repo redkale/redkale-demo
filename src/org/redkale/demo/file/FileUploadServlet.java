@@ -80,11 +80,11 @@ public class FileUploadServlet extends BaseServlet {
     }
 
     protected void uploadBin(HttpRequest req, HttpResponse resp, long max) throws IOException {
-        uploadBin(req, resp, req.getRequstURILastPath(), null, true, max);
+        uploadBin(req, resp, req.getRequstURILastPath(), null, max);
     }
 
     protected void uploadBin(HttpRequest req, HttpResponse resp, String dir, long max) throws IOException {
-        uploadBin(req, resp, dir, null, true, max);
+        uploadBin(req, resp, dir, null, max);
     }
 
     protected void uploadImg(HttpRequest req, HttpResponse resp, int[] widths, final ImageRatio ratio, long max) throws IOException {
@@ -125,11 +125,11 @@ public class FileUploadServlet extends BaseServlet {
         resp.finishJson(RetCodes.retResult(RET_UPLOAD_NOFILE));
     }
 
-    protected void uploadBin(final HttpRequest req, HttpResponse resp, String dir, String fileid0, final boolean sync, final long max) throws IOException {
+    protected void uploadBin(final HttpRequest req, HttpResponse resp, String dir, String fileid0, final long max) throws IOException {
         String fileid = "";
         File file;
         for (MultiPart part : req.multiParts()) {
-            file = service.storeFile(sync, dir, fileid0, part.getFilename(), max, part.getInputStream());
+            file = service.storeFile(dir, fileid0, part.getFilename(), max, part.getInputStream());
             if (file != null) fileid = file.getName();
             if (fileid.isEmpty()) {
                 resp.finishJson(RetCodes.retResult(RET_UPLOAD_FILETOOBIG));

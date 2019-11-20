@@ -9,11 +9,9 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.math.BigInteger;
-import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import static java.nio.file.StandardCopyOption.*;
 import java.security.SecureRandom;
-import java.util.*;
 import java.util.logging.Level;
 import javax.annotation.Resource;
 import javax.imageio.ImageIO;
@@ -29,10 +27,10 @@ public class FileService extends BaseService {
 
     private static final String format = "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS.%tL";
 
+    static final int[] goods_widths = {800};
+
     //files 目录
     private File files;
-
-    private String homepath;
 
     //自定义的文件根目录，没有设置默认使用 {home}/files 值
     @Resource(name = "property.files.root")
@@ -40,15 +38,6 @@ public class FileService extends BaseService {
 
     @Resource(name = "APP_HOME")
     private File home;
-
-    @Resource(name = "APP_ADDR")
-    private String localAddress;
-
-    @Resource(name = "APP_NODES")
-    private HashMap<InetSocketAddress, String> appNodes;
-
-    @Resource(name = "SNCP_GROUPS")
-    private Set<String> groups;
 
     @Override
     public void init(AnyValue config) {
@@ -71,12 +60,6 @@ public class FileService extends BaseService {
         }
         this.files = (fr == null || fr.isEmpty()) ? new File(home, "files") : new File(fr);
         this.files.mkdirs();
-        this.homepath = this.home.getPath();
-        try {
-            this.homepath = this.home.getCanonicalPath();
-        } catch (Exception e) {
-            logger.log(Level.WARNING, "path[" + files + "].getCanonicalPath error", e);
-        }
     }
 
     public String getFilespath() throws IOException {
@@ -156,18 +139,10 @@ public class FileService extends BaseService {
     }
 
     final File storeFile(String dir, String filename, String extension, String content) throws IOException {
-        return storeFile(true, dir, filename, extension, content);
+        return storeFile(dir, filename, extension, Long.MAX_VALUE, new ByteArrayInputStream(content.getBytes("UTF-8")));
     }
 
-    final File storeFile(boolean sync, String dir, String filename, String extension, String content) throws IOException {
-        return storeFile(sync, dir, filename, extension, Long.MAX_VALUE, new ByteArrayInputStream(content.getBytes("UTF-8")));
-    }
-
-    final File storeFile(String dir, String filename, String extension, long max, InputStream in) throws IOException {
-        return storeFile(true, dir, filename, extension, max, in);
-    }
-
-    public final File storeFile(boolean sync, String dir, String filename, String extension, long max, InputStream in) throws IOException {
+    public final File storeFile(String dir, String filename, String extension, long max, InputStream in) throws IOException {
         final File file = createFile(dir, filename, extension);
         final byte[] bytes = new byte[4096];
         int pos;
