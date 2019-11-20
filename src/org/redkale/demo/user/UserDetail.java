@@ -16,8 +16,7 @@ import org.redkale.util.*;
  */
 @Cacheable
 @LogLevel("FINER")
-@Table(catalog = "redemo_info", comment = "用户信息表", indexes = {
-    @Index(name = "m", columnList = "mobile")})
+@Table(comment = "用户信息表")
 public class UserDetail extends UserInfo {
 
     private static final Reproduce<UserInfo, UserDetail> reproduce = Reproduce.create(UserInfo.class, UserDetail.class);
