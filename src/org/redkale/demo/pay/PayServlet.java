@@ -42,7 +42,7 @@ public class PayServlet extends HttpServlet {
         resp.finishJson(service.checkPay(payno));
     }
 
-    public static PayNotifyRequest unionNodifyRequest(Logger logger, HttpRequest req) throws IOException {
+    public static PayNotifyRequest unionNotifyRequest(Logger logger, HttpRequest req) throws IOException {
         logger.info("" + req);
         final TreeMap<String, String> map = new TreeMap<>();
         map.put("version", req.getParameter("version", "")); //不可空 版本号
@@ -87,23 +87,23 @@ public class PayServlet extends HttpServlet {
         return new PayNotifyRequest(Pays.PAYTYPE_UNION, map);
     }
 
-    @HttpMapping(url = "/pay/union/nodify", auth = false, comment = "银联支付异步通知")
-    public void unionnodify(HttpRequest req, HttpResponse resp) throws IOException {
-        resp.finish(service.notify(unionNodifyRequest(logger, req)).getRetinfo());
+    @HttpMapping(url = "/pay/union/notify", auth = false, comment = "银联支付异步通知")
+    public void unionnotify(HttpRequest req, HttpResponse resp) throws IOException {
+        resp.finish(service.notify(unionNotifyRequest(logger, req)).getRetinfo());
     }
 
-    public static PayNotifyRequest weixinNodifyRequest(Logger logger, HttpRequest req) throws IOException {
+    public static PayNotifyRequest weixinNotifyRequest(Logger logger, HttpRequest req) throws IOException {
         String body = req.getBodyUTF8();
         logger.info("" + req + "; body = " + body);
         return new PayNotifyRequest(Pays.PAYTYPE_WEIXIN, body);
     }
 
-    @HttpMapping(url = "/pay/weixin/nodify", auth = false, comment = "微信支付异步通知")
-    public void weixinnodify(HttpRequest req, HttpResponse resp) throws IOException {
-        resp.finish(service.notify(weixinNodifyRequest(logger, req)).getRetinfo());
+    @HttpMapping(url = "/pay/weixin/notify", auth = false, comment = "微信支付异步通知")
+    public void weixinnotify(HttpRequest req, HttpResponse resp) throws IOException {
+        resp.finish(service.notify(weixinNotifyRequest(logger, req)).getRetinfo());
     }
 
-    public static PayNotifyRequest alipayNodifyRequest(PayService service, Logger logger, HttpRequest req) throws IOException {
+    public static PayNotifyRequest alipayNotifyRequest(PayService service, Logger logger, HttpRequest req) throws IOException {
         logger.info("" + req);
         final TreeMap<String, String> map = new TreeMap<>();
         map.put("notify_time", req.getParameter("notify_time", "")); //不可空 通知的发送时间。格式为yyyy-MM-dd HH:mm:ss。
@@ -156,9 +156,9 @@ public class PayServlet extends HttpServlet {
         return bean;
     }
 
-    @HttpMapping(url = "/pay/alipay/nodify", auth = false, comment = "支付宝支付异步通知")
-    public void alipaynodify(HttpRequest req, HttpResponse resp) throws IOException {
-        resp.finish(service.notify(alipayNodifyRequest(service, logger, req)).getRetinfo());
+    @HttpMapping(url = "/pay/alipay/notify", auth = false, comment = "支付宝支付异步通知")
+    public void alipaynotify(HttpRequest req, HttpResponse resp) throws IOException {
+        resp.finish(service.notify(alipayNotifyRequest(service, logger, req)).getRetinfo());
     } 
 
 }
