@@ -212,6 +212,7 @@ public class AutoClassCreator {
                         if (def != null && !"0".equals(def)) {
                             String d = def.replace('\'', '\"');
                             fieldsb.append(" = ").append(d.isEmpty() ? "\"\"" : d.toString());
+                            if("float".equals(ctype)) fieldsb.append("f");
                         } else if ("String".equals(ctype)) {
                             fieldsb.append(" = \"\"");
                         }
