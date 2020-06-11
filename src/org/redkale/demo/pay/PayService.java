@@ -25,7 +25,7 @@ public class PayService extends BaseService {
     private static final JsonConvert convert = JsonFactory.create().skipAllIgnore(true).getConvert();
 
     @Resource
-    private org.redkalex.pay.PayService payService;
+    private org.redkalex.pay.MultiPayService payService;
 
     public WeiXinPayService getWeiXinPayService() {
         return payService.getWeiXinPayService();
