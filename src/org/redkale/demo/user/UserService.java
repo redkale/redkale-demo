@@ -257,7 +257,7 @@ public class UserService extends BaseService {
         }
     }
 
-    @Comment("微信登陆")
+    @Comment("微信登录")
     public RetResult<UserInfo> wxlogin(LoginWXBean bean) {
         try {
             Map<String, String> wxmap = bean.emptyAccesstoken()

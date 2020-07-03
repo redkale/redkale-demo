@@ -79,7 +79,7 @@ public class UserServlet extends BaseServlet {
     }
 
     /**
-     * 微信登陆 https://open.weixin.qq.com/connect/qrconnect?appid=wx微信ID&redirect_uri=xxxxx&response_type=code&scope=snsapi_login&state=wx微信ID_1#wechat_redirect
+     * 微信登录 https://open.weixin.qq.com/connect/qrconnect?appid=wx微信ID&redirect_uri=xxxxx&response_type=code&scope=snsapi_login&state=wx微信ID_1#wechat_redirect
      * 接收两种形式：
      * WEB端微信登录： /user/wxlogin?code=XXXXXX&state=wx微信ID_1&apptoken=XXX
      * APP端微信登录: /user/wxlogin?openid=XXXX&state=1&access_token=XXX&apptoken=XXX
@@ -168,7 +168,7 @@ public class UserServlet extends BaseServlet {
     }
 
     /**
-     * 用户登陆
+     * 用户登录
      *
      * @param req
      * @param resp
