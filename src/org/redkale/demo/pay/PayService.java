@@ -39,10 +39,6 @@ public class PayService extends BaseService {
         return payService.getAliPayService();
     }
 
-    public EhkingPayService getEhkingPayService() {
-        return payService.getEhkingPayService();
-    }
-
     @Comment("主动查询支付结果, 页面调用")
     public RetResult<PayRecord> checkPay(String payno) {
         return checkPay(findPayRecord(payno), true);
