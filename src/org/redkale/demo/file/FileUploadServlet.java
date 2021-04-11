@@ -13,6 +13,7 @@ import java.io.*;
 import javax.annotation.Resource;
 import static org.redkale.demo.base.RetCodes.*;
 import org.redkale.demo.base.*;
+import org.redkale.demo.user.UserService;
 import org.redkale.net.http.*;
 import org.redkale.util.AnyValue;
 
@@ -47,6 +48,9 @@ public class FileUploadServlet extends BaseServlet {
     @Resource
     protected FileService service;
 
+    @Resource
+    protected UserService userService;
+    
     @Override
     public void init(HttpContext context, AnyValue config) {
         super.init(context, config);
@@ -75,7 +79,7 @@ public class FileUploadServlet extends BaseServlet {
 
     @HttpMapping(url = "/upload/face", auth = true, comment = "上传头像 以正方形规格存储") // 
     public void face(HttpRequest req, HttpResponse resp) throws IOException {
-        UserInfo user = req.currentUser();
+        UserInfo user = userService.findUserInfo(req.currentUserid(int.class));
         uploadImg(req, resp, "face", user.getUser36id(), FileService.face_widths, ImageRatio.RATIO_1_1, 10 * 1024 * 1024L);
     }
 

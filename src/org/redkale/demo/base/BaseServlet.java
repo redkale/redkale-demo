@@ -60,7 +60,7 @@ public class BaseServlet extends HttpServlet {
                 long e = System.currentTimeMillis() - ((HttpRequest) req).getCreatetime();
                 if (e > 200) logger.finer("http-execute-cost-time: " + e + " ms. request = " + req);
             });
-        request.setCurrentUser(currentUser(service, request));
+        request.setCurrentUserid(currentUserid(service, request));
         response.nextEvent();
     }
 
@@ -74,12 +74,9 @@ public class BaseServlet extends HttpServlet {
      */
     @Override
     public final void authenticate(HttpRequest request, HttpResponse response) throws IOException {
-        UserInfo info = request.currentUser();
-        if (info == null) {
+        int userid = request.currentUserid(int.class);
+        if (userid == 0) {
             response.finishJson(RET_UNLOGIN);
-            return;
-        } else if (!info.checkAuth(request.getModuleid(), request.getActionid())) {
-            response.finishJson(RET_AUTHILLEGAL);
             return;
         }
         response.nextEvent();
@@ -94,15 +91,16 @@ public class BaseServlet extends HttpServlet {
      * @return
      * @throws IOException
      */
-    public static final UserInfo currentUser(UserService service, HttpRequest req) throws IOException {
-        UserInfo user = (UserInfo) req.currentUser();
-        if (user != null) return user;
+    public static final int currentUserid(UserService service, HttpRequest req) throws IOException {
+        int userid = req.currentUserid(int.class);
+        if (userid > 0) return userid;
+        UserInfo user = null;
         String sessionid = req.getSessionid(false);
         if (sessionid == null || sessionid.isEmpty()) sessionid = req.getParameter("token");
         if (sessionid != null && !sessionid.isEmpty()) user = service.current(sessionid);
-        if (user != null) return user;
+        if (user != null) return user.getUserid();
         String autologin = req.getCookie(UserServlet.COOKIE_AUTOLOGIN);
-        if (autologin == null) return null;
+        if (autologin == null) return 0;
         autologin = autologin.replace('"', ' ').trim();
         LoginBean bean = new LoginBean();
         bean.setCookieinfo(autologin);
@@ -111,7 +109,7 @@ public class BaseServlet extends HttpServlet {
         bean.setSessionid(req.changeSessionid());
         RetResult<UserInfo> result = service.login(bean);
         user = result.getResult();
-        return user;
+        return user == null ? 0 : user.getUserid();
     }
 
 }

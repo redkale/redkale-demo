@@ -86,7 +86,7 @@ public class UserService extends BaseService {
     private final int sessionExpireSeconds = 30 * 60;
 
     @Resource(name = "usersessions")
-    protected CacheSource<Integer> sessions;
+    protected CacheSource sessions;
 
     @Resource
     protected FileService fileService;
@@ -163,8 +163,8 @@ public class UserService extends BaseService {
 
     @Comment("根据登录态获取当前用户信息")
     public UserInfo current(String sessionid) {
-        Integer userid = sessions.getAndRefresh(sessionid, sessionExpireSeconds);
-        return userid == null ? null : findUserInfo(userid);
+        long userid = sessions.getLongAndRefresh(sessionid, sessionExpireSeconds,0L);
+        return userid == 0 ? null : findUserInfo((int)userid);
     }
 
     @Comment("发送短信验证码")
@@ -248,7 +248,7 @@ public class UserService extends BaseService {
                 rr.setRetinfo(jsonmap.get(bean.getOpenid()));
             }
             if (rr.isSuccess()) {
-                this.sessions.set(sessionExpireSeconds, bean.getSessionid(), rr.getResult().getUserid());
+                this.sessions.setLong(sessionExpireSeconds, bean.getSessionid(), rr.getResult().getUserid());
             }
             return rr;
         } catch (Exception e) {
@@ -305,7 +305,7 @@ public class UserService extends BaseService {
                 }
             }
             if (rr.isSuccess()) {
-                this.sessions.set(sessionExpireSeconds, bean.getSessionid(), rr.getResult().getUserid());
+                this.sessions.setLong(sessionExpireSeconds, bean.getSessionid(), rr.getResult().getUserid());
             }
             return rr;
         } catch (Exception e) {
@@ -398,7 +398,7 @@ public class UserService extends BaseService {
                 source.updateColumn(UserInfo.class, user.getUserid(), ColumnValue.mov("appos", bean.getAppos()), ColumnValue.mov("apptoken", bean.getApptoken()));
             }
         }
-        this.sessions.set(sessionExpireSeconds, bean.getSessionid(), result.getResult().getUserid());
+        this.sessions.setLong(sessionExpireSeconds, bean.getSessionid(), result.getResult().getUserid());
         return result;
     }
 

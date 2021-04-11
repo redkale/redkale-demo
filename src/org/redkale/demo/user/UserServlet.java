@@ -63,7 +63,7 @@ public class UserServlet extends BaseServlet {
         String code = req.getParameter("code");
         String state = req.getParameter("state");  //state值格式: appid_autoregflag
         if (finest) logger.finest("/user/updatewxid :  " + code + "," + state);
-        service.updateWxunionid(req.currentUser(), code);
+        service.updateWxunionid(service.findUserInfo(req.currentUserid(int.class)), code);
         resp.setHeader("Location", req.getParameter("url", "/"));
         resp.finish(302, null);
     }
@@ -261,7 +261,7 @@ public class UserServlet extends BaseServlet {
     @HttpMapping(url = "/user/updatepwd")
     public void updatepwd(HttpRequest req, HttpResponse resp) throws IOException {
         UserPwdBean bean = req.getJsonParameter(UserPwdBean.class, "bean");
-        UserInfo curr = req.currentUser();
+        UserInfo curr = service.findUserInfo(req.currentUserid(int.class));
         if (curr != null) bean.setSessionid(req.getSessionid(false));
         RetResult<UserInfo> result = service.updatePwd(bean);
         if (result.isSuccess() && curr == null) { //找回的密码
@@ -299,14 +299,14 @@ public class UserServlet extends BaseServlet {
     //更新用户手机号码
     @HttpMapping(url = "/user/updatemobile")
     public void updatemobile(HttpRequest req, HttpResponse resp) throws IOException {
-        UserInfo user = req.currentUser();
+        UserInfo user = service.findUserInfo(req.currentUserid(int.class));
         resp.finishJson(service.updateMobile(user.getUserid(), req.getParameter("mobile"), req.getParameter("vercode"), req.getParameter("precode")));
     }
 
     //更新用户昵称
     @HttpMapping(url = "/user/updateusername")
     public void updateUsername(HttpRequest req, HttpResponse resp) throws IOException {
-        UserInfo user = req.currentUser();
+        UserInfo user = service.findUserInfo(req.currentUserid(int.class));
         resp.finishJson(service.updateUsername(user.getUserid(), req.getParameter("username")));
     }
 
@@ -315,14 +315,14 @@ public class UserServlet extends BaseServlet {
     public void updateApptoken(HttpRequest req, HttpResponse resp) throws IOException {
         String s = req.getRequstURILastPath();
         if ("updateapptoken".equalsIgnoreCase(s)) s = "";
-        UserInfo user = req.currentUser();
+        UserInfo user = service.findUserInfo(req.currentUserid(int.class));
         resp.finishJson(service.updateApptoken(user.getUserid(), req.getParameter("appos", req.getRequstURIPath("appos:", "")), req.getParameter("apptoken", s)));
     }
 
     //更新性别
     @HttpMapping(url = "/user/updategender/")
     public void updateGender(HttpRequest req, HttpResponse resp) throws IOException {
-        UserInfo user = req.currentUser();
+        UserInfo user = service.findUserInfo(req.currentUserid(int.class));
         resp.finishJson(service.updateGender(user.getUserid(), Short.parseShort(req.getRequstURILastPath())));
     }
 
@@ -359,7 +359,7 @@ public class UserServlet extends BaseServlet {
     private void smsvercode(final short type, HttpRequest req, HttpResponse resp) throws IOException {
         String mobile = req.getRequstURIPath("mobile:", req.getParameter("mobile"));
         if (type == RandomCode.TYPE_SMSODM) { //给原手机号码发送验证短信
-            UserInfo user = req.currentUser();
+            UserInfo user = service.findUserInfo(req.currentUserid(int.class));
             if (user != null) mobile = user.getMobile();
         }
         RetResult rr = service.smscode(type, mobile);
@@ -397,14 +397,14 @@ public class UserServlet extends BaseServlet {
     //获取当前用户基本信息
     @HttpMapping(url = "/user/myinfo")
     public void myinfo(HttpRequest req, HttpResponse resp) throws IOException {
-        UserInfo user = req.currentUser();
+        UserInfo user = service.findUserInfo(req.currentUserid(int.class));
         resp.finishJson(user);
     }
 
     //获取当前用户基本信息（js格式）
     @HttpMapping(url = "/user/js/myinfo", auth = false)
     public void myinfojs(HttpRequest req, HttpResponse resp) throws IOException {
-        UserInfo user = req.currentUser();
+        UserInfo user = service.findUserInfo(req.currentUserid(int.class));
         resp.setContentType("application/javascript; charset=utf-8");
         if (user == null) {
             resp.finish("var userself = null;");
@@ -422,14 +422,14 @@ public class UserServlet extends BaseServlet {
     //获取当前用户详细信息
     @HttpMapping(url = "/user/mydetail")
     public void mydetail(HttpRequest req, HttpResponse resp) throws IOException {
-        UserInfo user = req.currentUser();
+        UserInfo user = service.findUserInfo(req.currentUserid(int.class));
         resp.finish(userConvert.convertTo(service.findUserDetail(user.getUserid())));
     }
 
     //获取当前用户详细信息（js格式）
     @HttpMapping(url = "/user/js/mydetail", auth = false)
     public void mydetailjs(HttpRequest req, HttpResponse resp) throws IOException {
-        UserInfo user = req.currentUser();
+        UserInfo user = service.findUserInfo(req.currentUserid(int.class));
         resp.setContentType("application/javascript; charset=utf-8");
         if (user == null) {
             resp.finish("var userdetailself = null;");
