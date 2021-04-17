@@ -6,6 +6,7 @@
 package org.redkale.demo.base;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import org.redkale.demo.user.UserDetail;
 import org.redkale.source.*;
@@ -14,16 +15,18 @@ import org.redkale.source.*;
  *
  * @author zhangjx
  */
-public class UserInfoLoader implements BiFunction<DataSource, Class, List> {
+public class UserInfoLoader implements BiFunction<DataSource, EntityInfo, CompletableFuture<List>> {
 
     @Override
-    public List apply(DataSource source, Class type) {
-        List<UserDetail> details = source.queryList(UserDetail.class, (FilterNode) null);
-        List<UserInfo> list = new ArrayList<>(details.size());
-        for (UserDetail detail : details) {
-            list.add(detail.createUserInfo());
-        }
-        return list;
+    public CompletableFuture<List> apply(DataSource source, EntityInfo info) {
+        CompletableFuture<List<UserDetail>> future = source.queryListAsync(UserDetail.class, (FilterNode) null);
+        return future.thenApply(details -> {
+            List<UserInfo> list = new ArrayList<>(details.size());
+            for (UserDetail detail : details) {
+                list.add(detail.createUserInfo());
+            }
+            return list;
+        });
     }
 
 }
