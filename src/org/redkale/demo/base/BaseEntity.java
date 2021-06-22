@@ -6,12 +6,14 @@
 package org.redkale.demo.base;
 
 import java.io.*;
+import javax.persistence.Entity;
 import org.redkale.convert.json.*;
 
 /**
  *
  * @author zhangjx
  */
+@Entity
 public abstract class BaseEntity implements Serializable {
 
     //状态间隔10，便于以后扩展意义接近的状态值比较靠近
