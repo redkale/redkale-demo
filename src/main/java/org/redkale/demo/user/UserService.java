@@ -261,8 +261,8 @@ public class UserService extends BaseService {
     public RetResult<UserInfo> wxlogin(LoginWXBean bean) {
         try {
             Map<String, String> wxmap = bean.emptyAccesstoken()
-                ? wxMPService.getMPUserTokenByCode(bean.getCode())
-                : wxMPService.getMPUserTokenByOpenid(bean.getAccesstoken(), bean.getOpenid());
+                ? wxMPService.getMPUserTokenByCode(bean.getCode()).join()
+                : wxMPService.getMPUserTokenByOpenid(bean.getAccesstoken(), bean.getOpenid()).join();
             final String unionid = wxmap.get("unionid");
             if (unionid == null) return RetCodes.retResult(RET_USER_WXID_ILLEGAL);
             RetResult<UserInfo> rr;
@@ -477,7 +477,7 @@ public class UserService extends BaseService {
     public RetResult updateWxunionid(UserInfo user, String code) {
         try {
             if (user == null) return RetCodes.retResult(RET_USER_NOTEXISTS);
-            Map<String, String> wxmap = wxMPService.getMPUserTokenByCode(code);
+            Map<String, String> wxmap = wxMPService.getMPUserTokenByCode(code).join();
             final String wxunionid = wxmap.get("unionid");
             if (wxunionid == null || wxunionid.isEmpty()) return RetCodes.retResult(RET_USER_WXID_ILLEGAL);
             if (checkWxunionid(wxunionid) != 0) return RetCodes.retResult(RET_USER_WXID_EXISTS);

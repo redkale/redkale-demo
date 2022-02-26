@@ -118,6 +118,10 @@ public final class ImageRatio {
     private static SimpledCoder<Reader, Writer, ImageRatio> createConvertCoder(final org.redkale.convert.ConvertFactory factory) {
         return new SimpledCoder<Reader, Writer, ImageRatio>() {
 
+            private Map<String, DeMember> deMemberFieldMap;
+
+            private Map<Integer, DeMember> deMemberTagMap;
+
             //必须与EnMember[] 顺序一致
             private final DeMember[] deMembers = new DeMember[]{
                 DeMember.create(factory, ImageRatio.class, "width", int.class),
@@ -129,6 +133,15 @@ public final class ImageRatio {
                 EnMember.create(Attribute.create(ImageRatio.class, "width", int.class, (t) -> t == null ? 0 : t.width, null), factory, int.class),
                 EnMember.create(Attribute.create(ImageRatio.class, "height", int.class, (t) -> t == null ? 0 : t.height, null), factory, int.class)
             };
+
+            {
+                this.deMemberFieldMap = new HashMap<>(this.deMembers.length);
+                this.deMemberTagMap = new HashMap<>(this.deMembers.length);
+                for (DeMember member : this.deMembers) {
+                    this.deMemberFieldMap.put(member.getAttribute().field(), member);
+                    this.deMemberTagMap.put(member.getTag(), member);
+                }
+            }
 
             @Override
             public void convertTo(Writer out, ImageRatio value) {
@@ -149,7 +162,7 @@ public final class ImageRatio {
                 int index = 0;
                 final Object[] params = new Object[deMembers.length];
                 while (in.hasNext()) {
-                    DeMember member = in.readFieldName(deMembers); //读取字段名
+                    DeMember member = in.readFieldName(deMembers, deMemberFieldMap, deMemberTagMap); //读取字段名
                     in.readBlank(); //读取字段名与字段值之间的间隔符，JSON则是跳过冒号:
                     if (member == null) {
                         in.skipValue(); //跳过不存在的字段的值, 一般不会发生

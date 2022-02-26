@@ -73,7 +73,7 @@ public class UserServlet extends BaseServlet {
     public void wxopenid(HttpRequest req, HttpResponse resp) throws IOException {
         String code = req.getParameter("code");
         if (finest) logger.finest("/user/wxopenid :  " + req);
-        Map<String, String> rr = wxService.getMPUserTokenByCode(code);
+        Map<String, String> rr = wxService.getMPUserTokenByCode(code).join();
         resp.setHeader("Location", req.getParameter("url", "/"));
         resp.finish(302, null);
     }

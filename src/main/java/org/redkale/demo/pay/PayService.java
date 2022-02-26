@@ -80,7 +80,7 @@ public class PayService extends BaseService {
     public RetResult<PayRecord> checkPay(PayRecord pay, final boolean forceFail) {
         if (pay == null) return RetResult.success();
         if (pay.getPaystatus() != Pays.PAYSTATUS_UNPAY && pay.getPaystatus() != Pays.PAYSTATUS_UNREFUND) return RetResult.success();//已经更新过了
-        PayRequest request = new PayRequest(pay.getAppid(), pay.getPaytype(), pay.getPayno());
+        PayRequest request = new PayRequest(pay.getAppid(), pay.getPaytype(), pay.getPayway(), pay.getPayno());
         final PayQueryResponse resp = payService.query(request);
         PayAction payact = new PayAction();
         payact.setActurl(Pays.PAYACTION_QUERY);
@@ -92,18 +92,18 @@ public class PayService extends BaseService {
         payact.setPayactid(Utility.format36time(payact.getCreatetime()) + Utility.uuid());
         source.insert(payact);
         if (resp.isSuccess()) { //查询结果成功，并不表示支付成功
-            if (resp.getPaystatus() != Pays.PAYSTATUS_UNPAY //不能将未支付状态更新到pay中， 否则notify发现是未支付状态会跳过pay的更新
-                && resp.getPaystatus() != Pays.PAYSTATUS_UNREFUND) {
-                pay.setPaystatus(resp.getPaystatus());
+            if (resp.getPayStatus() != Pays.PAYSTATUS_UNPAY //不能将未支付状态更新到pay中， 否则notify发现是未支付状态会跳过pay的更新
+                && resp.getPayStatus() != Pays.PAYSTATUS_UNREFUND) {
+                pay.setPaystatus(resp.getPayStatus());
             }
             if (pay.isPayok()) pay.setPayedmoney(pay.getMoney());
-            pay.setThirdpayno(resp.getThirdpayno());
+            pay.setThirdpayno(resp.getThirdPayno());
             pay.setFinishtime(payact.getCreatetime());
             pay.setResponsetext(payact.getResponsetext());
             source.updateColumn(pay, "paystatus", "payedmoney", "thirdpayno", "responsetext", "finishtime");
         } else if (forceFail || (pay.getCreatetime() + 3 * 60 * 1000 < System.currentTimeMillis())) { //超过3分钟视为支付失败
             pay.setPaystatus(Pays.PAYSTATUS_CLOSED);
-            pay.setThirdpayno(resp.getThirdpayno());
+            pay.setThirdpayno(resp.getThirdPayno());
             pay.setFinishtime(payact.getCreatetime());
             pay.setResponsetext(payact.getResponsetext());
             source.updateColumn(pay, "paystatus", "thirdpayno", "responsetext", "finishtime");
@@ -119,14 +119,14 @@ public class PayService extends BaseService {
         payact.setActurl(Pays.PAYACTION_NOTIFY);
         payact.setCreatetime(System.currentTimeMillis());
         payact.setPayno(resp.getPayno());
-        payact.setPaytype(resp.getPaytype());
+        payact.setPaytype(resp.getPayType());
         payact.setRequestjson(convert.convertTo(request));
         payact.setResponsetext(convert.convertTo(resp));
         payact.setPayactid(Utility.format36time(payact.getCreatetime()) + Utility.uuid());
         source.insert(payact);
         if (pay.getPaystatus() != Pays.PAYSTATUS_UNPAY && pay.getPaystatus() != Pays.PAYSTATUS_UNREFUND) { //已经更新过了
             logger.log(Level.WARNING, "pay (" + pay + ") status error, req = " + request + ", resp = " + resp);
-            return new RetResult(PayRetCodes.RETPAY_STATUS_ERROR, resp.getNotifytext()).result(pay);
+            return new RetResult(PayRetCodes.RETPAY_STATUS_ERROR, resp.getNotifyText()).result(pay);
         }
         if (resp.isSuccess()) { //支付成功
             pay.setPayedmoney(pay.getMoney());
@@ -137,13 +137,13 @@ public class PayService extends BaseService {
             source.updateColumn(pay, "payedmoney", "paystatus", "thirdpayno", "responsetext", "finishtime");
         } else if (resp.getRetcode() != RETPAY_FALSIFY_ERROR && resp.getRetcode() != RETPAY_PAY_WAITING) {
             pay.setPaystatus(Pays.PAYSTATUS_PAYNO);
-            pay.setThirdpayno(resp.getThirdpayno());
+            pay.setThirdpayno(resp.getThirdPayno());
             pay.setFinishtime(System.currentTimeMillis());
             pay.setResponsetext(payact.getResponsetext());
             source.updateColumn(pay, "paystatus", "thirdpayno", "responsetext", "finishtime");
         }
         if (!resp.isSuccess()) return new RetResult(resp.getRetcode(), resp.getRetinfo()).result(pay);
-        return new RetResult<>(pay).retinfo(resp.getNotifytext());   //支付的回调参数处理完必须输出success字样
+        return new RetResult<>(pay).retinfo(resp.getNotifyText());   //支付的回调参数处理完必须输出success字样
     }
 
     @Comment("微信公众号、手机支付时调用")
@@ -164,7 +164,7 @@ public class PayService extends BaseService {
             source.updateColumn(pay, "appid", "paystatus", "responsetext", "finishtime");
         }
         if (rr.isSuccess()) rr.setRetinfo(pay.getPayno());
-        rr.setResponsetext(""); //请求内容，防止信息暴露给外部接口
+        rr.setResponseText(""); //请求内容，防止信息暴露给外部接口
         return rr;
     }
 
