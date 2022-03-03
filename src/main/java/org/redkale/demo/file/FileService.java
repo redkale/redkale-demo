@@ -8,15 +8,16 @@ package org.redkale.demo.file;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.math.BigInteger;
 import java.nio.file.Files;
 import static java.nio.file.StandardCopyOption.*;
-import java.security.SecureRandom;
 import java.util.logging.Level;
 import javax.annotation.Resource;
 import javax.imageio.ImageIO;
-import org.redkale.demo.base.BaseService;
 import org.redkale.util.*;
+import org.redkale.demo.base.BaseService;
+import java.awt.image.*;
+import java.util.ArrayList;
+import javax.imageio.*;
 
 /**
  * 文件
@@ -24,8 +25,6 @@ import org.redkale.util.*;
  * @author zhangjx
  */
 public class FileService extends BaseService {
-
-    private static final String format = "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS.%tL";
 
     static final int[] goods_widths = {800};
 
@@ -70,29 +69,165 @@ public class FileService extends BaseService {
     public void destroy(AnyValue config) {
     }
 
-    static final int[] face_widths = {64, 128, 512}; //头像有三种规格: 64*64、128*128 512*512
+    static final int[] face_widths = {256}; //头像有三种规格: 64*64、256 512*512
 
     public final String storeFace(int userid, BufferedImage srcImage) throws IOException {
         return storeMultiJPGFile("face", Integer.toString(userid, 36), face_widths, ImageRatio.RATIO_1_1, srcImage, null);
     }
 
-    public final String storeMultiJPGFile(final String dir, final String fileid, int[] widths, final ImageRatio ratio, byte[] bytes, Runnable runner) throws IOException {
-        if (bytes == null) return "";
-        final boolean jpeg = bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[bytes.length - 2] == 0xFF && bytes[bytes.length - 1] == 0xD9;
-        BufferedImage image = ratio == null ? ImageIO.read(new ByteArrayInputStream(bytes)) : ratio.cut(ImageIO.read(new ByteArrayInputStream(bytes)));
-        if (!jpeg) {
-            int w = image.getWidth();
-            int h = image.getHeight();
-            BufferedImage target = new BufferedImage(w, h, jpeg ? image.getType() : BufferedImage.TYPE_INT_RGB);
-            Graphics2D g = target.createGraphics();
-            // 因为有的图片背景是透明色，所以用白色填充 FIXED
-            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, 1));
-            g.fillRect(0, 0, w, h);
-            g.drawImage(image, 0, 0, w, h, null); //image.getScaledInstance(w, h, Image.SCALE_SMOOTH)
-            g.dispose();
-            image = target;
+    public static java.util.List<File> list(File file, FilenameFilter filter) {
+        return list(file, new ArrayList<>(), filter);
+    }
+
+    public static java.util.List<File> list(File file, java.util.List<File> list) {
+        return list(file, list, null);
+    }
+
+    private static java.util.List<File> list(File file, java.util.List<File> list, FilenameFilter filter) {
+        if (file == null) return list;
+        if (file.isFile()) {
+            if (filter == null || filter.accept(file, file.getPath())) list.add(file);
+        } else if (file.isDirectory()) {
+            for (File f : file.listFiles(filter)) {
+                list(f, list, filter);
+            }
         }
-        return storeMultiJPGFile(dir, fileid, widths, ratio, image, null);
+        return list;
+    }
+
+    /**
+     * （1）JPEG
+     * - 文件头标识 (2 bytes): 0xff, 0xd8 (SOI) (JPEG 文件标识)
+     * - 文件结束标识 (2 bytes): 0xff, 0xd9 (EOI)
+     * （2）TGA
+     * - 未压缩的前5字节 00 00 02 00 00
+     * - RLE压缩的前5字节 00 00 10 00 00
+     * （3）PNG
+     * - 文件头标识 (8 bytes) 89 50 4E 47 0D 0A 1A 0A
+     * （4）GIF
+     * - 文件头标识 (6 bytes) 47 49 46 38 39(37) 61，字符即： G I F 8 9 (7) a
+     * （5）BMP
+     * - 文件头标识 (2 bytes) 42 4D，字符即： B M
+     * （6）TIFF
+     * - 文件头标识 (2 bytes) 4D 4D 或 49 49
+     * （7）ICO
+     * - 文件头标识 (8 bytes) 00 00 01 00 01 00 20 20
+     * （8）CUR
+     * - 文件头标识 (8 bytes) 00 00 02 00 01 00 20 20
+     *
+     * @param dir
+     * @param fileid0
+     * @param filename
+     * @param widths
+     * @param ratio
+     * @param bytes
+     * @param runner
+     *
+     * @return
+     * @throws IOException
+     */
+    public final String storeMultiJPGFile(final String dir, final String fileid0, final String filename, int[] widths, final ImageRatio ratio, byte[] bytes, Runnable runner) throws IOException {
+        if (bytes == null) return "";
+        final boolean webp = (bytes[0] & 0xFF) == 'W' && (bytes[1] & 0xFF) == 'E' && (bytes[2] & 0xFF) == 'B' && (bytes[3] & 0xFF) == 'P'; //WEBP
+        final boolean riff = (bytes[0] & 0xFF) == 0x52 && (bytes[1] & 0xFF) == 0x49 && (bytes[2] & 0xFF) == 0x46 && (bytes[3] & 0xFF) == 0x46; //RIFF
+        final boolean jpeg = (bytes[0] & 0xFF) == 0xFF && (bytes[1] & 0xFF) == 0xD8 && (bytes[bytes.length - 2] & 0xFF) == 0xFF && (bytes[bytes.length - 1] & 0xFF) == 0xD9;
+        final boolean png = (bytes[0] & 0xFF) == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47 && bytes[4] == 0x0D && bytes[5] == 0x0A && bytes[6] == 0x1A && bytes[7] == 0x0A;
+        final boolean gif = (bytes[0] & 0xFF) == 0x47 && (bytes[1] & 0xFF) == 0x49 && (bytes[2] & 0xFF) == 0x46 && (bytes[3] & 0xFF) == 0x38 && ((bytes[4] & 0xFF) == 0x39 || (bytes[4] & 0xFF) == 0x37) && (bytes[5] & 0xFF) == 0x61;
+        String postfix = "face".equals(dir) ? ".jpg" : null;
+        if (ratio == null) {
+            if (png) {
+                final String fileid = (fileid0 == null || fileid0.isEmpty()) ? randomFileid() : fileid0;
+                if (postfix == null) {
+                    postfix = filename.substring(filename.lastIndexOf('.') + 1);
+                    postfix = "." + (postfix.isEmpty() || "jpg".equalsIgnoreCase(postfix) || "jpeg".equalsIgnoreCase(postfix) ? "png" : postfix);
+                }
+                final File file = createFile(dir, fileid, postfix);
+                BufferedImage srcImage = ImageIO.read(new ByteArrayInputStream(bytes));
+                int width = srcImage.getWidth();
+                int height = srcImage.getHeight();
+                BufferedImage newBufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_USHORT_555_RGB);
+                Graphics2D graphics = newBufferedImage.createGraphics();
+                graphics.setBackground(new Color(255, 255, 255));
+                graphics.clearRect(0, 0, width, height);
+                graphics.drawImage(srcImage.getScaledInstance(width, height, Image.SCALE_SMOOTH), 0, 0, null);
+                ImageWriter imageWriter = ImageIO.getImageWritersByFormatName("png").next();
+                FileOutputStream out = new FileOutputStream(file);
+                imageWriter.setOutput(ImageIO.createImageOutputStream(out));
+                imageWriter.write(new IIOImage(newBufferedImage, null, null));
+                out.flush();
+                //ImageIO.write(bufferedImage, "png", file);
+                if (finest) logger.log(Level.FINEST, "png有损压缩: 原大小:" + bytes.length + ", 新大小: " + file.length() + ", 压缩率:" + (file.length() * 10000 / bytes.length) / 100 + "%");
+                return fileid + postfix;
+            } else if (jpeg) {
+                final String fileid = (fileid0 == null || fileid0.isEmpty()) ? randomFileid() : fileid0;
+                if (postfix == null) {
+                    postfix = filename.substring(filename.lastIndexOf('.') + 1);
+                    postfix = "." + (postfix.isEmpty() || "png".equalsIgnoreCase(postfix) ? "jpg" : postfix);
+                }
+                final File file = createFile(dir, fileid, postfix);
+                //https://github.com/coobird/thumbnailator
+                ImageWriteParam imgWriteParams = new javax.imageio.plugins.jpeg.JPEGImageWriteParam(null);
+                // 要使用压缩，必须指定压缩方式为MODE_EXPLICIT
+                imgWriteParams.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+                // 这里指定压缩的程度，参数quality是取值0~1范围内，
+                imgWriteParams.setCompressionQuality(Math.min(1023 * 1024f / bytes.length, 0.5f));
+                imgWriteParams.setProgressiveMode(ImageWriteParam.MODE_DISABLED);
+                // 使用RGB格式
+                ColorModel colorModel = ColorModel.getRGBdefault();
+                BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(bytes));
+                // 指定压缩时使用的色彩模式
+                imgWriteParams.setDestinationType(new ImageTypeSpecifier(colorModel, colorModel.createCompatibleSampleModel(bufferedImage.getWidth(), bufferedImage.getHeight())));
+                // 指定写图片的方式为 png
+                ImageWriter imgWriter = ImageIO.getImageWritersByFormatName("jpg").next();
+                imgWriter.reset();
+                FileOutputStream out = new FileOutputStream(file);
+                // 必须先指定out值，才能调用write方法, ImageOutputStream可以通过任何OutputStream构造
+                imgWriter.setOutput(ImageIO.createImageOutputStream(out));
+                // 调用write方法，就可以向输入流写图片
+                imgWriter.write(null, new IIOImage(bufferedImage, null, null), imgWriteParams);
+                bufferedImage.flush();
+                out.flush();
+                //ImageIO.write(bufferedImage, "png", file);
+                if (finest) logger.log(Level.FINEST, "jpg有损压缩: 原大小:" + bytes.length + ", 新大小: " + file.length() + ", 压缩率:" + (file.length() * 10000 / bytes.length) / 100 + "%");
+                return fileid + postfix;
+            } else if (gif) {
+                final String fileid = (fileid0 == null || fileid0.isEmpty()) ? randomFileid() : fileid0;
+                if (postfix == null) postfix = ".gif";
+                final File file = createFile(dir, fileid, postfix);
+                FileOutputStream out = new FileOutputStream(file);
+                out.write(bytes);
+                out.flush();
+                if (finest) logger.log(Level.FINEST, "gif无需压缩: 原大小:" + bytes.length + ", 新大小: " + file.length() + ", 压缩率:" + (file.length() * 10000 / bytes.length) / 100 + "%");
+                return fileid + postfix;
+            } else if (riff || webp) {
+                final String fileid = (fileid0 == null || fileid0.isEmpty()) ? randomFileid() : fileid0;
+                if (postfix == null) postfix = ".webp";
+                final File file = createFile(dir, fileid, postfix);
+                FileOutputStream out = new FileOutputStream(file);
+                out.write(bytes);
+                out.flush();
+                if (finest) logger.log(Level.FINEST, "webp无需压缩: 原大小:" + bytes.length + ", 新大小: " + file.length() + ", 压缩率:" + (file.length() * 10000 / bytes.length) / 100 + "%");
+                return fileid + postfix;
+            } else {
+                if (!jpeg && !png) logger.log(Level.WARNING, "不支持的图片格式, 头信息: " + Utility.joiningHex(bytes, 0, 8, ',') + ", filename=" + filename);
+                return null;
+            }
+        } else {
+            BufferedImage image = ratio.cut(ImageIO.read(new ByteArrayInputStream(bytes)));
+            if (!jpeg) {
+                int w = image.getWidth();
+                int h = image.getHeight();
+                BufferedImage target = new BufferedImage(w, h, jpeg ? image.getType() : BufferedImage.TYPE_INT_RGB);
+                Graphics2D g = target.createGraphics();
+                // 因为有的图片背景是透明色，所以用白色填充 FIXED
+                g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, 1));
+                g.fillRect(0, 0, w, h);
+                g.drawImage(image, 0, 0, w, h, null); //image.getScaledInstance(w, h, Image.SCALE_SMOOTH)
+                g.dispose();
+                image = target;
+            }
+            return storeMultiJPGFile(dir, fileid0, widths, ratio, image, null);
+        }
     }
 
     private static final int[] WIDTHS_ONEL = new int[]{0};
@@ -105,9 +240,9 @@ public class FileService extends BaseService {
         for (int i = 0; i < widths.length; i++) {
             facefiles[i] = createFile((widths.length > 1 && widths[i] > 0) ? (dir + "_" + widths[i]) : dir, fileid, "jpg_tmp");
             BufferedImage target;
-            if (widths[i] > 0) {
-                int with = widths[i];
-                int height = ratio == null ? (srcImage.getHeight() * with / srcImage.getWidth()) : ratio.height(with);
+            if (widths[i] >= 0) {
+                int with = widths[i] == 0 ? srcImage.getWidth() : widths[i];
+                int height = widths[i] == 0 ? srcImage.getHeight() : (ratio == null ? (srcImage.getHeight() * with / srcImage.getWidth()) : ratio.height(with));
                 target = new BufferedImage(with, height, BufferedImage.TYPE_INT_RGB);
                 Graphics2D g = target.createGraphics();
                 g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, 1));
@@ -143,22 +278,26 @@ public class FileService extends BaseService {
     }
 
     public final File storeFile(String dir, String filename, String extension, long max, InputStream in) throws IOException {
-        final File file = createFile(dir, filename, extension);
+        File file = createFile(dir, filename, extension);
         final byte[] bytes = new byte[4096];
         int pos;
         File temp = new File(file.getPath() + ".temp");
-        OutputStream out = new FileOutputStream(temp);
-        while ((pos = in.read(bytes)) != -1) {
-            if (max < 0) {
-                out.close();
-                temp.delete();
-                file.delete();
-                return null;
+        try (OutputStream out = new FileOutputStream(temp)) {
+            while ((pos = in.read(bytes)) != -1) {
+                if (file == null) continue;
+                if (max < 0) {
+                    out.close();
+                    temp.delete();
+                    file.delete();
+                    file = null;
+                    continue;
+                    //return null;
+                }
+                out.write(bytes, 0, pos);
+                max -= pos;
             }
-            out.write(bytes, 0, pos);
-            max -= pos;
         }
-        out.close();
+        if (file == null) return file;
         Files.move(temp.toPath(), file.toPath(), REPLACE_EXISTING, ATOMIC_MOVE);
         return file;
     }
@@ -186,15 +325,15 @@ public class FileService extends BaseService {
     /**
      * 创建新的文件名， filename =null 则会随机生成一个文件名
      * <p>
-     * @param dir       files下的根目录
-     * @param filename  不带后缀的文件名
-     * @param extension 文件名后缀
+     * @param dir               files下的根目录
+     * @param fileNameNoPostfix 不带后缀的文件名
+     * @param extension         文件名后缀
      *
      * @return
      */
-    final File createFile(String dir, String filename, String extension) {
-        filename = filename == null ? randomFileid() : filename;
-        String f = filename + "." + (extension.substring(extension.lastIndexOf('.') + 1)).toLowerCase();
+    final File createFile(String dir, String fileNameNoPostfix, String extension) {
+        fileNameNoPostfix = fileNameNoPostfix == null ? randomFileid() : fileNameNoPostfix;
+        String f = fileNameNoPostfix + "." + (extension.substring(extension.lastIndexOf('.') + 1)).toLowerCase();
         if (f.indexOf('/') <= 0) f = hashPath(f);
         if (files == null) initPath();
         File file = new File(files, dir + "/" + f);
@@ -205,47 +344,34 @@ public class FileService extends BaseService {
 
     /**
      * <pre>
-     *     int   10万-100万     (36进制 4位)  255t - lflr    长度4  rewrite "^/dir/(\w+)/((\w{2})(\w{2})\..*)$" /$1/$3/$2 last;
-     *     int  1000万-6000万   (36进制 5位)  5yc1t - zq0an   长度5-6   rewrite "^/dir/(\w+)/((\w{2})(\w{2})(\w\w?)\..*)$" /$1/$3/$4/$2 last;
+     *     int   10万-100万     (36进制 4位)  255t - lflr         长度4     直接访问: rewrite "^/dir/(\w+)/(\w{4})$" /$1/$2.jpg break;
+     *     int  1000万-6000万   (36进制 5位)  5yc1t - zq0an
      *     int    2亿-20亿      (36进制 6位)  3b2ozl - x2qxvk
-     *    long   30亿-770亿     (36进制 7位)  1dm4etd - zdft88v   长度7-8   rewrite "^/dir/(\w+)/((\w{2})(\w{2})(\w{2})(\w\w?)\..*)$" /$1/$3/$4/$5/$2 last;
-     *    long  1000亿-2万亿    (36进制 8位)  19xtf1tt - piscd0jj
-     *    随机文件名:   (32进制 26位)   26-27长度
-     *      #文件名 长度: 26 (1)
-     *      rewrite "^/dir/(\w+)/((\w{2})(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})(\w{14})\..*)$" /dir/$1/$3/$4/$5/$6/$7/$8/$2;
-     *      #文件名 长度: 26 (2)
-     *      rewrite "^/dir/(\w+)/(\w\w/\w\w/\w\w/\w\w/\w\w/\w\w)/(\w{12}(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})\..*)$" /$1/$2/$4/$5/$6/$7/$8/$9/$3 last;
+     *    long   30亿-770亿     (36进制 7位)  1dm4etd - zdft88v
+     *    long  1000亿-2万亿    (36进制 8位)  19xtf1tt - piscd0jj 长度5-8   rewrite "^/dir/(\w+)/((\w{4})(\w+))$" /$1/$3/$2.jpg break;
+     *    随机文件名:   (十六进制 16位)
      *      #文件名 长度: 32    nginx不支持$10、$11
-     *      rewrite "^/dir/(\\w+)/((\\w{2})(\\w{2})(\\w{2})(\\w{2})(\\w{2})(\\w{2})(\\w{2})(?<a>\\w{2})(?<b>\\w{2})(?<c>\\w{2})(?<d>\\w{2})(?<e>\\w{2})(?<f>\\w{2})(?<g>\\w{2})(?<h>\\w{2})(\\w{2})\\..*)$" /$1/$3/$4/$5/$6/$7/$8/$9/$a/$b/$c/$d/$e/$f/$g/$h/$2 break;
+     *      rewrite "^/dir/(\\w+)/((\\w{4})(\\w{4})(\\w{4})(\\w{4})(\\w{4})(\\w{4})(\\w{4})(\\w{4})\\..*)$" /$1/$3/$4/$5/$6/$7/$8/$9/$2 break;
      *
      * </pre>
      *
      * @return 长度为26的随机字符串
      */
     private static String randomFileid() {
-        byte[] bytes = new byte[16];
-        numberGenerator.nextBytes(bytes);
-        String s = new BigInteger(1, bytes).toString(32);
-        if (s.charAt(0) == '-') s = s.substring(1);
-        if (s.length() >= 26) return s;
-        StringBuilder sb = new StringBuilder(26);
-        for (int i = s.length(); i < 26; i++) sb.append('0');
-        sb.append(s);
-        return sb.toString();
+        return Utility.binToHexString(Utility.generateRandomBytes(16));
     }
 
-    //根据文件名生产文件存放的子目录， 如: aabbccddee.png 的存放目录为 aa/bb/cc/dd/aabbccee.png
-    public static String hashPath(String filename) {
-        int pos = filename.indexOf('.') - 1;
-        if (pos < 1) pos = filename.length() - 1;
+    //根据文件名生产文件存放的子目录， 如: aabbccddee.png 的存放目录为 aabb/ccdd/aabbccee.png
+    public static String hashPath(String fileName) {
+        int p = fileName.indexOf('.');
+        int pos = p > 0 ? p : fileName.length();
         StringBuilder sb = new StringBuilder();
-        pos = pos - (pos & 1);
-        for (int i = 0; i < pos; i += 2) {
-            sb.append(filename.charAt(i)).append(filename.charAt(i + 1)).append('/');
+        pos = (pos - 1) / 4 * 4;
+        for (int i = 0; i < pos; i += 4) {
+            sb.append(fileName.charAt(i)).append(fileName.charAt(i + 1)).append(fileName.charAt(i + 2)).append(fileName.charAt(i + 3)).append('/');
         }
-        sb.append(filename);
+        sb.append(fileName);
         return sb.toString();
     }
 
-    private static final SecureRandom numberGenerator = new SecureRandom();
 }

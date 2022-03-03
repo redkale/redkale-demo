@@ -72,7 +72,7 @@ public class BaseServlet extends HttpServlet {
      * @throws IOException
      */
     @Override
-    public final void authenticate(HttpRequest request, HttpResponse response) throws IOException {
+    public void authenticate(HttpRequest request, HttpResponse response) throws IOException {
         int userid = request.currentUserid(int.class);
         if (userid == 0) {
             response.finishJson(RET_UNLOGIN);

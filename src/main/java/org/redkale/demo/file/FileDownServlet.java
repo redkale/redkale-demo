@@ -10,23 +10,8 @@ import javax.annotation.Resource;
 import org.redkale.demo.base.BaseServlet;
 import org.redkale.net.http.*;
 import org.redkale.util.AnyValue;
-
+ 
 /**
- *
- * <pre>
- *     int   10万-100万     (36进制 4位)  255t - lflr    长度4  rewrite "^/dir/(\w+)/((\w{2})(\w{2})\..*)$" /$1/$3/$2 last;
- *     int  1000万-6000万   (36进制 5位)  5yc1t - zq0an   长度5-6   rewrite "^/dir/(\w+)/((\w{2})(\w{2})(\w\w?)\..*)$" /$1/$3/$4/$2 last;
- *     int    2亿-20亿      (36进制 6位)  3b2ozl - x2qxvk
- *    long   30亿-770亿     (36进制 7位)  1dm4etd - zdft88v   长度7-8   rewrite "^/dir/(\w+)/((\w{2})(\w{2})(\w{2})(\w\w?)\..*)$" /$1/$3/$4/$5/$2 last;
- *    long  1000亿-2万亿    (36进制 8位)  19xtf1tt - piscd0jj
- *    随机文件名:   (32进制 26位)   26-27长度
- *      #文件名 长度: 26 (1)
- *      rewrite "^/dir/(\w+)/((\w{2})(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})(\w{14})\..*)$" /dir/$1/$3/$4/$5/$6/$7/$8/$2;
- *      #文件名 长度: 26 (2)
- *      rewrite "^/dir/(\w+)/(\w\w/\w\w/\w\w/\w\w/\w\w/\w\w)/(\w{12}(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})(\w{2})\..*)$" /$1/$2/$4/$5/$6/$7/$8/$9/$3 last;
- *      #文件名 长度: 32    nginx不支持$10、$11
- *      rewrite "^/dir/(\\w+)/((\\w{2})(\\w{2})(\\w{2})(\\w{2})(\\w{2})(\\w{2})(\\w{2})(?<a>\\w{2})(?<b>\\w{2})(?<c>\\w{2})(?<d>\\w{2})(?<e>\\w{2})(?<f>\\w{2})(?<g>\\w{2})(?<h>\\w{2})(\\w{2})\\..*)$" /$1/$3/$4/$5/$6/$7/$8/$9/$a/$b/$c/$d/$e/$f/$g/$h/$2 break;
- * </pre>
  *
  * 所有静态资源的请求url的根目录为dir，便于nginx进行静动分离
  * 请求url为 /dir/{分类目录}/文件名
@@ -48,6 +33,11 @@ public class FileDownServlet extends BaseServlet {
         this.files.mkdirs();
     }
 
+    @Override
+    public void authenticate(HttpRequest request, HttpResponse response) throws IOException {
+        response.nextEvent();
+    }
+
     @HttpMapping(url = "/dir/", comment = "静态资源获取根路径，仅供开发阶段使用")
     public void dir(HttpRequest req, HttpResponse resp) throws IOException {
         download(req, resp);
@@ -58,7 +48,11 @@ public class FileDownServlet extends BaseServlet {
         resp.setHeader("Cache-Control", "max-age=3600");
         int pos = uri.lastIndexOf('/');
         File f = new File(files, uri.substring(0, pos + 1) + FileService.hashPath(uri.substring(pos + 1)));
-        if (!f.isFile()) f = new File(files, uri.substring(0, pos + 1) + "def.jpg"); //每个目录下放个默认图片
+        if (!f.isFile()) {  //每个目录下放个默认图片
+            String subp = uri.substring(0, pos + 1);
+            f = new File(files, subp + "def.jpg");
+            if (!f.isFile()) f = new File(files, subp + "def.png");
+        }
         if (f.isFile()) {
             resp.finish(req.getParameter("filename"), f);
         } else {
