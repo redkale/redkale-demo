@@ -355,7 +355,28 @@ public class FileService extends BaseService {
      *
      * </pre>
      *
-     * @return 长度为26的随机字符串
+     * ningx配置: （顺序不能改）
+     *
+     * <pre>
+     * location ~ ^/dir/face/.*$ {
+     *      root /usr/local/redsns-server/files;
+     *      rewrite "^/dir/(\w+)/(\w{4})$" /$1/$2.jpg last;
+     *      rewrite "^/dir/(\w+)/((\w{4})(\w+))$" /$1/$3/$2.jpg last;
+     * }
+     *
+     * location ~ ^/dir/.*$ {
+     *      root /usr/local/redsns-server/files;
+     *      rewrite "^/dir/(\\w+)/((\\w{4})(\\w{4})(\\w{4})(\\w{4})(\\w{4})(\\w{4})(\\w{4})(\\w{4})\\..*)$" /$1/$3/$4/$5/$6/$7/$8/$9/$2 break;
+     * }
+     *
+     * location ~ ^/face/.*$ {
+     *      root /usr/local/redsns-server/files;
+     *      error_page 404 =200 /face/def.jpg;
+     * }
+     * </pre>
+     *
+     *
+     * @return 长度为32的随机字符串
      */
     private static String randomFileid() {
         return Utility.binToHexString(Utility.generateRandomBytes(16));
