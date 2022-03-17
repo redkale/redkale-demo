@@ -8,6 +8,8 @@ package org.redkale.demo.base;
 import java.io.*;
 import java.util.*;
 import org.redkale.source.*;
+import static org.redkale.source.AbstractDataSource.*;
+import org.redkale.util.AnyValue.DefaultAnyValue;
 
 /**
  *
@@ -45,11 +47,12 @@ public class AutoClassCreator {
     }
 
     private static String createEntityContent(String pkg, String classname, String superclassname) throws Exception {
-        Properties prop = new Properties();
-        prop.setProperty(DataSources.JDBC_URL, jdbc_url);
-        prop.setProperty(DataSources.JDBC_USER, jdbc_user);
-        prop.setProperty(DataSources.JDBC_PWD, jdbc_pwd);
-        DataSqlSource source = (DataSqlSource) DataSources.createDataSource("", prop);
+        DefaultAnyValue prop = new DefaultAnyValue();
+        prop.addValue(DATA_SOURCE_URL, jdbc_url);
+        prop.addValue(DATA_SOURCE_USER, jdbc_user);
+        prop.addValue(DATA_SOURCE_PASSWORD, jdbc_pwd);
+        DataSqlSource source = new DataJdbcSource();
+        source.init(prop);
 
         final StringBuilder sb = new StringBuilder();
         final StringBuilder tostring = new StringBuilder();
