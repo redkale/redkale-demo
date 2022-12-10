@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <application port="2001">   
-    
-    <resources>          
-        <properties>
-            <property name="system.property.convert.json.tiny" value="false"/>
-        </properties>
-    </resources> 
+           
+    <properties>
+        <property name="system.property.convert.json.tiny" value="false"/>
+    </properties>
 
     <server protocol="HTTP" port="5001"> 
         <request>

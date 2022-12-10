@@ -131,7 +131,7 @@ public class PayService extends BaseService {
         if (resp.isSuccess()) { //支付成功
             pay.setPayedmoney(pay.getMoney());
             pay.setPaystatus(Pays.PAYSTATUS_PAYOK);
-            pay.setThirdpayno(resp.getThirdpayno());
+            pay.setThirdpayno(resp.getThirdPayno());
             pay.setFinishtime(System.currentTimeMillis());
             pay.setResponsetext(payact.getResponsetext());
             source.updateColumn(pay, "payedmoney", "paystatus", "thirdpayno", "responsetext", "finishtime");
