@@ -5,8 +5,8 @@
  */
 package org.redkale.demo.info;
 
+import org.redkale.annotation.Comment;
 import org.redkale.demo.base.BaseService;
-import org.redkale.util.Comment;
 
 /**
  *

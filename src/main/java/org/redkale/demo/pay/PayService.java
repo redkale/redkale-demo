@@ -7,11 +7,11 @@ package org.redkale.demo.pay;
 
 import java.util.*;
 import java.util.logging.Level;
-import javax.annotation.Resource;
+import org.redkale.annotation.*;
 import org.redkale.convert.json.*;
 import org.redkale.demo.base.BaseService;
 import org.redkale.service.RetResult;
-import org.redkale.util.*;
+import org.redkale.util.Utility;
 import org.redkalex.pay.*;
 import static org.redkalex.pay.PayRetCodes.*;
 
@@ -72,7 +72,7 @@ public class PayService extends BaseService {
             source.updateColumn(pay, "paystatus", "responsetext", "finishtime");
         }
         if (rr.isSuccess()) rr.setRetinfo(pay.getPayno());
-        rr.setResponsetext(""); //请求内容，防止信息暴露给外部接口
+        rr.setResponseText(""); //请求内容，防止信息暴露给外部接口
         return rr;
     }
 

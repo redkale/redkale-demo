@@ -7,7 +7,8 @@ package org.redkale.demo.notice;
 
 import java.io.IOException;
 import java.net.URLEncoder;
-import javax.annotation.Resource;
+import org.redkale.annotation.Comment;
+import org.redkale.annotation.*;
 import org.redkale.demo.base.BaseService;
 import org.redkale.source.Flipper;
 import org.redkale.util.*;
@@ -21,13 +22,13 @@ import org.redkale.util.*;
 @Comment("短信服务")
 public class SmsService extends BaseService {
 
-    @Resource(name = "property.sms.sendurl")
+    @Resource(name = "sms.sendurl", required = false)
     protected String smssendurl = "http://xxxxx";
 
-    @Resource(name = "property.sms.account")
+    @Resource(name = "sms.account", required = false)
     protected String smsaccount = "xxxxxxx";
 
-    @Resource(name = "property.sms.password")
+    @Resource(name = "sms.password", required = false)
     protected String smspassword = "yyyy";
 
     public boolean sendRandomSmsCode(short smstype, String mobile, int randomSmsCode) {

@@ -5,10 +5,10 @@
  */
 package org.redkale.demo.user;
 
-import javax.persistence.Transient;
+import org.redkale.annotation.Comment;
 import org.redkale.demo.base.BaseBean;
+import org.redkale.persistence.Transient;
 import org.redkale.source.FilterBean;
-import org.redkale.util.Comment;
 
 /**
  *

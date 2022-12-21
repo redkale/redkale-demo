@@ -5,9 +5,10 @@
  */
 package org.redkale.demo.user;
 
-import javax.persistence.*;
+import org.redkale.annotation.LogLevel;
 import org.redkale.convert.*;
 import org.redkale.demo.base.UserInfo;
+import org.redkale.persistence.*;
 import org.redkale.util.*;
 
 /**

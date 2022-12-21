@@ -5,8 +5,8 @@
  */
 package org.redkale.demo.user;
 
+import org.redkale.annotation.Comment;
 import org.redkale.demo.base.BaseBean;
-import org.redkale.util.Comment;
 
 /**
  *

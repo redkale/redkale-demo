@@ -8,10 +8,10 @@ package org.redkale.demo.pay;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
-import javax.annotation.Resource;
 import org.redkale.net.http.*;
 import org.redkalex.pay.*;
 import java.util.logging.*;
+import org.redkale.annotation.Resource;
 
 /**
  *

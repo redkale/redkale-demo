@@ -105,7 +105,7 @@ public class AutoClassCreator {
         source.directQuery("SELECT * FROM information_schema.columns WHERE  table_name = '" + classname.toLowerCase() + "'", (DataResultSet rs) -> {
             try {
                 sb.append("package " + pkg + ";" + "\r\n\r\n");
-                sb.append("import javax.persistence.*;\r\n");
+                sb.append("import org.redkale.persistence.*;\r\n");
                 //sb.append("import org.redkale.util.*;\r\n");
                 if (superclassname == null || superclassname.isEmpty()) {
                     try {

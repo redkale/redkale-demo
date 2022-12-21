@@ -6,18 +6,16 @@
 package org.redkale.demo.file;
 
 import java.awt.*;
-import java.awt.image.BufferedImage;
+import java.awt.image.*;
 import java.io.*;
 import java.nio.file.Files;
 import static java.nio.file.StandardCopyOption.*;
-import java.util.logging.Level;
-import javax.annotation.Resource;
-import javax.imageio.ImageIO;
-import org.redkale.util.*;
-import org.redkale.demo.base.BaseService;
-import java.awt.image.*;
 import java.util.ArrayList;
+import java.util.logging.Level;
 import javax.imageio.*;
+import org.redkale.annotation.Resource;
+import org.redkale.demo.base.BaseService;
+import org.redkale.util.*;
 
 /**
  * 文件
@@ -32,7 +30,7 @@ public class FileService extends BaseService {
     private File files;
 
     //自定义的文件根目录，没有设置默认使用 {home}/files 值
-    @Resource(name = "property.files.root")
+    @Resource(name = "files.root", required = false)
     private String filesroot;
 
     @Resource(name = "APP_HOME")

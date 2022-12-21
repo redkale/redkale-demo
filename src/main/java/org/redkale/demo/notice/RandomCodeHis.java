@@ -6,8 +6,8 @@
 package org.redkale.demo.notice;
 
 import java.io.Serializable;
-import javax.persistence.*;
 import org.redkale.demo.base.BaseEntity;
+import org.redkale.persistence.*;
 import org.redkale.source.*;
 
 /**

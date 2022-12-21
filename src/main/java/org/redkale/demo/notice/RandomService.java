@@ -7,7 +7,8 @@ package org.redkale.demo.notice;
 
 import java.util.List;
 import java.util.concurrent.*;
-import javax.annotation.Resource;
+import org.redkale.annotation.Comment;
+import org.redkale.annotation.*;
 import org.redkale.demo.base.*;
 import static org.redkale.demo.base.RetCodes.*;
 import org.redkale.service.RetResult;
@@ -21,7 +22,7 @@ import org.redkale.util.*;
 @Comment("验证码服务")
 public class RandomService extends BaseService {
 
-    @Resource(name = "property.schedule.task")
+    @Resource(name = "schedule.task", required = false)
     private boolean task;
 
     private ScheduledThreadPoolExecutor scheduler;
@@ -68,6 +69,7 @@ public class RandomService extends BaseService {
         source.delete(RandomCode.class, code.getRandomcode());
     }
 
+    @SuppressWarnings("unchecked")
     public RetResult<RandomCode> checkRandomCode(String targetid, String randomcode, short type) {
         if (randomcode == null || randomcode.isEmpty()) return RetCodes.retResult(RET_USER_RANDCODE_ILLEGAL);
         if (targetid != null && targetid.length() > 5 && randomcode.length() < 30) randomcode = targetid + "-" + randomcode;

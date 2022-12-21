@@ -6,7 +6,7 @@
 package org.redkale.demo.base;
 
 import java.util.logging.*;
-import javax.annotation.Resource;
+import org.redkale.annotation.Resource;
 import org.redkale.service.*;
 import org.redkale.source.DataSource;
 

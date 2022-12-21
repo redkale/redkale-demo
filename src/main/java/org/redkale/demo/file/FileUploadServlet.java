@@ -6,7 +6,7 @@
 package org.redkale.demo.file;
 
 import java.io.*;
-import javax.annotation.Resource;
+import org.redkale.annotation.Resource;
 import static org.redkale.demo.base.RetCodes.*;
 import org.redkale.demo.base.*;
 import org.redkale.demo.user.UserService;

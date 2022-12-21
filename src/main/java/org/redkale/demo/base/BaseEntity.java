@@ -6,8 +6,8 @@
 package org.redkale.demo.base;
 
 import java.io.*;
-import javax.persistence.Entity;
 import org.redkale.convert.json.*;
+import org.redkale.persistence.Entity;
 
 /**
  *

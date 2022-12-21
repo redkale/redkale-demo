@@ -1,9 +1,9 @@
 package org.redkale.demo.pay;
 
-import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Map;
 import org.redkale.demo.base.BaseEntity;
+import org.redkale.persistence.*;
 import org.redkale.source.*;
 import org.redkalex.pay.*;
 
@@ -85,16 +85,16 @@ public class PayRecord extends BaseEntity {
     public PayPreRequest createPayPreRequest() {
         PayPreRequest req = new PayPreRequest();
         req.setPayno(this.getPayno());
-        req.setMap(this.getMap());
-        req.setPaytype(this.getPaytype());
-        req.setPayway(this.getPayway());
-        req.setPaymoney(this.getMoney());
+        req.setAttach(this.getMap());
+        req.setPayType(this.getPaytype());
+        req.setPayWay(this.getPayway());
+        req.setPayMoney(this.getMoney());
         req.setAppid(this.getAppid());
-        req.setClienthost(this.getClienthost());
+        req.setClientHost(this.getClienthost());
         req.setClientAddr(this.getClientaddr());
-        req.setPaytitle(this.getPaytitle());
-        req.setPaybody(this.getPaybody());
-        req.setNotifyurl(this.getNotifyurl());
+        req.setPayTitle(this.getPaytitle());
+        req.setPayBody(this.getPaybody());
+        req.setNotifyUrl(this.getNotifyurl());
         return req;
     }
 

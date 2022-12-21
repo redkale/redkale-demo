@@ -7,7 +7,7 @@ package org.redkale.demo.base;
 
 import java.io.*;
 import java.util.logging.*;
-import javax.annotation.*;
+import org.redkale.annotation.Resource;
 import org.redkale.convert.json.*;
 import org.redkale.demo.user.*;
 import org.redkale.net.http.*;
@@ -56,7 +56,7 @@ public class BaseServlet extends HttpServlet {
     @Override
     public void preExecute(final HttpRequest request, final HttpResponse response) throws IOException {
         if (finer) response.recycleListener((req, resp) -> {  //记录处理时间比较长的请求
-                long e = System.currentTimeMillis() - ((HttpRequest) req).getCreatetime();
+                long e = System.currentTimeMillis() - ((HttpRequest) req).getCreateTime();
                 if (e > 200) logger.finer("http-execute-cost-time: " + e + " ms. request = " + req);
             });
         request.setCurrentUserid(currentUserid(service, request));

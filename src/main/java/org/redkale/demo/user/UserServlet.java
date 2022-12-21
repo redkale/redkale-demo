@@ -9,7 +9,7 @@ import org.redkale.demo.notice.RandomCode;
 import java.io.IOException;
 import java.net.HttpCookie;
 import java.util.Map;
-import javax.annotation.Resource;
+import org.redkale.annotation.Resource;
 import org.redkale.convert.json.*;
 import org.redkale.demo.base.*;
 import org.redkale.net.http.*;

@@ -5,9 +5,8 @@
  */
 package org.redkale.demo.base;
 
-import javax.persistence.*;
 import org.redkale.convert.*;
-import org.redkale.source.VirtualEntity;
+import org.redkale.persistence.*;
 import org.redkale.util.Reproduce;
 
 /**

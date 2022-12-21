@@ -1,8 +1,8 @@
 package org.redkale.demo.pay;
 
 import java.io.Serializable;
-import javax.persistence.*;
 import org.redkale.demo.base.BaseEntity;
+import org.redkale.persistence.*;
 import org.redkale.source.*;
 
 /**

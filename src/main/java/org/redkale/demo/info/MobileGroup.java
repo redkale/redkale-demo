@@ -1,7 +1,7 @@
 package org.redkale.demo.info;
 
-import javax.persistence.*;
 import org.redkale.demo.base.BaseEntity;
+import org.redkale.persistence.*;
 
 /**
  *

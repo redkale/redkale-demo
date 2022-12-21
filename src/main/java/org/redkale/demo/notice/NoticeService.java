@@ -5,6 +5,7 @@
  */
 package org.redkale.demo.notice;
 
+import org.redkale.annotation.Comment;
 import org.redkale.demo.base.BaseService;
 import org.redkale.source.Flipper;
 import org.redkale.util.*;

@@ -9,6 +9,7 @@ import java.awt.image.*;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.List;
+import org.redkale.annotation.ConstructorParameters;
 import org.redkale.convert.*;
 import org.redkale.convert.json.JsonConvert;
 import org.redkale.util.*;

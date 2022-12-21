@@ -5,8 +5,8 @@
  */
 package org.redkale.demo.base;
 
+import org.redkale.annotation.Bean;
 import org.redkale.convert.json.*;
-import org.redkale.util.Bean;
 
 /**
  *

@@ -5,10 +5,10 @@
  */
 package org.redkale.demo.notice;
 
-import javax.persistence.Column;
+import org.redkale.annotation.Comment;
 import org.redkale.demo.base.BaseBean;
+import org.redkale.persistence.Column;
 import org.redkale.source.*;
-import org.redkale.util.Comment;
 
 /**
  *

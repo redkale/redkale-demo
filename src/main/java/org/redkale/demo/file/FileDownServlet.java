@@ -6,7 +6,7 @@
 package org.redkale.demo.file;
 
 import java.io.*;
-import javax.annotation.Resource;
+import org.redkale.annotation.Resource;
 import org.redkale.demo.base.BaseServlet;
 import org.redkale.net.http.*;
 import org.redkale.util.AnyValue;
