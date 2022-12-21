@@ -248,7 +248,7 @@ public class UserService extends BaseService {
                 rr.setRetinfo(jsonmap.get(bean.getOpenid()));
             }
             if (rr.isSuccess()) {
-                this.sessions.setLong(sessionExpireSeconds, bean.getSessionid(), rr.getResult().getUserid());
+                this.sessions.setexLong(sessionExpireSeconds, bean.getSessionid(), rr.getResult().getUserid());
             }
             return rr;
         } catch (Exception e) {
@@ -305,7 +305,7 @@ public class UserService extends BaseService {
                 }
             }
             if (rr.isSuccess()) {
-                this.sessions.setLong(sessionExpireSeconds, bean.getSessionid(), rr.getResult().getUserid());
+                this.sessions.setexLong(sessionExpireSeconds, bean.getSessionid(), rr.getResult().getUserid());
             }
             return rr;
         } catch (Exception e) {
@@ -398,7 +398,7 @@ public class UserService extends BaseService {
                 source.updateColumn(UserInfo.class, user.getUserid(), ColumnValue.mov("appos", bean.getAppos()), ColumnValue.mov("apptoken", bean.getApptoken()));
             }
         }
-        this.sessions.setLong(sessionExpireSeconds, bean.getSessionid(), result.getResult().getUserid());
+        this.sessions.setexLong(sessionExpireSeconds, bean.getSessionid(), result.getResult().getUserid());
         return result;
     }
 
@@ -469,7 +469,7 @@ public class UserService extends BaseService {
             source.updateColumn(UserDetail.class, user.getUserid(), ColumnValue.mov("appos", ""), ColumnValue.mov("apptoken", ""));
             source.updateColumn(UserInfo.class, user.getUserid(), ColumnValue.mov("appos", ""), ColumnValue.mov("apptoken", ""));
         }
-        sessions.remove(sessionid);
+        sessions.del(sessionid);
         return true;
     }
 
