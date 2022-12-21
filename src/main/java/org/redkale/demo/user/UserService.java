@@ -20,7 +20,6 @@ import org.redkale.annotation.*;
 import org.redkale.convert.json.JsonConvert;
 import static org.redkale.demo.base.RetCodes.*;
 import org.redkale.demo.base.*;
-import static org.redkale.demo.base.RetCodes.*;
 import static org.redkale.demo.base.UserInfo.*;
 import org.redkale.demo.file.FileService;
 import org.redkale.demo.info.MobileGroupService;
@@ -29,7 +28,6 @@ import static org.redkale.demo.user.UserDetail.*;
 import org.redkale.service.RetResult;
 import static org.redkale.source.FilterExpress.*;
 import org.redkale.source.*;
-import static org.redkale.source.FilterExpress.*;
 import org.redkale.util.*;
 import org.redkalex.weixin.WeiXinMPService;
 
@@ -163,8 +161,8 @@ public class UserService extends BaseService {
 
     @Comment("根据登录态获取当前用户信息")
     public UserInfo current(String sessionid) {
-        long userid = sessions.getLongAndRefresh(sessionid, sessionExpireSeconds,0L);
-        return userid == 0 ? null : findUserInfo((int)userid);
+        long userid = sessions.getexLong(sessionid, sessionExpireSeconds, 0L);
+        return userid == 0 ? null : findUserInfo((int) userid);
     }
 
     @Comment("发送短信验证码")
@@ -248,7 +246,7 @@ public class UserService extends BaseService {
                 rr.setRetinfo(jsonmap.get(bean.getOpenid()));
             }
             if (rr.isSuccess()) {
-                this.sessions.setexLong(sessionExpireSeconds, bean.getSessionid(), rr.getResult().getUserid());
+                this.sessions.setexLong(bean.getSessionid(), sessionExpireSeconds, rr.getResult().getUserid());
             }
             return rr;
         } catch (Exception e) {
@@ -305,7 +303,7 @@ public class UserService extends BaseService {
                 }
             }
             if (rr.isSuccess()) {
-                this.sessions.setexLong(sessionExpireSeconds, bean.getSessionid(), rr.getResult().getUserid());
+                this.sessions.setexLong(bean.getSessionid(), sessionExpireSeconds, rr.getResult().getUserid());
             }
             return rr;
         } catch (Exception e) {
@@ -398,7 +396,7 @@ public class UserService extends BaseService {
                 source.updateColumn(UserInfo.class, user.getUserid(), ColumnValue.mov("appos", bean.getAppos()), ColumnValue.mov("apptoken", bean.getApptoken()));
             }
         }
-        this.sessions.setexLong(sessionExpireSeconds, bean.getSessionid(), result.getResult().getUserid());
+        this.sessions.setexLong(bean.getSessionid(), sessionExpireSeconds, result.getResult().getUserid());
         return result;
     }
 
