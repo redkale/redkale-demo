@@ -121,17 +121,21 @@ public class NoticeRecord extends BaseEntity {
         private static final String format = "%1$tY%1$tm";
 
         @Override
-        public String getTable(String table, FilterNode node) {
-            Range.LongRange createtime = (Range.LongRange) node.findValue("createtime");
-            return getTable(table, createtime.getMin());
+        public String[] getTables(String table, FilterNode node) {
+            Object time = node.findValue("createtime");
+            if (time instanceof Long) {
+                return new String[]{getSingleTable(table, (Long) time)};
+            }
+            Range.LongRange createTime = (Range.LongRange) time;
+            return new String[]{getSingleTable(table, createTime.getMin())};
         }
 
         @Override
         public String getTable(String table, NoticeRecord bean) {
-            return getTable(table, bean.getCreatetime());
+            return getSingleTable(table, bean.getCreatetime());
         }
 
-        private String getTable(String table, long createtime) {
+        private String getSingleTable(String table, long createtime) {
             int pos = table.indexOf('.');
             return "redemo_notice." + table.substring(pos + 1) + "_" + String.format(format, createtime);
         }
@@ -139,7 +143,7 @@ public class NoticeRecord extends BaseEntity {
         @Override
         public String getTable(String table, Serializable primary) {
             String id = (String) primary;
-            return getTable(table, Long.parseLong(id.substring(0, 9), 36));
+            return getSingleTable(table, Long.parseLong(id.substring(0, 9), 36));
         }
     }
 }

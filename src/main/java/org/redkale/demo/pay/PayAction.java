@@ -97,10 +97,10 @@ public class PayAction extends BaseEntity {
 
         @Override
         public String getTable(String table, PayAction bean) {
-            return getTable(table, bean.getCreatetime());
+            return getSingleTable(table, bean.getCreatetime());
         }
 
-        private String getTable(String table, long createtime) {
+        private String getSingleTable(String table, long createtime) {
             int pos = table.indexOf('.');
             return "redemo_pay_act." + table.substring(pos + 1) + "_" + String.format(format, createtime);
         }
@@ -112,9 +112,13 @@ public class PayAction extends BaseEntity {
         }
 
         @Override
-        public String getTable(String table, FilterNode node) {
-            Range.LongRange createtime = (Range.LongRange) node.findValue("createtime");
-            return getTable(table, createtime.getMin());
+        public String[] getTables(String table, FilterNode node) {
+            Object time = node.findValue("createtime");
+            if (time instanceof Long) {
+                return new String[]{getSingleTable(table, (Long) time)};
+            }
+            Range.LongRange createTime = (Range.LongRange) time;
+            return new String[]{getSingleTable(table, createTime.getMin())};
         }
 
     }

@@ -72,7 +72,7 @@ public class PayRecord extends BaseEntity {
 
     @Column(updatable = false, length = 64, comment = "客户端请求的HOST")
     private String clienthost = "";
-    
+
     @Column(length = 128, comment = "客户端生成时的IP")
     private String clientaddr = "";
 
@@ -288,10 +288,10 @@ public class PayRecord extends BaseEntity {
         @Override
         public String getTable(String table, Serializable primary) {
             final String id = (String) primary;
-            return getTable(table, Long.parseLong(id.substring(id.length() - 9), 36));
+            return getSingleTable(table, Long.parseLong(id.substring(id.length() - 9), 36));
         }
 
-        private String getTable(String table, long createtime) {
+        private String getSingleTable(String table, long createtime) {
             int pos = table.indexOf('.');
             return "redemo_pay." + table.substring(pos + 1) + "_" + String.format(format, createtime);
         }
@@ -302,9 +302,13 @@ public class PayRecord extends BaseEntity {
         }
 
         @Override
-        public String getTable(String table, FilterNode node) {
-            Range.LongRange createtime = (Range.LongRange) node.findValue("createtime");
-            return getTable(table, createtime.getMin());
+        public String[] getTables(String table, FilterNode node) {
+            Object time = node.findValue("createtime");
+            if (time instanceof Long) {
+                return new String[]{getSingleTable(table, (Long) time)};
+            }
+            Range.LongRange createTime = (Range.LongRange) time;
+            return new String[]{getSingleTable(table, createTime.getMin())};
         }
 
     }
