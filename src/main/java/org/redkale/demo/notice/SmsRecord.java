@@ -70,7 +70,7 @@ public class SmsRecord extends BaseEntity {
     private String resultdesc = "";
 
     @Column(updatable = false, comment = "生成时间，单位毫秒")
-    private long createtime;
+    private long createTime;
 
     @Transient
     @Column(comment = "用户ID")
@@ -84,7 +84,7 @@ public class SmsRecord extends BaseEntity {
         this.status = SMSSTATUS_UNSEND;
         this.mobile = mobile;
         this.content = content;
-        this.createtime = System.currentTimeMillis();
+        this.createTime = System.currentTimeMillis();
     }
 
     public void setSmsid(String smsid) {
@@ -167,12 +167,12 @@ public class SmsRecord extends BaseEntity {
         return this.resultdesc;
     }
 
-    public void setCreatetime(long createtime) {
-        this.createtime = createtime;
+    public void setCreateTime(long createTime) {
+        this.createTime = createTime;
     }
 
-    public long getCreatetime() {
-        return this.createtime;
+    public long getCreateTime() {
+        return this.createTime;
     }
 
     public long getUserid() {
@@ -189,7 +189,7 @@ public class SmsRecord extends BaseEntity {
 
         @Override
         public String[] getTables(String table, FilterNode node) {
-            Object time = node.findValue("createtime");
+            Object time = node.findValue("createTime");
             if (time instanceof Long) {
                 return new String[]{getSingleTable(table, (Long) time)};
             }
@@ -199,12 +199,12 @@ public class SmsRecord extends BaseEntity {
 
         @Override
         public String getTable(String table, SmsRecord bean) {
-            return getSingleTable(table, bean.getCreatetime());
+            return getSingleTable(table, bean.getCreateTime());
         }
 
-        private String getSingleTable(String table, long createtime) {
+        private String getSingleTable(String table, long createTime) {
             int pos = table.indexOf('.');
-            return "redemo_notice." + table.substring(pos + 1) + "_" + String.format(format, createtime);
+            return "redemo_notice." + table.substring(pos + 1) + "_" + String.format(format, createTime);
         }
 
         @Override

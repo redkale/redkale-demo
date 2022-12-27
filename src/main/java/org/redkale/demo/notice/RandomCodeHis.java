@@ -40,13 +40,13 @@ public class RandomCodeHis extends BaseEntity {
     private short type;
 
     @Column(comment = "创建时间")
-    private long createtime;
+    private long createTime;
 
     @Column(comment = "结果码，0为成功")
     private int retcode;
 
     @Column(comment = "更新时间")
-    private long updatetime;
+    private long updateTime;
 
     public String getSeqid() {
         return seqid;
@@ -64,12 +64,12 @@ public class RandomCodeHis extends BaseEntity {
         this.retcode = retcode;
     }
 
-    public long getUpdatetime() {
-        return updatetime;
+    public long getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdatetime(long updatetime) {
-        this.updatetime = updatetime;
+    public void setUpdateTime(long updateTime) {
+        this.updateTime = updateTime;
     }
 
     public long getUserid() {
@@ -96,12 +96,12 @@ public class RandomCodeHis extends BaseEntity {
         this.randomcode = randomcode;
     }
 
-    public long getCreatetime() {
-        return createtime;
+    public long getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatetime(long createtime) {
-        this.createtime = createtime;
+    public void setCreateTime(long createTime) {
+        this.createTime = createTime;
     }
 
     public static class TableStrategy implements DistributeTableStrategy<RandomCodeHis> {
@@ -110,7 +110,7 @@ public class RandomCodeHis extends BaseEntity {
 
         @Override
         public String getTable(String table, RandomCodeHis bean) {
-            return table + "_" + String.format(format, bean.getCreatetime());
+            return table + "_" + String.format(format, bean.getCreateTime());
         }
 
         @Override
@@ -121,7 +121,7 @@ public class RandomCodeHis extends BaseEntity {
 
         @Override
         public String[] getTables(String table, FilterNode node) {
-            Object time = node.findValue("createtime");
+            Object time = node.findValue("createTime");
             if (time instanceof Long) {
                 return new String[]{getSingleTable(table, (Long) time)};
             }
@@ -129,9 +129,9 @@ public class RandomCodeHis extends BaseEntity {
             return new String[]{getSingleTable(table, createTime.getMin())};
         }
 
-        private String getSingleTable(String table, long createtime) {
+        private String getSingleTable(String table, long createTime) {
             int pos = table.indexOf('.');
-            return "redemo_notice." + table.substring(pos + 1) + "_" + String.format(format, createtime);
+            return "redemo_notice." + table.substring(pos + 1) + "_" + String.format(format, createTime);
         }
     }
 }

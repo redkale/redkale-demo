@@ -54,7 +54,7 @@ public class SmsService extends BaseService {
         message.setResultdesc(resultdesc);
         if (source != null) {
             message.setStatus(ok ? SmsRecord.SMSSTATUS_SENDOK : SmsRecord.SMSSTATUS_SENDNO);
-            message.setSmsid(Utility.format36time(message.getCreatetime()) + Utility.uuid());
+            message.setSmsid(Utility.format36time(message.getCreateTime()) + Utility.uuid());
             source.insert(message);
         }
         return ok;
@@ -62,7 +62,7 @@ public class SmsService extends BaseService {
 
     @Comment("查询短信记录列表")
     public Sheet<SmsRecord> querySmsRecord(@Comment("过滤条件") SmsBean bean, @Comment("翻页对象") Flipper flipper) {
-        Flipper.sortIfAbsent(flipper, "createtime DESC");
+        Flipper.sortIfAbsent(flipper, "createTime DESC");
         return source.querySheet(SmsRecord.class, flipper, bean);
     }
 }

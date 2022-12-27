@@ -5,17 +5,17 @@
  */
 package org.redkale.demo.user;
 
-import org.redkale.demo.notice.RandomCode;
 import java.io.IOException;
 import java.net.HttpCookie;
 import java.util.Map;
 import org.redkale.annotation.Resource;
 import org.redkale.convert.json.*;
 import org.redkale.demo.base.*;
+import org.redkale.demo.notice.RandomCode;
 import org.redkale.net.http.*;
-import org.redkalex.weixin.WeiXinMPService;
 import org.redkale.service.RetResult;
 import org.redkale.util.AnyValue;
+import org.redkalex.weixin.WeiXinMPService;
 
 /**
  * 用户模块的Servlet
@@ -41,7 +41,7 @@ public class UserServlet extends BaseServlet {
     public void init(HttpContext context, AnyValue config) {
         JsonFactory factory = JsonFactory.root().createChild();
         //当前用户查看自己的用户信息时允许输出隐私信息
-        factory.register(UserDetail.class, false, "mobile", "email", "wxunionid", "qqopenid", "apptoken");
+        factory.register(UserDetail.class, false, "mobile", "email", "wxunionid", "qqopenid", "appToken");
         userConvert = factory.getConvert();
         super.init(context, config);
     }
@@ -81,8 +81,8 @@ public class UserServlet extends BaseServlet {
     /**
      * 微信登录 https://open.weixin.qq.com/connect/qrconnect?appid=wx微信ID&redirect_uri=xxxxx&response_type=code&scope=snsapi_login&state=wx微信ID_1#wechat_redirect
      * 接收两种形式：
-     * WEB端微信登录： /user/wxlogin?code=XXXXXX&state=wx微信ID_1&apptoken=XXX
-     * APP端微信登录: /user/wxlogin?openid=XXXX&state=1&access_token=XXX&apptoken=XXX
+     * WEB端微信登录： /user/wxlogin?code=XXXXXX&state=wx微信ID_1&appToken=XXX
+     * APP端微信登录: /user/wxlogin?openid=XXXX&state=1&access_token=XXX&appToken=XXX
      * <p>
      * @param req
      * @param resp
@@ -109,19 +109,19 @@ public class UserServlet extends BaseServlet {
             bean.setCode(code);
         }
         { //APP方式
-            bean.setAccesstoken(access_token);
+            bean.setAccessToken(access_token);
             bean.setOpenid(openid);
         }
         bean.setAutoreg(autoreg);
-        bean.setApptoken(req.getParameter("apptoken", ""));
-        bean.setLoginaddr(req.getRemoteAddr());
-        bean.setLoginagent(req.getHeader("User-Agent"));
+        bean.setAppToken(req.getParameter("appToken", ""));
+        bean.setLoginAddr(req.getRemoteAddr());
+        bean.setLoginAgent(req.getHeader("User-Agent"));
         if (autoreg) bean.setSessionid(req.changeSessionid());
         RetResult<UserInfo> rr = service.wxlogin(bean);
         if (autoreg && rr.isSuccess() && (wxbrowser || (access_token != null && !access_token.isEmpty()))) {
             UserInfo info = rr.getResult();
             int age = 1000 * 24 * 60 * 60;
-            String key = (bean.emptyApptoken() ? "" : (bean.getApptoken() + "#")) + info.getUser36id() + "$1" + info.getWxunionid() + "?" + age + "-" + System.currentTimeMillis();
+            String key = (bean.emptyAppToken() ? "" : (bean.getAppToken() + "#")) + info.getUser36id() + "$1" + info.getWxunionid() + "?" + age + "-" + System.currentTimeMillis();
             HttpCookie cookie = new HttpCookie(COOKIE_AUTOLOGIN, UserService.encryptAES(key));
             cookie.setHttpOnly(true);
             cookie.setPath("/");
@@ -142,11 +142,11 @@ public class UserServlet extends BaseServlet {
         String openid = req.getParameter("openid");
         if (finest) logger.finest("/user/qqlogin :  " + openid + "," + access_token);
         LoginQQBean bean = new LoginQQBean();
-        bean.setAccesstoken(access_token);
-        bean.setApptoken(req.getParameter("apptoken", ""));
+        bean.setAccessToken(access_token);
+        bean.setAppToken(req.getParameter("appToken", ""));
         bean.setOpenid(openid);
-        bean.setLoginaddr(req.getRemoteAddr());
-        bean.setLoginagent(req.getHeader("User-Agent"));
+        bean.setLoginAddr(req.getRemoteAddr());
+        bean.setLoginAgent(req.getHeader("User-Agent"));
         bean.setSessionid(req.changeSessionid());
         RetResult<UserInfo> rr = service.qqlogin(bean);
         if (rr.isSuccess()) {
@@ -180,17 +180,17 @@ public class UserServlet extends BaseServlet {
         LoginBean bean = req.getJsonParameter(LoginBean.class, "bean");
         if (bean == null) bean = new LoginBean();
         if (!bean.emptyPassword()) bean.setPassword(UserService.secondPasswordMD5(bean.getPassword()));
-        bean.setLoginagent(req.getHeader("User-Agent"));
-        bean.setLoginip(req.getRemoteAddr());
+        bean.setLoginAgent(req.getHeader("User-Agent"));
+        bean.setLoginIp(req.getRemoteAddr());
         String oldsessionid = req.getSessionid(false);
         if (oldsessionid != null && !oldsessionid.isEmpty()) service.logout(oldsessionid);
         bean.setSessionid(req.changeSessionid());
         RetResult<UserInfo> result = service.login(bean);
         if (result.isSuccess() && !bean.emptyPassword()) { //必须是密码登录类
-            if (bean.getCacheday() > 0 && bean.emptyCookieinfo()) {  //保存N天 
+            if (bean.getCacheDay() > 0 && bean.emptyCookieInfo()) {  //保存N天 
                 UserInfo info = result.getResult();
-                int age = bean.getCacheday() * 24 * 60 * 60;
-                String key = (bean.emptyApptoken() ? "" : (bean.getApptoken() + "#")) + info.getUser36id() + "$0" + bean.getPassword() + "?" + age + "-" + System.currentTimeMillis();
+                int age = bean.getCacheDay() * 24 * 60 * 60;
+                String key = (bean.emptyAppToken() ? "" : (bean.getAppToken() + "#")) + info.getUser36id() + "$0" + bean.getPassword() + "?" + age + "-" + System.currentTimeMillis();
                 HttpCookie cookie = new HttpCookie(COOKIE_AUTOLOGIN, UserService.encryptAES(key));
                 cookie.setHttpOnly(true);
                 cookie.setPath("/");
@@ -211,7 +211,7 @@ public class UserServlet extends BaseServlet {
         if (map.containsKey("mobile")) {
             bean.setMobile(map.get("mobile"));
             beanaccount = bean.getMobile();
-            ret = service.checkRandomCode(bean.getMobile(), map.get("vercode"), RandomCode.TYPE_SMSREG);
+            ret = service.checkRandomCode(bean.getMobile(), map.get("verCode"), RandomCode.TYPE_SMSREG);
             if (!ret.isSuccess()) {
                 resp.finishJson(ret);
                 return;
@@ -223,11 +223,11 @@ public class UserServlet extends BaseServlet {
             bean.setAccount(map.getOrDefault("account", ""));
             beanaccount = bean.getAccount();
         }
-        bean.setUsername(map.getOrDefault("username", ""));
-        bean.setApptoken(map.getOrDefault("apptoken", ""));
+        bean.setUserName(map.getOrDefault("userName", ""));
+        bean.setAppToken(map.getOrDefault("appToken", ""));
         bean.setPassword(map.getOrDefault("password", ""));
-        bean.setRegaddr(req.getRemoteAddr());
-        bean.setRegagent(req.getHeader("User-Agent", ""));
+        bean.setRegAddr(req.getRemoteAddr());
+        bean.setRegAgent(req.getHeader("User-Agent", ""));
         final String reqpwd = bean.getPassword();
         RetResult<UserInfo> rr = service.register(bean);
         if (rr.isSuccess()) {
@@ -237,12 +237,12 @@ public class UserServlet extends BaseServlet {
             }
             LoginBean loginbean = new LoginBean();
             loginbean.setAccount(beanaccount);
-            loginbean.setApptoken(bean.getApptoken());
+            loginbean.setAppToken(bean.getAppToken());
             loginbean.setPassword(UserService.secondPasswordMD5(reqpwd));
             loginbean.setSessionid(req.changeSessionid());
-            loginbean.setLoginagent(req.getHeader("User-Agent"));
-            if (map.containsKey("cacheday")) loginbean.setCacheday(Integer.parseInt(map.getOrDefault("cacheday", "0")));
-            loginbean.setLoginip(req.getRemoteAddr());
+            loginbean.setLoginAgent(req.getHeader("User-Agent"));
+            if (map.containsKey("cacheDay")) loginbean.setCacheDay(Integer.parseInt(map.getOrDefault("cacheDay", "0")));
+            loginbean.setLoginIp(req.getRemoteAddr());
             rr = service.login(loginbean);
         }
         long e = System.currentTimeMillis() - s;
@@ -270,8 +270,8 @@ public class UserServlet extends BaseServlet {
             loginbean.setAccount(curr.getEmail().isEmpty() ? curr.getMobile() : curr.getEmail());
             loginbean.setPassword(UserService.secondPasswordMD5(bean.getNewpwd()));
             loginbean.setSessionid(req.changeSessionid());
-            loginbean.setLoginagent(req.getHeader("User-Agent"));
-            loginbean.setLoginip(req.getRemoteAddr());
+            loginbean.setLoginAgent(req.getHeader("User-Agent"));
+            loginbean.setLoginIp(req.getRemoteAddr());
             result = service.login(loginbean);
         }
         String autologin = req.getCookie(COOKIE_AUTOLOGIN);
@@ -300,23 +300,23 @@ public class UserServlet extends BaseServlet {
     @HttpMapping(url = "/user/updatemobile")
     public void updatemobile(HttpRequest req, HttpResponse resp) throws IOException {
         UserInfo user = service.findUserInfo(req.currentUserid(int.class));
-        resp.finishJson(service.updateMobile(user.getUserid(), req.getParameter("mobile"), req.getParameter("vercode"), req.getParameter("precode")));
+        resp.finishJson(service.updateMobile(user.getUserid(), req.getParameter("mobile"), req.getParameter("verCode"), req.getParameter("precode")));
     }
 
     //更新用户昵称
-    @HttpMapping(url = "/user/updateusername")
-    public void updateUsername(HttpRequest req, HttpResponse resp) throws IOException {
+    @HttpMapping(url = "/user/updateuserName")
+    public void updateUserName(HttpRequest req, HttpResponse resp) throws IOException {
         UserInfo user = service.findUserInfo(req.currentUserid(int.class));
-        resp.finishJson(service.updateUsername(user.getUserid(), req.getParameter("username")));
+        resp.finishJson(service.updateUserName(user.getUserid(), req.getParameter("userName")));
     }
 
     //更新设备ID
-    @HttpMapping(url = "/user/updateapptoken")
-    public void updateApptoken(HttpRequest req, HttpResponse resp) throws IOException {
+    @HttpMapping(url = "/user/updateappToken")
+    public void updateAppToken(HttpRequest req, HttpResponse resp) throws IOException {
         String s = req.getRequstURILastPath();
-        if ("updateapptoken".equalsIgnoreCase(s)) s = "";
+        if ("updateappToken".equalsIgnoreCase(s)) s = "";
         UserInfo user = service.findUserInfo(req.currentUserid(int.class));
-        resp.finishJson(service.updateApptoken(user.getUserid(), req.getParameter("appos", req.getRequstURIPath("appos:", "")), req.getParameter("apptoken", s)));
+        resp.finishJson(service.updateAppToken(user.getUserid(), req.getParameter("appos", req.getRequstURIPath("appos:", "")), req.getParameter("appToken", s)));
     }
 
     //更新性别
@@ -329,34 +329,34 @@ public class UserServlet extends BaseServlet {
     //发送修改密码验证码
     @HttpMapping(url = "/user/smspwdcode")
     public void smscode(HttpRequest req, HttpResponse resp) throws IOException {
-        smsvercode(RandomCode.TYPE_SMSPWD, req, resp);
+        smsverCode(RandomCode.TYPE_SMSPWD, req, resp);
     }
 
     //发送手机修改验证码
     @HttpMapping(url = "/user/smsmobcode")
     public void smsmob(HttpRequest req, HttpResponse resp) throws IOException {
-        smsvercode(RandomCode.TYPE_SMSMOB, req, resp);
+        smsverCode(RandomCode.TYPE_SMSMOB, req, resp);
     }
 
     //发送原手机验证码
     @HttpMapping(url = "/user/smsodmcode")
     public void smsodm(HttpRequest req, HttpResponse resp) throws IOException {
-        smsvercode(RandomCode.TYPE_SMSODM, req, resp);
+        smsverCode(RandomCode.TYPE_SMSODM, req, resp);
     }
 
     //发送手机注册验证码
     @HttpMapping(url = "/user/smsregcode", auth = false)
     public void smsreg(HttpRequest req, HttpResponse resp) throws IOException {
-        smsvercode(RandomCode.TYPE_SMSREG, req, resp);
+        smsverCode(RandomCode.TYPE_SMSREG, req, resp);
     }
 
     //发送手机登录验证码
     @HttpMapping(url = "/user/smslgncode", auth = false)
     public void smslgn(HttpRequest req, HttpResponse resp) throws IOException {
-        smsvercode(RandomCode.TYPE_SMSLGN, req, resp);
+        smsverCode(RandomCode.TYPE_SMSLGN, req, resp);
     }
 
-    private void smsvercode(final short type, HttpRequest req, HttpResponse resp) throws IOException {
+    private void smsverCode(final short type, HttpRequest req, HttpResponse resp) throws IOException {
         String mobile = req.getRequstURIPath("mobile:", req.getParameter("mobile"));
         if (type == RandomCode.TYPE_SMSODM) { //给原手机号码发送验证短信
             UserInfo user = service.findUserInfo(req.currentUserid(int.class));
@@ -389,8 +389,8 @@ public class UserServlet extends BaseServlet {
     @HttpMapping(url = "/user/checkcode", auth = false)
     public void checkcode(HttpRequest req, HttpResponse resp) throws IOException {
         String mobile = req.getRequstURIPath("mobile:", req.getParameter("mobile"));
-        String vercode = req.getRequstURIPath("vercode:", req.getParameter("vercode"));
-        RetResult<RandomCode> ret = service.checkRandomCode(mobile, vercode, (short) 0);
+        String verCode = req.getRequstURIPath("verCode:", req.getParameter("verCode"));
+        RetResult<RandomCode> ret = service.checkRandomCode(mobile, verCode, (short) 0);
         resp.finishJson(RetCodes.retResult(ret.getRetcode()));
     }
 

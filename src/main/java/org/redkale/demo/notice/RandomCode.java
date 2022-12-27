@@ -57,20 +57,20 @@ public class RandomCode extends BaseEntity {
     private short type;
 
     @Column(comment = "创建时间")
-    private long createtime;
+    private long createTime;
 
     public RandomCode() {
     }
 
     public boolean isExpired() { //超过10分钟视为过期
-        return System.currentTimeMillis() - createtime > 10 * 60 * 1000;
+        return System.currentTimeMillis() - createTime > 10 * 60 * 1000;
     }
 
     public RandomCodeHis createRandomCodeHis(int retcode) {
         RandomCodeHis his = reproduce.apply(new RandomCodeHis(), this);
         his.setRetcode(retcode);
-        his.setUpdatetime(System.currentTimeMillis());
-        his.setSeqid(Utility.format36time(his.getCreatetime()) + Utility.uuid());
+        his.setUpdateTime(System.currentTimeMillis());
+        his.setSeqid(Utility.format36time(his.getCreateTime()) + Utility.uuid());
         return his;
     }
 
@@ -149,12 +149,12 @@ public class RandomCode extends BaseEntity {
         this.randomcode = randomcode;
     }
 
-    public long getCreatetime() {
-        return createtime;
+    public long getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatetime(long createtime) {
-        this.createtime = createtime;
+    public void setCreateTime(long createTime) {
+        this.createTime = createTime;
     }
 
 }

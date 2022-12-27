@@ -24,7 +24,7 @@ public class UserPwdBean extends BaseBean {
     private String account = "";
 
     @Comment("验证码")
-    private String vercode = "";
+    private String verCode = "";
 
     @Comment("旧密码 MD5(密码明文)")
     private String oldpwd;  //HEX-MD5(密码明文)
@@ -72,12 +72,12 @@ public class UserPwdBean extends BaseBean {
         this.account = account;
     }
 
-    public String getVercode() {
-        return vercode;
+    public String getVerCode() {
+        return verCode;
     }
 
-    public void setVercode(String vercode) {
-        this.vercode = vercode;
+    public void setVerCode(String verCode) {
+        this.verCode = verCode;
     }
 
 }

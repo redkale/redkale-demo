@@ -20,6 +20,7 @@ import org.redkale.annotation.*;
 import org.redkale.convert.json.JsonConvert;
 import static org.redkale.demo.base.RetCodes.*;
 import org.redkale.demo.base.*;
+import static org.redkale.demo.base.RetCodes.*;
 import static org.redkale.demo.base.UserInfo.*;
 import org.redkale.demo.file.FileService;
 import org.redkale.demo.info.MobileGroupService;
@@ -28,6 +29,7 @@ import static org.redkale.demo.user.UserDetail.*;
 import org.redkale.service.RetResult;
 import static org.redkale.source.FilterExpress.*;
 import org.redkale.source.*;
+import static org.redkale.source.FilterExpress.*;
 import org.redkale.util.*;
 import org.redkalex.weixin.WeiXinMPService;
 
@@ -149,9 +151,9 @@ public class UserService extends BaseService {
     }
 
     @Comment("根据APP设备ID查找用户")
-    public UserInfo findUserInfoByApptoken(String apptoken) {
-        if (apptoken == null || apptoken.isEmpty()) return null;
-        return source.find(UserInfo.class, FilterNode.create("apptoken", EQUAL, apptoken));
+    public UserInfo findUserInfoByAppToken(String appToken) {
+        if (appToken == null || appToken.isEmpty()) return null;
+        return source.find(UserInfo.class, FilterNode.create("appToken", EQUAL, appToken));
     }
 
     @Comment("查询用户列表， 通常用于后台管理系统查询")
@@ -184,7 +186,7 @@ public class UserService extends BaseService {
         List<RandomCode> codes = randomCodeService.queryRandomCodeByMobile(mobile);
         if (!codes.isEmpty()) {
             RandomCode last = codes.get(codes.size() - 1);
-            if (last.getCreatetime() + 60 * 1000 > System.currentTimeMillis()) return RetCodes.retResult(RET_USER_MOBILE_SMSFREQUENT);
+            if (last.getCreateTime() + 60 * 1000 > System.currentTimeMillis()) return RetCodes.retResult(RET_USER_MOBILE_SMSFREQUENT);
         }
         final int smscode = RandomCode.randomSmsCode();
         try {
@@ -194,7 +196,7 @@ public class UserService extends BaseService {
             return retResult(RET_USER_MOBILE_SMSFREQUENT);
         }
         RandomCode code = new RandomCode();
-        code.setCreatetime(System.currentTimeMillis());
+        code.setCreateTime(System.currentTimeMillis());
         if (info != null) code.setUserid(info.getUserid());
         code.setRandomcode(mobile + "-" + smscode);
         code.setType(type);
@@ -206,7 +208,7 @@ public class UserService extends BaseService {
     public RetResult<UserInfo> qqlogin(LoginQQBean bean) {
         try {
             String qqappid = "xxxx";
-            String url = "https://graph.qq.com/user/get_user_info?oauth_consumer_key=" + qqappid + "&access_token=" + bean.getAccesstoken() + "&openid=" + bean.getOpenid() + "&format=json";
+            String url = "https://graph.qq.com/user/get_user_info?oauth_consumer_key=" + qqappid + "&access_token=" + bean.getAccessToken() + "&openid=" + bean.getOpenid() + "&format=json";
             String json = Utility.getHttpContent(url);
             if (finest) logger.finest(url + "--->" + json);
             Map<String, String> jsonmap = convert.convertFrom(JsonConvert.TYPE_MAP_STRING_STRING, json);
@@ -215,13 +217,13 @@ public class UserService extends BaseService {
             UserInfo user = findUserInfoByQqopenid(bean.getOpenid());
             if (user == null) {
                 UserDetail detail = new UserDetail();
-                detail.setUsername(jsonmap.getOrDefault("nickname", "qq-user"));
+                detail.setUserName(jsonmap.getOrDefault("nickname", "qq-user"));
                 detail.setQqopenid(bean.getOpenid());
-                detail.setRegagent(bean.getLoginagent());
-                detail.setRegaddr(bean.getLoginaddr());
+                detail.setRegAgent(bean.getLoginAgent());
+                detail.setRegAddr(bean.getLoginAddr());
                 detail.setAppos(bean.getAppos());
-                detail.setApptoken(bean.getApptoken());
-                detail.setRegtype(REGTYPE_QQOPEN);
+                detail.setAppToken(bean.getAppToken());
+                detail.setRegType(REGTYPE_QQOPEN);
                 String genstr = jsonmap.getOrDefault("gender", "");
                 detail.setGender("男".equals(genstr) ? UserInfo.GENDER_MALE : ("女".equals(genstr) ? UserInfo.GENDER_FEMALE : (short) 0));
                 if (finer) logger.fine(bean + " --qqlogin-->" + convert.convertTo(jsonmap));
@@ -258,9 +260,9 @@ public class UserService extends BaseService {
     @Comment("微信登录")
     public RetResult<UserInfo> wxlogin(LoginWXBean bean) {
         try {
-            Map<String, String> wxmap = bean.emptyAccesstoken()
+            Map<String, String> wxmap = bean.emptyAccessToken()
                 ? wxMPService.getMPUserTokenByCode(bean.getCode()).join()
-                : wxMPService.getMPUserTokenByOpenid(bean.getAccesstoken(), bean.getOpenid()).join();
+                : wxMPService.getMPUserTokenByOpenid(bean.getAccessToken(), bean.getOpenid()).join();
             final String unionid = wxmap.get("unionid");
             if (unionid == null) return RetCodes.retResult(RET_USER_WXID_ILLEGAL);
             RetResult<UserInfo> rr;
@@ -268,13 +270,13 @@ public class UserService extends BaseService {
             if (user == null) {
                 if (!bean.isAutoreg()) return new RetResult(0, convert.convertTo(wxmap));
                 UserDetail detail = new UserDetail();
-                detail.setUsername(wxmap.getOrDefault("nickname", "wx-user"));
+                detail.setUserName(wxmap.getOrDefault("nickname", "wx-user"));
                 detail.setWxunionid(unionid);
                 detail.setAppos(bean.getAppos());
-                detail.setApptoken(bean.getApptoken());
-                detail.setRegtype(REGTYPE_WEIXIN);
-                detail.setRegagent(bean.getLoginagent());
-                detail.setRegaddr(bean.getLoginaddr());
+                detail.setAppToken(bean.getAppToken());
+                detail.setRegType(REGTYPE_WEIXIN);
+                detail.setRegAgent(bean.getLoginAgent());
+                detail.setRegAddr(bean.getLoginAddr());
                 detail.setGender((short) (Short.parseShort(wxmap.getOrDefault("sex", "0")) * 2));
                 logger.fine(bean + " --wxlogin-->" + convert.convertTo(wxmap));
                 rr = register(detail);
@@ -296,10 +298,10 @@ public class UserService extends BaseService {
             } else {
                 rr = new RetResult<>(user);
                 rr.setRetinfo(wxmap.get("openid"));
-                if (!user.getApptoken().equals(bean.getApptoken())) {
-                    user.setApptoken(bean.getApptoken());
-                    source.updateColumn(UserDetail.class, user.getUserid(), "apptoken", bean.getApptoken());
-                    source.updateColumn(UserInfo.class, user.getUserid(), "apptoken", bean.getApptoken());
+                if (!user.getAppToken().equals(bean.getAppToken())) {
+                    user.setAppToken(bean.getAppToken());
+                    source.updateColumn(UserDetail.class, user.getUserid(), "appToken", bean.getAppToken());
+                    source.updateColumn(UserInfo.class, user.getUserid(), "appToken", bean.getAppToken());
                 }
             }
             if (rr.isSuccess()) {
@@ -317,15 +319,15 @@ public class UserService extends BaseService {
         final RetResult<UserInfo> result = new RetResult();
         UserInfo user = null;
         boolean unok = true;
-        if (bean != null && !bean.emptyCookieinfo() && bean.emptyAccount()) {
+        if (bean != null && !bean.emptyCookieInfo() && bean.emptyAccount()) {
             String cookie;
             try {
-                cookie = decryptAES(bean.getCookieinfo());
+                cookie = decryptAES(bean.getCookieInfo());
             } catch (Exception e) {
                 return retResult(RET_USER_ACCOUNT_PWD_ILLEGAL);
             }
             int sharp = cookie.indexOf('#');
-            if (sharp > 0) bean.setApptoken(cookie.substring(0, sharp));
+            if (sharp > 0) bean.setAppToken(cookie.substring(0, sharp));
             int pos = cookie.indexOf('$');
             int userid = Integer.parseInt(cookie.substring(sharp + 1, pos), 36);
             user = this.findUserInfo(userid);
@@ -363,8 +365,8 @@ public class UserService extends BaseService {
         if (user == null) { //不在缓存内
             UserDetail detail = source.find(UserDetail.class, key, bean.getAccount());
             if (detail == null) return RetCodes.retResult(RET_USER_ACCOUNT_PWD_ILLEGAL);
-            if (bean.getPassword().isEmpty() && !bean.getVercode().isEmpty()) { //手机验证码登录
-                RetResult<RandomCode> rr = checkRandomCode(detail.getMobile(), bean.getVercode(), RandomCode.TYPE_SMSLGN);
+            if (bean.getPassword().isEmpty() && !bean.getVerCode().isEmpty()) { //手机验证码登录
+                RetResult<RandomCode> rr = checkRandomCode(detail.getMobile(), bean.getVerCode(), RandomCode.TYPE_SMSLGN);
                 if (!rr.isSuccess()) return RetCodes.retResult(rr.getRetcode());
                 removeRandomCode(rr.getResult());
             } else if (!detail.getPassword().equals(digestPassword(bean.getPassword()))) {
@@ -378,8 +380,8 @@ public class UserService extends BaseService {
             source.insert(user);
         } else { //在缓存内
             if (unok) {
-                if (bean.getPassword().isEmpty() && !bean.getVercode().isEmpty()) { //手机验证码登录
-                    RetResult<RandomCode> rr = checkRandomCode(user.getMobile(), bean.getVercode(), RandomCode.TYPE_SMSLGN);
+                if (bean.getPassword().isEmpty() && !bean.getVerCode().isEmpty()) { //手机验证码登录
+                    RetResult<RandomCode> rr = checkRandomCode(user.getMobile(), bean.getVerCode(), RandomCode.TYPE_SMSLGN);
                     if (!rr.isSuccess()) return RetCodes.retResult(rr.getRetcode());
                     removeRandomCode(rr.getResult());
                 } else if (!user.getPassword().equals(digestPassword(bean.getPassword()))) {
@@ -389,11 +391,11 @@ public class UserService extends BaseService {
             if (user.isFrobid()) return RetCodes.retResult(RET_USER_FREEZED);
             result.setRetcode(0);
             result.setResult(user);
-            if (!user.getApptoken().equals(bean.getApptoken())) { //用户设备变更了
+            if (!user.getAppToken().equals(bean.getAppToken())) { //用户设备变更了
                 user.setAppos(bean.getAppos());
-                user.setApptoken(bean.getApptoken());
-                source.updateColumn(UserDetail.class, user.getUserid(), ColumnValue.mov("appos", bean.getAppos()), ColumnValue.mov("apptoken", bean.getApptoken()));
-                source.updateColumn(UserInfo.class, user.getUserid(), ColumnValue.mov("appos", bean.getAppos()), ColumnValue.mov("apptoken", bean.getApptoken()));
+                user.setAppToken(bean.getAppToken());
+                source.updateColumn(UserDetail.class, user.getUserid(), ColumnValue.mov("appos", bean.getAppos()), ColumnValue.mov("appToken", bean.getAppToken()));
+                source.updateColumn(UserInfo.class, user.getUserid(), ColumnValue.mov("appos", bean.getAppos()), ColumnValue.mov("appToken", bean.getAppToken()));
             }
         }
         this.sessions.setexLong(bean.getSessionid(), sessionExpireSeconds, result.getResult().getUserid());
@@ -416,21 +418,21 @@ public class UserService extends BaseService {
         if (!user.getWxunionid().isEmpty() && (retcode = checkWxunionid(user.getEmail())) != 0) return RetCodes.retResult(retcode);
         if (!user.getQqopenid().isEmpty() && (retcode = checkQqopenid(user.getEmail())) != 0) return RetCodes.retResult(retcode);
         if (!user.getMobile().isEmpty()) {
-            user.setRegtype(REGTYPE_MOBILE);
+            user.setRegType(REGTYPE_MOBILE);
             if (user.getPassword().isEmpty()) return RetCodes.retResult(RET_USER_PASSWORD_ILLEGAL);
         } else if (!user.getEmail().isEmpty()) {
-            user.setRegtype(REGTYPE_EMAIL);
+            user.setRegType(REGTYPE_EMAIL);
             if (user.getPassword().isEmpty()) return RetCodes.retResult(RET_USER_PASSWORD_ILLEGAL);
         } else if (!user.getWxunionid().isEmpty()) {
-            user.setRegtype(REGTYPE_WEIXIN);
+            user.setRegType(REGTYPE_WEIXIN);
         } else if (!user.getQqopenid().isEmpty()) {
-            user.setRegtype(REGTYPE_QQOPEN);
+            user.setRegType(REGTYPE_QQOPEN);
         } else {
-            user.setRegtype(REGTYPE_ACCOUNT);
+            user.setRegType(REGTYPE_ACCOUNT);
             if (user.getPassword().isEmpty()) return RetCodes.retResult(RET_USER_PASSWORD_ILLEGAL);
         }
-        user.setCreatetime(System.currentTimeMillis());
-        user.setUpdatetime(0);
+        user.setCreateTime(System.currentTimeMillis());
+        user.setUpdateTime(0);
         if (!user.getPassword().isEmpty()) {
             user.setPassword(digestPassword(secondPasswordMD5(user.getPassword())));
         }
@@ -461,11 +463,11 @@ public class UserService extends BaseService {
     @Comment("注销登录")
     public boolean logout(final String sessionid) {
         UserInfo user = current(sessionid);
-        if (user != null && !user.getApptoken().isEmpty()) {
+        if (user != null && !user.getAppToken().isEmpty()) {
             user.setAppos("");
-            user.setApptoken("");
-            source.updateColumn(UserDetail.class, user.getUserid(), ColumnValue.mov("appos", ""), ColumnValue.mov("apptoken", ""));
-            source.updateColumn(UserInfo.class, user.getUserid(), ColumnValue.mov("appos", ""), ColumnValue.mov("apptoken", ""));
+            user.setAppToken("");
+            source.updateColumn(UserDetail.class, user.getUserid(), ColumnValue.mov("appos", ""), ColumnValue.mov("appToken", ""));
+            source.updateColumn(UserInfo.class, user.getUserid(), ColumnValue.mov("appos", ""), ColumnValue.mov("appToken", ""));
         }
         sessions.del(sessionid);
         return true;
@@ -489,30 +491,30 @@ public class UserService extends BaseService {
         }
     }
 
-    public RetResult updateUsername(int userid, String username) {
-        if (username == null || username.isEmpty()) return RetCodes.retResult(RET_USER_USERNAME_ILLEGAL);
+    public RetResult updateUserName(int userid, String userName) {
+        if (userName == null || userName.isEmpty()) return RetCodes.retResult(RET_USER_USERNAME_ILLEGAL);
         UserInfo user = findUserInfo(userid);
         if (user == null) return RetCodes.retResult(RET_USER_NOTEXISTS);
-        if (user.getUsername().equals(username)) return RetResult.success();
-        if (username.isEmpty()) return RetCodes.retResult(RET_USER_USERNAME_ILLEGAL);
+        if (user.getUserName().equals(userName)) return RetResult.success();
+        if (userName.isEmpty()) return RetCodes.retResult(RET_USER_USERNAME_ILLEGAL);
         UserDetail ud = new UserDetail();
         ud.setUserid(userid);
-        ud.setUsername(username);
-        source.updateColumn(ud, "username");
-        user.setUsername(username);
-        source.updateColumn(user, "username");
+        ud.setUserName(userName);
+        source.updateColumn(ud, "userName");
+        user.setUserName(userName);
+        source.updateColumn(user, "userName");
         return RetResult.success();
     }
 
-    public RetResult updateApptoken(int userid, String appos, String apptoken) {
+    public RetResult updateAppToken(int userid, String appos, String appToken) {
         UserInfo user = findUserInfo(userid);
         if (user == null) return RetCodes.retResult(RET_USER_NOTEXISTS);
         if (appos == null) appos = "";
-        if (apptoken == null) apptoken = "";
-        source.updateColumn(UserDetail.class, user.getUserid(), ColumnValue.mov("appos", appos.toLowerCase()), ColumnValue.mov("apptoken", apptoken));
-        source.updateColumn(UserInfo.class, user.getUserid(), ColumnValue.mov("appos", appos.toLowerCase()), ColumnValue.mov("apptoken", apptoken));
+        if (appToken == null) appToken = "";
+        source.updateColumn(UserDetail.class, user.getUserid(), ColumnValue.mov("appos", appos.toLowerCase()), ColumnValue.mov("appToken", appToken));
+        source.updateColumn(UserInfo.class, user.getUserid(), ColumnValue.mov("appos", appos.toLowerCase()), ColumnValue.mov("appToken", appToken));
         user.setAppos(appos.toLowerCase());
-        user.setApptoken(apptoken);
+        user.setAppToken(appToken);
         return RetResult.success();
     }
 
@@ -527,10 +529,10 @@ public class UserService extends BaseService {
     }
 
     //precode 表示原手机号码收到的短信验证码，如果当前用户没有配置手机号码，则该值忽略
-    public RetResult updateMobile(int userid, String newmobile, String vercode, String precode) {
+    public RetResult updateMobile(int userid, String newmobile, String verCode, String precode) {
         int retcode = checkMobile(newmobile);
         if (retcode != 0) return RetCodes.retResult(retcode);
-        RandomCode code = source.find(RandomCode.class, newmobile + "-" + vercode);
+        RandomCode code = source.find(RandomCode.class, newmobile + "-" + verCode);
         if (code == null) return RetCodes.retResult(RET_USER_RANDCODE_ILLEGAL);
         if (code.isExpired()) return RetCodes.retResult(RET_USER_RANDCODE_EXPIRED);
 
@@ -563,8 +565,8 @@ public class UserService extends BaseService {
             String randomcode = bean.getRandomcode();
             if (randomcode == null || randomcode.isEmpty()) {
                 if (bean.getAccount() != null && !bean.getAccount().isEmpty()
-                    && bean.getVercode() != null && !bean.getVercode().isEmpty()) {
-                    randomcode = bean.getAccount() + "-" + bean.getVercode();
+                    && bean.getVerCode() != null && !bean.getVerCode().isEmpty()) {
+                    randomcode = bean.getAccount() + "-" + bean.getVerCode();
                 }
             }
             if (randomcode != null && !randomcode.isEmpty()) {

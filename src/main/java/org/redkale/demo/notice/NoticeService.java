@@ -8,7 +8,7 @@ package org.redkale.demo.notice;
 import org.redkale.annotation.Comment;
 import org.redkale.demo.base.BaseService;
 import org.redkale.source.Flipper;
-import org.redkale.util.*;
+import org.redkale.util.Sheet;
 
 /**
  *
@@ -19,7 +19,7 @@ import org.redkale.util.*;
 public class NoticeService extends BaseService {
 
     public Sheet<NoticeRecord> queryNoticeRecord(NoticeBean bean, Flipper flipper) {
-        Flipper.sortIfAbsent(flipper, "createtime DESC");
+        Flipper.sortIfAbsent(flipper, "createTime DESC");
         return source.querySheet(NoticeRecord.class, flipper, bean);
     }
 }

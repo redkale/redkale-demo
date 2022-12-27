@@ -33,7 +33,7 @@ public class PayAction extends BaseEntity {
     private String responsetext = "";
 
     @Column(updatable = false, comment = "创建时间，单位毫秒")
-    private long createtime;
+    private long createTime;
 
     public void setPayactid(String payactid) {
         this.payactid = payactid;
@@ -83,12 +83,12 @@ public class PayAction extends BaseEntity {
         return this.responsetext;
     }
 
-    public void setCreatetime(long createtime) {
-        this.createtime = createtime;
+    public void setCreateTime(long createTime) {
+        this.createTime = createTime;
     }
 
-    public long getCreatetime() {
-        return this.createtime;
+    public long getCreateTime() {
+        return this.createTime;
     }
 
     public static class TableStrategy implements DistributeTableStrategy<PayAction> {
@@ -97,12 +97,12 @@ public class PayAction extends BaseEntity {
 
         @Override
         public String getTable(String table, PayAction bean) {
-            return getSingleTable(table, bean.getCreatetime());
+            return getSingleTable(table, bean.getCreateTime());
         }
 
-        private String getSingleTable(String table, long createtime) {
+        private String getSingleTable(String table, long createTime) {
             int pos = table.indexOf('.');
-            return "redemo_pay_act." + table.substring(pos + 1) + "_" + String.format(format, createtime);
+            return "redemo_pay_act." + table.substring(pos + 1) + "_" + String.format(format, createTime);
         }
 
         @Override
@@ -113,7 +113,7 @@ public class PayAction extends BaseEntity {
 
         @Override
         public String[] getTables(String table, FilterNode node) {
-            Object time = node.findValue("createtime");
+            Object time = node.findValue("createTime");
             if (time instanceof Long) {
                 return new String[]{getSingleTable(table, (Long) time)};
             }

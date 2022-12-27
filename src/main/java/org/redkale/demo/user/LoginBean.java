@@ -29,22 +29,22 @@ public final class LoginBean extends BaseBean implements FilterBean {
     private String appos = "";//APP的设备系统
 
     @Comment("APP设备唯一标识")
-    private String apptoken = ""; //APP设备唯一标识
+    private String appToken = ""; //APP设备唯一标识
 
     @Comment("自动登录Cookie值")
-    private String cookieinfo; //自动登录Cookie值
+    private String cookieInfo; //自动登录Cookie值
 
     @Comment("User-Agent")
-    private String loginagent = ""; //User-Agent
+    private String loginAgent = ""; //User-Agent
 
     @Comment("客户端IP地址")
-    private String loginip = ""; //客户端IP地址
+    private String loginIp = ""; //客户端IP地址
 
     @Comment("验证码")
-    private String vercode = ""; //验证码
+    private String verCode = ""; //验证码
 
     @Comment("COOKIE缓存天数")
-    private int cacheday; //COOKIE缓存天数
+    private int cacheDay; //COOKIE缓存天数
 
     @Transient
     @Comment("Session会话ID")
@@ -58,16 +58,16 @@ public final class LoginBean extends BaseBean implements FilterBean {
         return this.password == null || this.password.isEmpty();
     }
 
-    public boolean emptyApptoken() {
-        return this.apptoken == null || this.apptoken.isEmpty();
+    public boolean emptyAppToken() {
+        return this.appToken == null || this.appToken.isEmpty();
     }
 
     public boolean emptySessionid() {
         return this.sessionid == null || this.sessionid.isEmpty();
     }
 
-    public boolean emptyCookieinfo() {
-        return this.cookieinfo == null || this.cookieinfo.isEmpty();
+    public boolean emptyCookieInfo() {
+        return this.cookieInfo == null || this.cookieInfo.isEmpty();
     }
 
     public short getType() {
@@ -102,56 +102,56 @@ public final class LoginBean extends BaseBean implements FilterBean {
         this.password = password;
     }
 
-    public String getLoginagent() {
-        return loginagent;
+    public String getLoginAgent() {
+        return loginAgent;
     }
 
-    public void setLoginagent(String loginagent) {
-        if (loginagent != null) {
-            if (loginagent.length() > 128) loginagent = loginagent.substring(0, 127);
-            this.loginagent = loginagent;
+    public void setLoginAgent(String loginAgent) {
+        if (loginAgent != null) {
+            if (loginAgent.length() > 128) loginAgent = loginAgent.substring(0, 127);
+            this.loginAgent = loginAgent;
         }
     }
 
-    public String getLoginip() {
-        return loginip;
+    public String getLoginIp() {
+        return loginIp;
     }
 
-    public void setLoginip(String loginip) {
-        this.loginip = loginip;
+    public void setLoginIp(String loginIp) {
+        this.loginIp = loginIp;
     }
 
-    public String getVercode() {
-        return vercode;
+    public String getVerCode() {
+        return verCode;
     }
 
-    public void setVercode(String vercode) {
-        this.vercode = vercode;
+    public void setVerCode(String verCode) {
+        this.verCode = verCode;
     }
 
-    public int getCacheday() {
-        return cacheday;
+    public int getCacheDay() {
+        return cacheDay;
     }
 
-    public void setCacheday(int cacheday) {
-        this.cacheday = cacheday;
+    public void setCacheDay(int cacheDay) {
+        this.cacheDay = cacheDay;
     }
 
-    public String getCookieinfo() {
-        return cookieinfo;
+    public String getCookieInfo() {
+        return cookieInfo;
     }
 
-    public void setCookieinfo(String cookieinfo) {
-        this.cookieinfo = cookieinfo;
+    public void setCookieInfo(String cookieInfo) {
+        this.cookieInfo = cookieInfo;
     }
 
-    public String getApptoken() {
-        return apptoken;
+    public String getAppToken() {
+        return appToken;
     }
 
-    public void setApptoken(String apptoken) {
-        if (apptoken != null) {
-            this.apptoken = apptoken.trim();
+    public void setAppToken(String appToken) {
+        if (appToken != null) {
+            this.appToken = appToken.trim();
         }
     }
 

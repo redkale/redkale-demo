@@ -26,7 +26,7 @@ public class SmsBean extends BaseBean implements FilterBean {
     private String mobile;  //手机号码
 
     @Comment("时间范围，本字段必须有值，且范围必须在一个自然月内")
-    private Range.LongRange createtime; //时间范围
+    private Range.LongRange createTime; //时间范围
 
     public short[] getStatus() {
         return status;
@@ -52,12 +52,12 @@ public class SmsBean extends BaseBean implements FilterBean {
         this.mobile = mobile;
     }
 
-    public Range.LongRange getCreatetime() {
-        return createtime;
+    public Range.LongRange getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatetime(Range.LongRange createtime) {
-        this.createtime = createtime;
+    public void setCreateTime(Range.LongRange createTime) {
+        this.createTime = createTime;
     }
 
 }

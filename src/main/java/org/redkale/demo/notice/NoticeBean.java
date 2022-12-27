@@ -27,7 +27,7 @@ public class NoticeBean extends BaseBean implements FilterBean {
     private String appos = "";
 
     @Column(length = 128, updatable = false, comment = "设备推送ID")
-    private String apptoken = "";  //设备推送ID
+    private String appToken = "";  //设备推送ID
 
     public long getUserid() {
         return userid;
@@ -45,12 +45,12 @@ public class NoticeBean extends BaseBean implements FilterBean {
         this.status = status;
     }
 
-    public String getApptoken() {
-        return apptoken;
+    public String getAppToken() {
+        return appToken;
     }
 
-    public void setApptoken(String apptoken) {
-        this.apptoken = apptoken;
+    public void setAppToken(String appToken) {
+        this.appToken = appToken;
     }
 
     public String getAppos() {

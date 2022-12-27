@@ -41,7 +41,7 @@ public class NoticeRecord extends BaseEntity {
     private String appos = "";
 
     @Column(length = 128, updatable = false, comment = "设备推送ID")
-    private String apptoken = "";  //设备推送ID
+    private String appToken = "";  //设备推送ID
 
     @Column(length = 4096, updatable = false, comment = "短信内容")
     private String content = ""; //短信内容
@@ -50,7 +50,7 @@ public class NoticeRecord extends BaseEntity {
     private String resultdesc = ""; //返回结果
 
     @Column(updatable = false, comment = "创建时间")
-    private long createtime; //创建时间
+    private long createTime; //创建时间
 
     public String getNoticeid() {
         return noticeid;
@@ -84,12 +84,12 @@ public class NoticeRecord extends BaseEntity {
         this.appos = appos;
     }
 
-    public String getApptoken() {
-        return apptoken;
+    public String getAppToken() {
+        return appToken;
     }
 
-    public void setApptoken(String apptoken) {
-        this.apptoken = apptoken;
+    public void setAppToken(String appToken) {
+        this.appToken = appToken;
     }
 
     public String getContent() {
@@ -108,12 +108,12 @@ public class NoticeRecord extends BaseEntity {
         this.resultdesc = resultdesc;
     }
 
-    public long getCreatetime() {
-        return createtime;
+    public long getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatetime(long createtime) {
-        this.createtime = createtime;
+    public void setCreateTime(long createTime) {
+        this.createTime = createTime;
     }
 
     public static class TableStrategy implements DistributeTableStrategy<NoticeRecord> {
@@ -122,7 +122,7 @@ public class NoticeRecord extends BaseEntity {
 
         @Override
         public String[] getTables(String table, FilterNode node) {
-            Object time = node.findValue("createtime");
+            Object time = node.findValue("createTime");
             if (time instanceof Long) {
                 return new String[]{getSingleTable(table, (Long) time)};
             }
@@ -132,12 +132,12 @@ public class NoticeRecord extends BaseEntity {
 
         @Override
         public String getTable(String table, NoticeRecord bean) {
-            return getSingleTable(table, bean.getCreatetime());
+            return getSingleTable(table, bean.getCreateTime());
         }
 
-        private String getSingleTable(String table, long createtime) {
+        private String getSingleTable(String table, long createTime) {
             int pos = table.indexOf('.');
-            return "redemo_notice." + table.substring(pos + 1) + "_" + String.format(format, createtime);
+            return "redemo_notice." + table.substring(pos + 1) + "_" + String.format(format, createTime);
         }
 
         @Override

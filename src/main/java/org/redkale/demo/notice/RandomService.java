@@ -39,7 +39,7 @@ public class RandomService extends BaseService {
             final long delay = dayms - System.currentTimeMillis() % dayms;
             scheduler.scheduleAtFixedRate(() -> {
                 //超过十分钟视为过期
-                FilterNode node = FilterNode.create("createtime", FilterExpress.LESSTHANOREQUALTO, System.currentTimeMillis() - 10 * 60 * 1000);
+                FilterNode node = FilterNode.create("createTime", FilterExpress.LESSTHANOREQUALTO, System.currentTimeMillis() - 10 * 60 * 1000);
                 Flipper flipper = new Flipper();
                 do {
                     Sheet<RandomCode> sheet = source.querySheet(RandomCode.class, flipper, node);
@@ -87,7 +87,7 @@ public class RandomService extends BaseService {
     }
 
     public RetResult createRandomCode(RandomCode entity) {
-        entity.setCreatetime(System.currentTimeMillis());
+        entity.setCreateTime(System.currentTimeMillis());
         source.insert(entity);
         return RetResult.success();
     }

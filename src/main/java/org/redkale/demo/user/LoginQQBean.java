@@ -5,7 +5,7 @@
  */
 package org.redkale.demo.user;
 
-import org.redkale.demo.base.*;
+import org.redkale.demo.base.BaseBean;
 
 /**
  * QQ登录参数
@@ -14,44 +14,44 @@ import org.redkale.demo.base.*;
  */
 public class LoginQQBean extends BaseBean {
 
-    protected String accesstoken;
+    protected String accessToken;
 
     protected String openid;
 
-    protected String loginagent;
+    protected String loginAgent;
 
-    protected String loginaddr;
+    protected String loginAddr;
 
     protected String sessionid;
 
     protected String appos = "";
     
-    protected String apptoken = "";
+    protected String appToken = "";
 
-    public boolean emptyAccesstoken() {
-        return this.accesstoken == null || this.accesstoken.isEmpty();
+    public boolean emptyAccessToken() {
+        return this.accessToken == null || this.accessToken.isEmpty();
     }
 
-    public boolean emptyApptoken() {
-        return this.apptoken == null || this.apptoken.isEmpty();
+    public boolean emptyAppToken() {
+        return this.appToken == null || this.appToken.isEmpty();
     }
 
-    public String getApptoken() {
-        return apptoken;
+    public String getAppToken() {
+        return appToken;
     }
 
-    public void setApptoken(String apptoken) {
-        if (apptoken != null && apptoken.length() > 31) {
-            this.apptoken = apptoken;
+    public void setAppToken(String appToken) {
+        if (appToken != null && appToken.length() > 31) {
+            this.appToken = appToken;
         }
     }
 
-    public String getAccesstoken() {
-        return accesstoken;
+    public String getAccessToken() {
+        return accessToken;
     }
 
-    public void setAccesstoken(String accesstoken) {
-        this.accesstoken = accesstoken;
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
     }
 
     public String getOpenid() {
@@ -62,20 +62,20 @@ public class LoginQQBean extends BaseBean {
         this.openid = openid;
     }
 
-    public String getLoginagent() {
-        return loginagent;
+    public String getLoginAgent() {
+        return loginAgent;
     }
 
-    public void setLoginagent(String loginagent) {
-        this.loginagent = loginagent;
+    public void setLoginAgent(String loginAgent) {
+        this.loginAgent = loginAgent;
     }
 
-    public String getLoginaddr() {
-        return loginaddr;
+    public String getLoginAddr() {
+        return loginAddr;
     }
 
-    public void setLoginaddr(String loginaddr) {
-        this.loginaddr = loginaddr;
+    public void setLoginAddr(String loginAddr) {
+        this.loginAddr = loginAddr;
     }
 
     public String getSessionid() {

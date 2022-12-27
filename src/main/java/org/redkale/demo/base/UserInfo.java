@@ -36,7 +36,7 @@ public class UserInfo extends BaseEntity {
 
     static {
         USER_SYSTEM.setUserid(USERID_SYSTEM);
-        USER_SYSTEM.setUsername("SYSTEM");
+        USER_SYSTEM.setUserName("SYSTEM");
         USER_SYSTEM.setEmail("system@redkale.org");
         USER_SYSTEM.setMobile("");
     }
@@ -46,7 +46,7 @@ public class UserInfo extends BaseEntity {
     protected int userid;  //用户ID
 
     @Column(length = 128, comment = "[用户昵称]")
-    protected String username = "";  //用户昵称
+    protected String userName = "";  //用户昵称
 
     @Column(comment = "[用户类型]")
     protected short type;    //用户类型 （前端不可见）
@@ -76,7 +76,7 @@ public class UserInfo extends BaseEntity {
     protected String appos = "";//APP的设备系统 （前端不可见） 
 
     @Column(length = 255, comment = "APP的设备ID")
-    protected String apptoken = "";  //APP的设备ID （前端不可见） 通常用于IOS的APNS推送
+    protected String appToken = "";  //APP的设备ID （前端不可见） 通常用于IOS的APNS推送
 
     @Column(comment = "[状态]: 10:正常;20:待审批;30:审批不通过;40:冻结;50:隐藏;60:关闭;70:过期;80:删除;")
     protected short status;    //状态 （前端不可见）  值见BaseEntity的STATUS常量
@@ -162,12 +162,12 @@ public class UserInfo extends BaseEntity {
         this.type = type;
     }
 
-    public String getUsername() {
-        return username == null ? "" : username;
+    public String getUserName() {
+        return userName == null ? "" : userName;
     }
 
-    public void setUsername(String username) {
-        this.username = username == null ? "" : username.trim();
+    public void setUserName(String userName) {
+        this.userName = userName == null ? "" : userName.trim();
     }
 
     //密码不允许输出给外部接口
@@ -222,12 +222,12 @@ public class UserInfo extends BaseEntity {
 
     //APP设备ID不允许输出给外部接口
     @ConvertColumn(ignore = true, type = ConvertType.JSON)
-    public String getApptoken() {
-        return apptoken == null ? "" : apptoken;
+    public String getAppToken() {
+        return appToken == null ? "" : appToken;
     }
 
-    public void setApptoken(String apptoken) {
-        this.apptoken = apptoken == null ? "" : apptoken.trim();
+    public void setAppToken(String appToken) {
+        this.appToken = appToken == null ? "" : appToken.trim();
     }
 
     //用户状态值不允许输出给外部接口

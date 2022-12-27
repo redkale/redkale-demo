@@ -16,7 +16,7 @@ import org.redkalex.pay.*;
 public class PayRecord extends BaseEntity {
 
     @Id
-    @Column(length = 64, comment = "支付编号; 值=orderno+createtime36进制(9位)")
+    @Column(length = 64, comment = "支付编号; 值=orderno+createTime36进制(9位)")
     private String payno = "";
 
     @Column(length = 128, comment = "第三方支付订单号")
@@ -65,7 +65,7 @@ public class PayRecord extends BaseEntity {
     private String responsetext = "";
 
     @Column(updatable = false, comment = "支付开始时间，单位毫秒")
-    private long createtime;
+    private long createTime;
 
     @Column(comment = "支付结束时间，单位毫秒")
     private long finishtime;
@@ -241,12 +241,12 @@ public class PayRecord extends BaseEntity {
         return this.responsetext;
     }
 
-    public void setCreatetime(long createtime) {
-        this.createtime = createtime;
+    public void setCreateTime(long createTime) {
+        this.createTime = createTime;
     }
 
-    public long getCreatetime() {
-        return this.createtime;
+    public long getCreateTime() {
+        return this.createTime;
     }
 
     public void setFinishtime(long finishtime) {
@@ -291,9 +291,9 @@ public class PayRecord extends BaseEntity {
             return getSingleTable(table, Long.parseLong(id.substring(id.length() - 9), 36));
         }
 
-        private String getSingleTable(String table, long createtime) {
+        private String getSingleTable(String table, long createTime) {
             int pos = table.indexOf('.');
-            return "redemo_pay." + table.substring(pos + 1) + "_" + String.format(format, createtime);
+            return "redemo_pay." + table.substring(pos + 1) + "_" + String.format(format, createTime);
         }
 
         @Override
@@ -303,7 +303,7 @@ public class PayRecord extends BaseEntity {
 
         @Override
         public String[] getTables(String table, FilterNode node) {
-            Object time = node.findValue("createtime");
+            Object time = node.findValue("createTime");
             if (time instanceof Long) {
                 return new String[]{getSingleTable(table, (Long) time)};
             }

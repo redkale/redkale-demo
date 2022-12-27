@@ -7,6 +7,7 @@ package org.redkale.demo.base;
 
 import java.io.*;
 import java.util.*;
+import static org.redkale.source.AbstractDataSource.*;
 import org.redkale.source.*;
 import static org.redkale.source.AbstractDataSource.*;
 import org.redkale.util.AnyValue.DefaultAnyValue;
@@ -195,7 +196,7 @@ public class AutoClassCreator {
                         ctype = "byte[]";
                     }
                     fieldsb.append("    @Column(");
-                    if ("createtime".equals(column)) fieldsb.append("updatable = false, ");
+                    if ("createTime".equals(column)) fieldsb.append("updatable = false, ");
                     if (length > 0) fieldsb.append("length = ").append(length).append(", ");
                     if (precision > 0) fieldsb.append("precision = ").append(precision).append(", ");
                     if (scale > 0) fieldsb.append("scale = ").append(scale).append(", ");

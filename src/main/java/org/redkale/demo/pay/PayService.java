@@ -5,13 +5,14 @@
  */
 package org.redkale.demo.pay;
 
-import java.util.*;
+import java.util.Map;
 import java.util.logging.Level;
 import org.redkale.annotation.*;
 import org.redkale.convert.json.*;
 import org.redkale.demo.base.BaseService;
 import org.redkale.service.RetResult;
 import org.redkale.util.Utility;
+import static org.redkalex.pay.PayRetCodes.*;
 import org.redkalex.pay.*;
 import static org.redkalex.pay.PayRetCodes.*;
 
@@ -57,8 +58,8 @@ public class PayService extends BaseService {
 
     @Comment("固定返回支付成功结果， 用于调试")
     public RetResult<Map<String, String>> testPrepay(final PayRecord pay) {
-        pay.setCreatetime(System.currentTimeMillis());
-        String create36time = Long.toString(pay.getCreatetime(), 36);
+        pay.setCreateTime(System.currentTimeMillis());
+        String create36time = Long.toString(pay.getCreateTime(), 36);
         if (create36time.length() < 9) create36time = "0" + create36time;
         pay.setPayno(pay.getOrderno() + create36time);
         PayPreRequest req = pay.createPayPreRequest();
@@ -84,12 +85,12 @@ public class PayService extends BaseService {
         final PayQueryResponse resp = payService.query(request);
         PayAction payact = new PayAction();
         payact.setActurl(Pays.PAYACTION_QUERY);
-        payact.setCreatetime(System.currentTimeMillis());
+        payact.setCreateTime(System.currentTimeMillis());
         payact.setPayno(pay.getPayno());
         payact.setPaytype(pay.getPaytype());
         payact.setRequestjson(convert.convertTo(request));
         payact.setResponsetext(convert.convertTo(resp));
-        payact.setPayactid(Utility.format36time(payact.getCreatetime()) + Utility.uuid());
+        payact.setPayactid(Utility.format36time(payact.getCreateTime()) + Utility.uuid());
         source.insert(payact);
         if (resp.isSuccess()) { //查询结果成功，并不表示支付成功
             if (resp.getPayStatus() != Pays.PAYSTATUS_UNPAY //不能将未支付状态更新到pay中， 否则notify发现是未支付状态会跳过pay的更新
@@ -98,13 +99,13 @@ public class PayService extends BaseService {
             }
             if (pay.isPayok()) pay.setPayedmoney(pay.getMoney());
             pay.setThirdpayno(resp.getThirdPayno());
-            pay.setFinishtime(payact.getCreatetime());
+            pay.setFinishtime(payact.getCreateTime());
             pay.setResponsetext(payact.getResponsetext());
             source.updateColumn(pay, "paystatus", "payedmoney", "thirdpayno", "responsetext", "finishtime");
-        } else if (forceFail || (pay.getCreatetime() + 3 * 60 * 1000 < System.currentTimeMillis())) { //超过3分钟视为支付失败
+        } else if (forceFail || (pay.getCreateTime() + 3 * 60 * 1000 < System.currentTimeMillis())) { //超过3分钟视为支付失败
             pay.setPaystatus(Pays.PAYSTATUS_CLOSED);
             pay.setThirdpayno(resp.getThirdPayno());
-            pay.setFinishtime(payact.getCreatetime());
+            pay.setFinishtime(payact.getCreateTime());
             pay.setResponsetext(payact.getResponsetext());
             source.updateColumn(pay, "paystatus", "thirdpayno", "responsetext", "finishtime");
         }
@@ -117,12 +118,12 @@ public class PayService extends BaseService {
         PayRecord pay = findPayRecord(resp.getPayno());
         PayAction payact = new PayAction();
         payact.setActurl(Pays.PAYACTION_NOTIFY);
-        payact.setCreatetime(System.currentTimeMillis());
+        payact.setCreateTime(System.currentTimeMillis());
         payact.setPayno(resp.getPayno());
         payact.setPaytype(resp.getPayType());
         payact.setRequestjson(convert.convertTo(request));
         payact.setResponsetext(convert.convertTo(resp));
-        payact.setPayactid(Utility.format36time(payact.getCreatetime()) + Utility.uuid());
+        payact.setPayactid(Utility.format36time(payact.getCreateTime()) + Utility.uuid());
         source.insert(payact);
         if (pay.getPaystatus() != Pays.PAYSTATUS_UNPAY && pay.getPaystatus() != Pays.PAYSTATUS_UNREFUND) { //已经更新过了
             logger.log(Level.WARNING, "pay (" + pay + ") status error, req = " + request + ", resp = " + resp);
@@ -148,8 +149,8 @@ public class PayService extends BaseService {
 
     @Comment("微信公众号、手机支付时调用")
     public RetResult<Map<String, String>> prepay(final PayRecord pay) {
-        pay.setCreatetime(System.currentTimeMillis());
-        String create36time = Long.toString(pay.getCreatetime(), 36);
+        pay.setCreateTime(System.currentTimeMillis());
+        String create36time = Long.toString(pay.getCreateTime(), 36);
         if (create36time.length() < 9) create36time = "0" + create36time;
         pay.setPayno(pay.getOrderno() + create36time);
         PayPreRequest req = pay.createPayPreRequest();

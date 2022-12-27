@@ -5,14 +5,14 @@
  */
 package org.redkale.demo.base;
 
-import java.io.*;
+import java.io.IOException;
 import java.util.logging.*;
 import org.redkale.annotation.Resource;
-import org.redkale.convert.json.*;
+import org.redkale.convert.json.JsonConvert;
 import org.redkale.demo.user.*;
 import org.redkale.net.http.*;
-import org.redkale.service.*;
-import org.redkale.util.*;
+import org.redkale.service.RetResult;
+import org.redkale.util.AnyValue;
 
 /**
  *
@@ -102,9 +102,9 @@ public class BaseServlet extends HttpServlet {
         if (autologin == null) return 0;
         autologin = autologin.replace('"', ' ').trim();
         LoginBean bean = new LoginBean();
-        bean.setCookieinfo(autologin);
-        bean.setLoginagent(req.getHeader("User-Agent"));
-        bean.setLoginip(req.getRemoteAddr());
+        bean.setCookieInfo(autologin);
+        bean.setLoginAgent(req.getHeader("User-Agent"));
+        bean.setLoginIp(req.getRemoteAddr());
         bean.setSessionid(req.changeSessionid());
         RetResult<UserInfo> result = service.login(bean);
         user = result.getResult();
