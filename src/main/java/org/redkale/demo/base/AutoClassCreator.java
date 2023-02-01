@@ -7,7 +7,7 @@ package org.redkale.demo.base;
 
 import java.io.*;
 import java.util.*;
-import static org.redkale.source.AbstractDataSource.*;
+import org.redkale.service.Service;
 import org.redkale.source.*;
 import static org.redkale.source.AbstractDataSource.*;
 import org.redkale.util.AnyValue.DefaultAnyValue;
@@ -41,7 +41,9 @@ public class AutoClassCreator {
     private static void loadEntity(String pkg, String classname, String superclassname) throws Exception {
         String entityBody = createEntityContent(pkg, classname, superclassname); //源码内容
         final File entityFile = new File("src/" + pkg.replace('.', '/') + "/" + classname + ".java");
-        if (entityFile.isFile()) throw new RuntimeException(classname + ".java 已经存在");
+        if (entityFile.isFile()) {
+            throw new RuntimeException(classname + ".java 已经存在");
+        }
         FileOutputStream out = new FileOutputStream(entityFile);
         out.write(entityBody.getBytes("UTF-8"));
         out.close();
@@ -53,7 +55,7 @@ public class AutoClassCreator {
         prop.addValue(DATA_SOURCE_USER, jdbc_user);
         prop.addValue(DATA_SOURCE_PASSWORD, jdbc_pwd);
         DataSqlSource source = new DataJdbcSource();
-        source.init(prop);
+        ((Service) source).init(prop);
 
         final StringBuilder sb = new StringBuilder();
         final StringBuilder tostring = new StringBuilder();
@@ -122,14 +124,16 @@ public class AutoClassCreator {
                 sb.append("\r\n/**\r\n"
                     + " *\r\n"
                     + " * @author " + System.getProperty("user.name") + "\r\n"
-                        + " */\r\n");
+                    + " */\r\n");
                 //if (classname.contains("Info")) sb.append("@Cacheable\r\n");
                 sb.append("@Table(comment = \"" + tableComment + "\"");
                 if (!uniques.isEmpty()) {
                     sb.append("\r\n        , uniqueConstraints = {");
                     boolean first = true;
                     for (Map.Entry<String, String> en : uniques.entrySet()) {
-                        if (!first) sb.append(", ");
+                        if (!first) {
+                            sb.append(", ");
+                        }
                         sb.append("@UniqueConstraint(name = \"" + en.getKey() + "\", columnNames = {" + en.getValue().replace('`', '"') + "})");
                         first = false;
                     }
@@ -139,7 +143,9 @@ public class AutoClassCreator {
                     sb.append("\r\n        , indexes = {");
                     boolean first = true;
                     for (Map.Entry<String, String> en : indexs.entrySet()) {
-                        if (!first) sb.append(", ");
+                        if (!first) {
+                            sb.append(", ");
+                        }
                         sb.append("@Index(name = \"" + en.getKey() + "\", columnList = \"" + en.getValue().replace("`", "") + "\")");
                         first = false;
                     }
@@ -163,7 +169,7 @@ public class AutoClassCreator {
                         continue;
                     }
                     fieldsb.append("\r\n");
-                    
+
                     int length = 0;
                     int precision = 0;
                     int scale = 0;
@@ -196,31 +202,41 @@ public class AutoClassCreator {
                         ctype = "byte[]";
                     }
                     fieldsb.append("    @Column(");
-                    if ("createTime".equals(column)) fieldsb.append("updatable = false, ");
-                    if (length > 0) fieldsb.append("length = ").append(length).append(", ");
-                    if (precision > 0) fieldsb.append("precision = ").append(precision).append(", ");
-                    if (scale > 0) fieldsb.append("scale = ").append(scale).append(", ");
+                    if ("createTime".equals(column)) {
+                        fieldsb.append("updatable = false, ");
+                    }
+                    if (length > 0) {
+                        fieldsb.append("length = ").append(length).append(", ");
+                    }
+                    if (precision > 0) {
+                        fieldsb.append("precision = ").append(precision).append(", ");
+                    }
+                    if (scale > 0) {
+                        fieldsb.append("scale = ").append(scale).append(", ");
+                    }
                     fieldsb.append("comment = \"" + remark.replace('"', '\'') + "\")\r\n");
-                    
+
                     fieldsb.append("    private " + ctype + " " + column);
                     if (def != null && !"0".equals(def)) {
                         String d = def.replace('\'', '\"');
                         fieldsb.append(" = ").append(d.isEmpty() ? "\"\"" : d.toString());
-                        if ("float".equals(ctype)) fieldsb.append("f");
+                        if ("float".equals(ctype)) {
+                            fieldsb.append("f");
+                        }
                     } else if ("String".equals(ctype)) {
                         fieldsb.append(" = \"\"");
                     }
                     fieldsb.append(";\r\n");
-                    
+
                     char[] chs2 = column.toCharArray();
                     chs2[0] = Character.toUpperCase(chs2[0]);
                     String sgname = new String(chs2);
-                    
+
                     StringBuilder setgetsb = new StringBuilder();
                     setgetsb.append("\r\n    public void set" + sgname + "(" + ctype + " " + column + ") {\r\n");
                     setgetsb.append("        this." + column + " = " + column + ";\r\n");
                     setgetsb.append("    }\r\n");
-                    
+
                     setgetsb.append("\r\n    public " + ctype + " get" + sgname + "() {\r\n");
                     setgetsb.append("        return this." + column + ";\r\n");
                     setgetsb.append("    }\r\n");
@@ -229,11 +245,15 @@ public class AutoClassCreator {
                 }
                 List<StringBuilder> list = new ArrayList<>();
                 for (String column : columns) {
-                    if (superColumns.contains(column)) continue;
+                    if (superColumns.contains(column)) {
+                        continue;
+                    }
                     list.add(columnMap.get(column));
                 }
                 for (String column : columns) {
-                    if (superColumns.contains(column)) continue;
+                    if (superColumns.contains(column)) {
+                        continue;
+                    }
                     list.add(getsetMap.get(column));
                 }
                 for (StringBuilder item : list) {
