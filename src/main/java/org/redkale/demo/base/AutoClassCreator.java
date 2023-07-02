@@ -64,7 +64,7 @@ public class AutoClassCreator {
         final Map<String, String> indexs = new HashMap<>();
         final List<String> columns = new ArrayList<>();
         final Set<String> superColumns = new HashSet<>();
-        source.directQuery("SHOW CREATE TABLE " + classname.toLowerCase(), (DataResultSet tcs) -> {
+        source.nativeQuery("SHOW CREATE TABLE " + classname.toLowerCase(), (DataResultSet tcs) -> {
             try {
                 tcs.next();
                 final String createsql = (String) tcs.getObject(2);
@@ -94,7 +94,7 @@ public class AutoClassCreator {
         });
 
         if (superclassname != null && !superclassname.isEmpty()) {
-            source.directQuery("SELECT * FROM information_schema.columns WHERE  table_name = '" + superclassname.toLowerCase() + "'", (DataResultSet rs) -> {
+            source.nativeQuery("SELECT * FROM information_schema.columns WHERE  table_name = '" + superclassname.toLowerCase() + "'", (DataResultSet rs) -> {
                 try {
                     while (rs.next()) {
                         superColumns.add((String) rs.getObject("COLUMN_NAME"));
@@ -105,7 +105,7 @@ public class AutoClassCreator {
                 return "";
             });
         }
-        source.directQuery("SELECT * FROM information_schema.columns WHERE  table_name = '" + classname.toLowerCase() + "'", (DataResultSet rs) -> {
+        source.nativeQuery("SELECT * FROM information_schema.columns WHERE  table_name = '" + classname.toLowerCase() + "'", (DataResultSet rs) -> {
             try {
                 sb.append("package " + pkg + ";" + "\r\n\r\n");
                 sb.append("import org.redkale.persistence.*;\r\n");
