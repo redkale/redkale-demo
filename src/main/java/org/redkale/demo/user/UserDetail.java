@@ -9,7 +9,7 @@ import org.redkale.annotation.LogLevel;
 import org.redkale.convert.*;
 import org.redkale.demo.base.UserInfo;
 import org.redkale.persistence.*;
-import org.redkale.util.Reproduce;
+import org.redkale.util.Copier;
 
 /**
  *
@@ -20,7 +20,7 @@ import org.redkale.util.Reproduce;
 @Table(comment = "用户信息表")
 public class UserDetail extends UserInfo {
 
-    private static final Reproduce<UserInfo, UserDetail> reproduce = Reproduce.create(UserInfo.class, UserDetail.class);
+    private static final Copier<UserDetail, UserInfo> copier = Copier.create(UserDetail.class, UserInfo.class);
 
     public static final short REGTYPE_ACCOUNT = 10; //账号注册
 
@@ -51,7 +51,7 @@ public class UserDetail extends UserInfo {
     private long updateTime;  //修改时间
 
     public UserInfo createUserInfo() {
-        return reproduce.apply(new UserInfo(), this);
+        return copier.apply(this, new UserInfo());
     }
 
     @Override

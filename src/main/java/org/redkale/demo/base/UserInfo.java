@@ -7,7 +7,7 @@ package org.redkale.demo.base;
 
 import org.redkale.convert.*;
 import org.redkale.persistence.*;
-import org.redkale.util.Reproduce;
+import org.redkale.util.Copier;
 
 /**
  *
@@ -21,7 +21,7 @@ import org.redkale.util.Reproduce;
 @VirtualEntity(direct = true, loader = UserInfoLoader.class)
 public class UserInfo extends BaseEntity {
 
-    private static final Reproduce<UserInfo, UserInfo> reproduce = Reproduce.create(UserInfo.class, UserInfo.class);
+    private static final Copier<UserInfo, UserInfo> copier = Copier.create(UserInfo.class, UserInfo.class);
 
     //男
     public static final short GENDER_MALE = 2;
@@ -85,15 +85,17 @@ public class UserInfo extends BaseEntity {
     protected short gender; //性别; 2:男;  4:女; 值见BaseEntity的GENDER常量
 
     public UserInfo copy() {
-        return reproduce.apply(new UserInfo(), this);
+        return copier.apply(this, new UserInfo());
     }
 
     public UserInfo copyTo(UserInfo dest) {
-        return reproduce.apply(dest, this);
+        return copier.apply(this, dest);
     }
 
     public boolean checkAuth(int moduleid, int actionid) {
-        if (moduleid == 0 || actionid == 0) return true;
+        if (moduleid == 0 || actionid == 0) {
+            return true;
+        }
         //权限判断
         return true;
     }

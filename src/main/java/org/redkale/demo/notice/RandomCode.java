@@ -17,7 +17,7 @@ import org.redkale.util.*;
 @Table(comment = "有效验证码表")
 public class RandomCode extends BaseEntity {
 
-    private static final Reproduce<RandomCodeHis, RandomCode> reproduce = Reproduce.create(RandomCodeHis.class, RandomCode.class);
+    private static final Copier<RandomCode, RandomCodeHis> copier = Copier.create(RandomCode.class, RandomCodeHis.class);
 
     private static final long serialVersionUID = 1L;
 
@@ -67,7 +67,7 @@ public class RandomCode extends BaseEntity {
     }
 
     public RandomCodeHis createRandomCodeHis(int retcode) {
-        RandomCodeHis his = reproduce.apply(new RandomCodeHis(), this);
+        RandomCodeHis his = copier.apply(this, new RandomCodeHis());
         his.setRetcode(retcode);
         his.setUpdateTime(System.currentTimeMillis());
         his.setSeqid(Utility.format36time(his.getCreateTime()) + Utility.uuid());
@@ -118,7 +118,9 @@ public class RandomCode extends BaseEntity {
 
     public static int randomSmsCode() {
         int rs = random.nextInt(9);
-        if (rs == 0) rs = 1;
+        if (rs == 0) {
+            rs = 1;
+        }
         for (int i = 0; i < 5; i++) {  //总长度为6
             rs = rs * 10 + random.nextInt(9);
         }
