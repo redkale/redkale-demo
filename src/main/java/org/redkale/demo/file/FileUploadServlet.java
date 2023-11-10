@@ -110,18 +110,18 @@ public class FileUploadServlet extends BaseServlet {
 
     protected void uploadImg(final HttpRequest req, HttpResponse resp, String dir, String fileid0, int[] widths, final ImageRatio ratio, final boolean sync, final long max, Runnable runner) throws IOException {
         for (MultiPart part : req.multiParts()) {
-            final String mime = MimeType.getByFilename(part.getFilename());
+            final String mime = MimeType.getByFilename(part.getFileName());
             if (!mime.contains("image/")) { //不是图片
                 resp.finishJson(RetCodes.retResult(RET_UPLOAD_NOTIMAGE));
                 return;
             }
-            String fileid = service.storeMultiJPGFile(dir, fileid0, part.getFilename(), widths, ratio, part.getContentBytes(max), runner);
+            String fileid = service.storeMultiJPGFile(dir, fileid0, part.getFileName(), widths, ratio, part.getContentBytes(max), runner);
             if (fileid == null) {
                 resp.finishJson(RetCodes.retResult(RET_UPLOAD_NOTIMAGE));
             } else if (fileid.isEmpty()) {
                 resp.finishJson(RetCodes.retResult(RET_UPLOAD_FILETOOBIG));
             } else {
-                FileUploadItem item = new FileUploadItem(fileid, part.getFilename(), part.getReceived());
+                FileUploadItem item = new FileUploadItem(fileid, part.getFileName(), part.getReceived());
                 resp.finishJson(RetResult.success(Utility.ofList(item)));
             }
             return;
@@ -133,12 +133,12 @@ public class FileUploadServlet extends BaseServlet {
         String fileid = "";
         File file;
         for (MultiPart part : req.multiParts()) {
-            file = service.storeFile(dir, fileid0, part.getFilename(), max, part.getInputStream());
+            file = service.storeFile(dir, fileid0, part.getFileName(), max, part.getInputStream());
             if (file != null) fileid = file.getName();
             if (file == null || fileid.isEmpty()) {
                 resp.finishJson(RetCodes.retResult(RET_UPLOAD_FILETOOBIG));
             } else {
-                FileUploadItem item = new FileUploadItem(fileid, part.getFilename(), part.getReceived());
+                FileUploadItem item = new FileUploadItem(fileid, part.getFileName(), part.getReceived());
                 resp.finishJson(RetResult.success(Utility.ofList(item)));
             }
             return;
