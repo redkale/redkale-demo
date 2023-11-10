@@ -7,8 +7,8 @@ package org.redkale.demo.notice;
 
 import java.util.List;
 import java.util.concurrent.*;
-import org.redkale.annotation.Comment;
 import org.redkale.annotation.*;
+import org.redkale.annotation.Comment;
 import org.redkale.demo.base.*;
 import static org.redkale.demo.base.RetCodes.*;
 import org.redkale.service.RetResult;
@@ -39,7 +39,7 @@ public class RandomService extends BaseService {
             final long delay = dayms - System.currentTimeMillis() % dayms;
             scheduler.scheduleAtFixedRate(() -> {
                 //超过十分钟视为过期
-                FilterNode node = FilterNode.create("createTime", FilterExpress.LESSTHANOREQUALTO, System.currentTimeMillis() - 10 * 60 * 1000);
+                FilterNode node = FilterNodes.le("createTime", System.currentTimeMillis() - 10 * 60 * 1000);
                 Flipper flipper = new Flipper();
                 do {
                     Sheet<RandomCode> sheet = source.querySheet(RandomCode.class, flipper, node);
@@ -47,7 +47,9 @@ public class RandomService extends BaseService {
                         source.insert(x.createRandomCodeHis(RandomCodeHis.RETCODE_EXP));
                         source.delete(x);
                     });
-                    if (sheet.isEmpty() || sheet.getRows().size() < flipper.getLimit()) break;
+                    if (sheet.isEmpty() || sheet.getRows().size() < flipper.getLimit()) {
+                        break;
+                    }
                 } while (true);
             }, delay, dayms, TimeUnit.MILLISECONDS);
             logger.finest(this.getClass().getSimpleName() + " start RandomTask task scheduler executor");
@@ -56,7 +58,9 @@ public class RandomService extends BaseService {
 
     @Override
     public void destroy(AnyValue conf) {
-        if (scheduler != null) scheduler.shutdownNow();
+        if (scheduler != null) {
+            scheduler.shutdownNow();
+        }
     }
 
     public void removeRandomCode(RandomCode code) {
@@ -71,19 +75,25 @@ public class RandomService extends BaseService {
 
     @SuppressWarnings("unchecked")
     public RetResult<RandomCode> checkRandomCode(String targetid, String randomcode, short type) {
-        if (randomcode == null || randomcode.isEmpty()) return RetCodes.retResult(RET_USER_RANDCODE_ILLEGAL);
-        if (targetid != null && targetid.length() > 5 && randomcode.length() < 30) randomcode = targetid + "-" + randomcode;
+        if (randomcode == null || randomcode.isEmpty()) {
+            return RetCodes.retResult(RET_USER_RANDCODE_ILLEGAL);
+        }
+        if (targetid != null && targetid.length() > 5 && randomcode.length() < 30) {
+            randomcode = targetid + "-" + randomcode;
+        }
         RandomCode code = source.find(RandomCode.class, randomcode);
-        if (code != null && type > 0 && code.getType() != type) return RetCodes.retResult(RET_USER_RANDCODE_ILLEGAL);
+        if (code != null && type > 0 && code.getType() != type) {
+            return RetCodes.retResult(RET_USER_RANDCODE_ILLEGAL);
+        }
         return code == null ? RetCodes.retResult(RET_USER_RANDCODE_ILLEGAL) : (code.isExpired() ? RetCodes.retResult(RET_USER_RANDCODE_EXPIRED) : new RetResult(code));
     }
 
     public List<RandomCode> queryRandomCodeByMobile(String mobile) {
-        return source.queryList(RandomCode.class, FilterNode.create("randomcode", FilterExpress.LIKE, mobile + "-%"));
+        return source.queryList(RandomCode.class, FilterNodes.like("randomcode", mobile + "-%"));
     }
 
     public List<RandomCode> queryRandomCodeByMobile(short type, String mobile) {
-        return source.queryList(RandomCode.class, FilterNode.create("type", type).and("randomcode", FilterExpress.LIKE, mobile + "-%"));
+        return source.queryList(RandomCode.class, FilterNodes.eq("type", type).like("randomcode", mobile + "-%"));
     }
 
     public RetResult createRandomCode(RandomCode entity) {
@@ -93,6 +103,6 @@ public class RandomService extends BaseService {
     }
 
     public RandomCode findRandomCode(String randomcode) {
-        return source.find(RandomCode.class, FilterNode.create("randomcode", randomcode));
+        return source.find(RandomCode.class, FilterNodes.eq("randomcode", randomcode));
     }
 }
