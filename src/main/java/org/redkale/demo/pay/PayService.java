@@ -11,8 +11,8 @@ import org.redkale.annotation.*;
 import org.redkale.convert.json.*;
 import org.redkale.demo.base.BaseService;
 import org.redkale.service.RetResult;
+import org.redkale.util.Times;
 import org.redkale.util.Utility;
-import static org.redkalex.pay.PayRetCodes.*;
 import org.redkalex.pay.*;
 import static org.redkalex.pay.PayRetCodes.*;
 
@@ -90,7 +90,7 @@ public class PayService extends BaseService {
         payact.setPaytype(pay.getPaytype());
         payact.setRequestjson(convert.convertTo(request));
         payact.setResponsetext(convert.convertTo(resp));
-        payact.setPayactid(Utility.format36time(payact.getCreateTime()) + Utility.uuid());
+        payact.setPayactid(Times.format36time(payact.getCreateTime()) + Utility.uuid());
         source.insert(payact);
         if (resp.isSuccess()) { //查询结果成功，并不表示支付成功
             if (resp.getPayStatus() != Pays.PAYSTATUS_UNPAY //不能将未支付状态更新到pay中， 否则notify发现是未支付状态会跳过pay的更新
@@ -123,7 +123,7 @@ public class PayService extends BaseService {
         payact.setPaytype(resp.getPayType());
         payact.setRequestjson(convert.convertTo(request));
         payact.setResponsetext(convert.convertTo(resp));
-        payact.setPayactid(Utility.format36time(payact.getCreateTime()) + Utility.uuid());
+        payact.setPayactid(Times.format36time(payact.getCreateTime()) + Utility.uuid());
         source.insert(payact);
         if (pay.getPaystatus() != Pays.PAYSTATUS_UNPAY && pay.getPaystatus() != Pays.PAYSTATUS_UNREFUND) { //已经更新过了
             logger.log(Level.WARNING, "pay (" + pay + ") status error, req = " + request + ", resp = " + resp);

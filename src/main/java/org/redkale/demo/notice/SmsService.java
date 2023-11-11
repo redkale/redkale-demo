@@ -7,8 +7,8 @@ package org.redkale.demo.notice;
 
 import java.io.IOException;
 import java.net.URLEncoder;
-import org.redkale.annotation.Comment;
 import org.redkale.annotation.*;
+import org.redkale.annotation.Comment;
 import org.redkale.demo.base.BaseService;
 import org.redkale.source.Flipper;
 import org.redkale.util.*;
@@ -54,7 +54,7 @@ public class SmsService extends BaseService {
         message.setResultdesc(resultdesc);
         if (source != null) {
             message.setStatus(ok ? SmsRecord.SMSSTATUS_SENDOK : SmsRecord.SMSSTATUS_SENDNO);
-            message.setSmsid(Utility.format36time(message.getCreateTime()) + Utility.uuid());
+            message.setSmsid(Times.format36time(message.getCreateTime()) + Utility.uuid());
             source.insert(message);
         }
         return ok;
