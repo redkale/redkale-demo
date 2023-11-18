@@ -447,8 +447,8 @@ public class UserService extends BaseService {
             if (!user.getAppToken().equals(bean.getAppToken())) { //用户设备变更了
                 user.setAppos(bean.getAppos());
                 user.setAppToken(bean.getAppToken());
-                source.updateColumn(UserDetail.class, user.getUserid(), ColumnValue.mov("appos", bean.getAppos()), ColumnValue.mov("appToken", bean.getAppToken()));
-                source.updateColumn(UserInfo.class, user.getUserid(), ColumnValue.mov("appos", bean.getAppos()), ColumnValue.mov("appToken", bean.getAppToken()));
+                source.updateColumn(UserDetail.class, user.getUserid(), ColumnValue.set(UserDetail::getAppos, bean.getAppos()), ColumnValue.set(UserDetail::getAppToken, bean.getAppToken()));
+                source.updateColumn(UserInfo.class, user.getUserid(), ColumnValue.set(UserInfo::getAppos, bean.getAppos()), ColumnValue.set(UserInfo::getAppToken, bean.getAppToken()));
             }
         }
         this.sessions.setexLong(bean.getSessionid(), sessionExpireSeconds, result.getResult().getUserid());
@@ -543,8 +543,8 @@ public class UserService extends BaseService {
         if (user != null && !user.getAppToken().isEmpty()) {
             user.setAppos("");
             user.setAppToken("");
-            source.updateColumn(UserDetail.class, user.getUserid(), ColumnValue.mov("appos", ""), ColumnValue.mov("appToken", ""));
-            source.updateColumn(UserInfo.class, user.getUserid(), ColumnValue.mov("appos", ""), ColumnValue.mov("appToken", ""));
+            source.updateColumn(UserDetail.class, user.getUserid(), ColumnValue.set("appos", ""), ColumnValue.set("appToken", ""));
+            source.updateColumn(UserInfo.class, user.getUserid(), ColumnValue.set("appos", ""), ColumnValue.set("appToken", ""));
         }
         sessions.del(sessionid);
         return true;
@@ -608,8 +608,8 @@ public class UserService extends BaseService {
         if (appToken == null) {
             appToken = "";
         }
-        source.updateColumn(UserDetail.class, user.getUserid(), ColumnValue.mov("appos", appos.toLowerCase()), ColumnValue.mov("appToken", appToken));
-        source.updateColumn(UserInfo.class, user.getUserid(), ColumnValue.mov("appos", appos.toLowerCase()), ColumnValue.mov("appToken", appToken));
+        source.updateColumn(UserDetail.class, user.getUserid(), ColumnValue.set("appos", appos.toLowerCase()), ColumnValue.set("appToken", appToken));
+        source.updateColumn(UserInfo.class, user.getUserid(), ColumnValue.set("appos", appos.toLowerCase()), ColumnValue.set("appToken", appToken));
         user.setAppos(appos.toLowerCase());
         user.setAppToken(appToken);
         return RetResult.success();
