@@ -313,17 +313,17 @@ public class UserServlet extends BaseServlet {
     //更新设备ID
     @HttpMapping(url = "/user/updateappToken")
     public void updateAppToken(HttpRequest req, HttpResponse resp) throws IOException {
-        String s = req.getRequstURILastPath();
+        String s = req.getPathLastParam();
         if ("updateappToken".equalsIgnoreCase(s)) s = "";
         UserInfo user = service.findUserInfo(req.currentUserid(int.class));
-        resp.finishJson(service.updateAppToken(user.getUserid(), req.getParameter("appos", req.getRequstURIPath("appos:", "")), req.getParameter("appToken", s)));
+        resp.finishJson(service.updateAppToken(user.getUserid(), req.getParameter("appos", req.getPathParam("appos:", "")), req.getParameter("appToken", s)));
     }
 
     //更新性别
     @HttpMapping(url = "/user/updategender/")
     public void updateGender(HttpRequest req, HttpResponse resp) throws IOException {
         UserInfo user = service.findUserInfo(req.currentUserid(int.class));
-        resp.finishJson(service.updateGender(user.getUserid(), Short.parseShort(req.getRequstURILastPath())));
+        resp.finishJson(service.updateGender(user.getUserid(), Short.parseShort(req.getPathLastParam())));
     }
 
     //发送修改密码验证码
@@ -357,39 +357,39 @@ public class UserServlet extends BaseServlet {
     }
 
     private void smsverCode(final short type, HttpRequest req, HttpResponse resp) throws IOException {
-        String mobile = req.getRequstURIPath("mobile:", req.getParameter("mobile"));
+        String mobile = req.getPathParam("mobile:", req.getParameter("mobile"));
         if (type == RandomCode.TYPE_SMSODM) { //给原手机号码发送验证短信
             UserInfo user = service.findUserInfo(req.currentUserid(int.class));
             if (user != null) mobile = user.getMobile();
         }
         RetResult rr = service.smscode(type, mobile);
-        if (finest) logger.finest(req.getRequestURI() + ", mobile = " + mobile + "---->" + rr);
+        if (finest) logger.finest(req.getPath() + ", mobile = " + mobile + "---->" + rr);
         resp.finishJson(rr);
     }
 
     //检测账号是否有效, 返回t0表示可用.给新用户注册使用
     @HttpMapping(url = "/user/checkaccount/", auth = false)
     public void checkAccount(HttpRequest req, HttpResponse resp) throws IOException {
-        resp.finishJson(RetCodes.retResult(service.checkAccount(req.getRequstURILastPath())));
+        resp.finishJson(RetCodes.retResult(service.checkAccount(req.getPathLastParam())));
     }
 
     //检测手机号码是否有效, 返回0表示可用.给新用户注册使用
     @HttpMapping(url = "/user/checkmobile/", auth = false)
     public void checkMobile(HttpRequest req, HttpResponse resp) throws IOException {
-        resp.finishJson(RetCodes.retResult(service.checkMobile(req.getRequstURILastPath())));
+        resp.finishJson(RetCodes.retResult(service.checkMobile(req.getPathLastParam())));
     }
 
     //检测邮箱地址是否有效, 返回0表示可用.给新用户注册使用
     @HttpMapping(url = "/user/checkemail/", auth = false)
     public void checkEmail(HttpRequest req, HttpResponse resp) throws IOException {
-        resp.finishJson(RetCodes.retResult(service.checkEmail(req.getRequstURILastPath())));
+        resp.finishJson(RetCodes.retResult(service.checkEmail(req.getPathLastParam())));
     }
 
     //验证短信验证码
     @HttpMapping(url = "/user/checkcode", auth = false)
     public void checkcode(HttpRequest req, HttpResponse resp) throws IOException {
-        String mobile = req.getRequstURIPath("mobile:", req.getParameter("mobile"));
-        String verCode = req.getRequstURIPath("verCode:", req.getParameter("verCode"));
+        String mobile = req.getPathParam("mobile:", req.getParameter("mobile"));
+        String verCode = req.getPathParam("verCode:", req.getParameter("verCode"));
         RetResult<RandomCode> ret = service.checkRandomCode(mobile, verCode, (short) 0);
         resp.finishJson(RetCodes.retResult(ret.getRetcode()));
     }
@@ -416,7 +416,7 @@ public class UserServlet extends BaseServlet {
     //获取个人基本信息
     @HttpMapping(url = "/user/info/")
     public void info(HttpRequest req, HttpResponse resp) throws IOException {
-        resp.finishJson(service.findUserInfo(Integer.parseInt(req.getRequstURILastPath(), 36)));
+        resp.finishJson(service.findUserInfo(Integer.parseInt(req.getPathLastParam(), 36)));
     }
 
     //获取当前用户详细信息

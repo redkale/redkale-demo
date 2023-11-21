@@ -7,11 +7,10 @@ package org.redkale.demo.pay;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.logging.Level;
-import org.redkale.net.http.*;
-import org.redkalex.pay.*;
 import java.util.logging.*;
 import org.redkale.annotation.Resource;
+import org.redkale.net.http.*;
+import org.redkalex.pay.*;
 
 /**
  *
@@ -38,7 +37,7 @@ public class PayServlet extends HttpServlet {
     @HttpMapping(url = "/pay/check/", auth = false, comment = "根据支付单号检查支付结果") ///pay/check/{payno}
     public void checkPay(HttpRequest req, HttpResponse resp) throws IOException {
         if (info) logger.info("" + req);
-        String payno = req.getRequstURILastPath();
+        String payno = req.getPathLastParam();
         resp.finishJson(service.checkPay(payno));
     }
 

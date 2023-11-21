@@ -7,8 +7,8 @@ package org.redkale.demo.file;
 
 import java.io.*;
 import org.redkale.annotation.Resource;
-import static org.redkale.demo.base.RetCodes.*;
 import org.redkale.demo.base.*;
+import static org.redkale.demo.base.RetCodes.*;
 import org.redkale.demo.user.UserService;
 import org.redkale.net.http.*;
 import org.redkale.service.RetResult;
@@ -81,7 +81,7 @@ public class FileUploadServlet extends BaseServlet {
     }
 
     protected void uploadBin(HttpRequest req, HttpResponse resp, long max) throws IOException {
-        uploadBin(req, resp, req.getRequstURILastPath(), null, max);
+        uploadBin(req, resp, req.getPathLastParam(), null, max);
     }
 
     protected void uploadBin(HttpRequest req, HttpResponse resp, String dir, long max) throws IOException {
@@ -89,7 +89,7 @@ public class FileUploadServlet extends BaseServlet {
     }
 
     protected void uploadImg(HttpRequest req, HttpResponse resp, int[] widths, final ImageRatio ratio, long max) throws IOException {
-        uploadImg(req, resp, req.getRequstURILastPath(), null, widths, ratio, true, max);
+        uploadImg(req, resp, req.getPathLastParam(), null, widths, ratio, true, max);
     }
 
     protected void uploadImg(HttpRequest req, HttpResponse resp, String dir, int[] widths, final ImageRatio ratio, long max) throws IOException {

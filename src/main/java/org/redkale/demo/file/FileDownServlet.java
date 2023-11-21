@@ -44,7 +44,7 @@ public class FileDownServlet extends BaseServlet {
     }
 
     private void download(HttpRequest req, HttpResponse resp) throws IOException {
-        final String uri = req.getRequestURI().substring(req.getRequestURI().indexOf("/dir") + 4);
+        final String uri = req.getPath().substring(req.getPath().indexOf("/dir") + 4);
         resp.setHeader("Cache-Control", "max-age=3600");
         int pos = uri.lastIndexOf('/');
         File f = new File(files, uri.substring(0, pos + 1) + FileService.hashPath(uri.substring(pos + 1)));
