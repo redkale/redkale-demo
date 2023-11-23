@@ -363,7 +363,7 @@ public class UserServlet extends BaseServlet {
             if (user != null) mobile = user.getMobile();
         }
         RetResult rr = service.smscode(type, mobile);
-        if (finest) logger.finest(req.getPath() + ", mobile = " + mobile + "---->" + rr);
+        if (finest) logger.finest(req.getRequestPath() + ", mobile = " + mobile + "---->" + rr);
         resp.finishJson(rr);
     }
 
