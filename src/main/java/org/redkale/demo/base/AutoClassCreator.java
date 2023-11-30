@@ -9,7 +9,7 @@ import java.io.*;
 import java.util.*;
 import org.redkale.service.Service;
 import org.redkale.source.*;
-import static org.redkale.source.AbstractDataSource.*;
+import static org.redkale.source.DataSources.*;
 import org.redkale.util.AnyValue.DefaultAnyValue;
 
 /**
