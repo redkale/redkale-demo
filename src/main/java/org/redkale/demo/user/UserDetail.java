@@ -15,7 +15,7 @@ import org.redkale.util.Copier;
  *
  * @author zhangjx
  */
-@Cacheable
+@Entity(cacheable = true)
 @LogLevel("FINER")
 @Table(comment = "用户信息表")
 public class UserDetail extends UserInfo {
