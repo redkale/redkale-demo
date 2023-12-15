@@ -10,7 +10,7 @@ import java.util.*;
 import org.redkale.service.Service;
 import org.redkale.source.*;
 import static org.redkale.source.DataSources.*;
-import org.redkale.util.AnyValue.DefaultAnyValue;
+import org.redkale.util.AnyValueWriter;
 
 /**
  *
@@ -50,7 +50,7 @@ public class AutoClassCreator {
     }
 
     private static String createEntityContent(String pkg, String classname, String superclassname) throws Exception {
-        DefaultAnyValue prop = new DefaultAnyValue();
+        AnyValueWriter prop = new AnyValueWriter();
         prop.addValue(DATA_SOURCE_URL, jdbc_url);
         prop.addValue(DATA_SOURCE_USER, jdbc_user);
         prop.addValue(DATA_SOURCE_PASSWORD, jdbc_pwd);
