@@ -48,7 +48,9 @@ public class PayService extends BaseService {
     @Comment("固定返回支付成功结果， 用于调试")
     public RetResult<PayRecord> testCheckPay(String payno) {
         PayRecord pay = findPayRecord(payno);
-        if (pay == null) return RetResult.success();
+        if (pay == null) {
+            return RetResult.success();
+        }
         pay.setPayedmoney(pay.getMoney());
         pay.setPaystatus(Pays.PAYSTATUS_PAYOK);
         pay.setFinishtime(System.currentTimeMillis());
@@ -60,7 +62,9 @@ public class PayService extends BaseService {
     public RetResult<Map<String, String>> testPrepay(final PayRecord pay) {
         pay.setCreateTime(System.currentTimeMillis());
         String create36time = Long.toString(pay.getCreateTime(), 36);
-        if (create36time.length() < 9) create36time = "0" + create36time;
+        if (create36time.length() < 9) {
+            create36time = "0" + create36time;
+        }
         pay.setPayno(pay.getOrderno() + create36time);
         PayPreRequest req = pay.createPayPreRequest();
         pay.setRequestjson(convert.convertTo(req));
@@ -72,15 +76,21 @@ public class PayService extends BaseService {
             pay.setFinishtime(System.currentTimeMillis());
             source.updateColumn(pay, "paystatus", "responsetext", "finishtime");
         }
-        if (rr.isSuccess()) rr.setRetinfo(pay.getPayno());
+        if (rr.isSuccess()) {
+            rr.setRetinfo(pay.getPayno());
+        }
         rr.setResponseText(""); //请求内容，防止信息暴露给外部接口
         return rr;
     }
 
     @Comment("主动查询支付结果, 定时任务调用")
     public RetResult<PayRecord> checkPay(PayRecord pay, final boolean forceFail) {
-        if (pay == null) return RetResult.success();
-        if (pay.getPaystatus() != Pays.PAYSTATUS_UNPAY && pay.getPaystatus() != Pays.PAYSTATUS_UNREFUND) return RetResult.success();//已经更新过了
+        if (pay == null) {
+            return RetResult.success();
+        }
+        if (pay.getPaystatus() != Pays.PAYSTATUS_UNPAY && pay.getPaystatus() != Pays.PAYSTATUS_UNREFUND) {
+            return RetResult.success();//已经更新过了
+        }
         PayRequest request = new PayRequest(pay.getAppid(), pay.getPaytype(), pay.getPayway(), pay.getPayno());
         final PayQueryResponse resp = payService.query(request);
         PayAction payact = new PayAction();
@@ -97,7 +107,9 @@ public class PayService extends BaseService {
                 && resp.getPayStatus() != Pays.PAYSTATUS_UNREFUND) {
                 pay.setPaystatus(resp.getPayStatus());
             }
-            if (pay.isPayok()) pay.setPayedmoney(pay.getMoney());
+            if (pay.isPayok()) {
+                pay.setPayedmoney(pay.getMoney());
+            }
             pay.setThirdpayno(resp.getThirdPayno());
             pay.setFinishtime(payact.getCreateTime());
             pay.setResponsetext(payact.getResponsetext());
@@ -143,7 +155,9 @@ public class PayService extends BaseService {
             pay.setResponsetext(payact.getResponsetext());
             source.updateColumn(pay, "paystatus", "thirdpayno", "responsetext", "finishtime");
         }
-        if (!resp.isSuccess()) return new RetResult(resp.getRetcode(), resp.getRetinfo()).result(pay);
+        if (!resp.isSuccess()) {
+            return new RetResult(resp.getRetcode(), resp.getRetinfo()).result(pay);
+        }
         return new RetResult<>(pay).retinfo(resp.getNotifyText());   //支付的回调参数处理完必须输出success字样
     }
 
@@ -151,20 +165,26 @@ public class PayService extends BaseService {
     public RetResult<Map<String, String>> prepay(final PayRecord pay) {
         pay.setCreateTime(System.currentTimeMillis());
         String create36time = Long.toString(pay.getCreateTime(), 36);
-        if (create36time.length() < 9) create36time = "0" + create36time;
+        if (create36time.length() < 9) {
+            create36time = "0" + create36time;
+        }
         pay.setPayno(pay.getOrderno() + create36time);
         PayPreRequest req = pay.createPayPreRequest();
         pay.setRequestjson(convert.convertTo(req));
         source.insert(pay);
         PayPreResponse rr = payService.prepay(req);
-        if (!rr.getAppid().isEmpty()) pay.setAppid(rr.getAppid());
+        if (!rr.getAppid().isEmpty()) {
+            pay.setAppid(rr.getAppid());
+        }
         if (!rr.isSuccess()) {
             pay.setPaystatus(Pays.PAYSTATUS_PAYNO);
             pay.setResponsetext(String.valueOf(rr));
             pay.setFinishtime(System.currentTimeMillis());
             source.updateColumn(pay, "appid", "paystatus", "responsetext", "finishtime");
         }
-        if (rr.isSuccess()) rr.setRetinfo(pay.getPayno());
+        if (rr.isSuccess()) {
+            rr.setRetinfo(pay.getPayno());
+        }
         rr.setResponseText(""); //请求内容，防止信息暴露给外部接口
         return rr;
     }

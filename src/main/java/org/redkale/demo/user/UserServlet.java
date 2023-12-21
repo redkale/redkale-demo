@@ -50,7 +50,9 @@ public class UserServlet extends BaseServlet {
     @HttpMapping(url = "/user/logout", auth = false)
     public void logout(HttpRequest req, HttpResponse resp) throws IOException {
         String sessionid = req.getSessionid(false);
-        if (sessionid != null) service.logout(sessionid);
+        if (sessionid != null) {
+            service.logout(sessionid);
+        }
         HttpCookie cookie = new HttpCookie(COOKIE_AUTOLOGIN, "");
         cookie.setPath("/");
         cookie.setMaxAge(1);
@@ -62,7 +64,9 @@ public class UserServlet extends BaseServlet {
     public void updateWxunionid(HttpRequest req, HttpResponse resp) throws IOException {
         String code = req.getParameter("code");
         String state = req.getParameter("state");  //state值格式: appid_autoregflag
-        if (finest) logger.finest("/user/updatewxid :  " + code + "," + state);
+        if (finest) {
+            logger.finest("/user/updatewxid :  " + code + "," + state);
+        }
         service.updateWxunionid(service.findUserInfo(req.currentUserid(int.class)), code);
         resp.setHeader("Location", req.getParameter("url", "/"));
         resp.finish(302, null);
@@ -72,7 +76,9 @@ public class UserServlet extends BaseServlet {
     @HttpMapping(url = "/user/wxopenid", auth = false)
     public void wxopenid(HttpRequest req, HttpResponse resp) throws IOException {
         String code = req.getParameter("code");
-        if (finest) logger.finest("/user/wxopenid :  " + req);
+        if (finest) {
+            logger.finest("/user/wxopenid :  " + req);
+        }
         Map<String, String> rr = wxService.getMPUserTokenByCode(code).join();
         resp.setHeader("Location", req.getParameter("url", "/"));
         resp.finish(302, null);
@@ -97,10 +103,14 @@ public class UserServlet extends BaseServlet {
         String access_token = req.getParameter("access_token");
         String openid = req.getParameter("openid");
 
-        if (finest) logger.finest("/user/wxlogin :  code = " + code + ", access_token = " + access_token + ", openid = " + openid + ", state =" + state);
+        if (finest) {
+            logger.finest("/user/wxlogin :  code = " + code + ", access_token = " + access_token + ", openid = " + openid + ", state =" + state);
+        }
         int pos = state.indexOf('_');
         String appid = pos > 0 ? state.substring(0, pos) : state;
-        if (appid.length() < 2) appid = "";
+        if (appid.length() < 2) {
+            appid = "";
+        }
         boolean autoreg = (pos > 0 || "1".equals(state)) ? (state.charAt(pos + 1) == '1') : true;
         final boolean wxbrowser = req.getHeader("User-Agent", "").contains("MicroMessenger");
         LoginWXBean bean = new LoginWXBean();
@@ -116,7 +126,9 @@ public class UserServlet extends BaseServlet {
         bean.setAppToken(req.getParameter("appToken", ""));
         bean.setLoginAddr(req.getRemoteAddr());
         bean.setLoginAgent(req.getHeader("User-Agent"));
-        if (autoreg) bean.setSessionid(req.changeSessionid());
+        if (autoreg) {
+            bean.setSessionid(req.changeSessionid());
+        }
         RetResult<UserInfo> rr = service.wxlogin(bean);
         if (autoreg && rr.isSuccess() && (wxbrowser || (access_token != null && !access_token.isEmpty()))) {
             UserInfo info = rr.getResult();
@@ -140,7 +152,9 @@ public class UserServlet extends BaseServlet {
     public void qqlogin(HttpRequest req, HttpResponse resp) throws IOException {
         String access_token = req.getParameter("access_token");
         String openid = req.getParameter("openid");
-        if (finest) logger.finest("/user/qqlogin :  " + openid + "," + access_token);
+        if (finest) {
+            logger.finest("/user/qqlogin :  " + openid + "," + access_token);
+        }
         LoginQQBean bean = new LoginQQBean();
         bean.setAccessToken(access_token);
         bean.setAppToken(req.getParameter("appToken", ""));
@@ -178,12 +192,18 @@ public class UserServlet extends BaseServlet {
     @HttpMapping(url = "/user/login", auth = false)
     public void login(HttpRequest req, HttpResponse resp) throws IOException {
         LoginBean bean = req.getJsonParameter(LoginBean.class, "bean");
-        if (bean == null) bean = new LoginBean();
-        if (!bean.emptyPassword()) bean.setPassword(UserService.secondPasswordMD5(bean.getPassword()));
+        if (bean == null) {
+            bean = new LoginBean();
+        }
+        if (!bean.emptyPassword()) {
+            bean.setPassword(UserService.secondPasswordMD5(bean.getPassword()));
+        }
         bean.setLoginAgent(req.getHeader("User-Agent"));
         bean.setLoginIp(req.getRemoteAddr());
         String oldsessionid = req.getSessionid(false);
-        if (oldsessionid != null && !oldsessionid.isEmpty()) service.logout(oldsessionid);
+        if (oldsessionid != null && !oldsessionid.isEmpty()) {
+            service.logout(oldsessionid);
+        }
         bean.setSessionid(req.changeSessionid());
         RetResult<UserInfo> result = service.login(bean);
         if (result.isSuccess() && !bean.emptyPassword()) { //必须是密码登录类
@@ -241,12 +261,16 @@ public class UserServlet extends BaseServlet {
             loginbean.setPassword(UserService.secondPasswordMD5(reqpwd));
             loginbean.setSessionid(req.changeSessionid());
             loginbean.setLoginAgent(req.getHeader("User-Agent"));
-            if (map.containsKey("cacheDay")) loginbean.setCacheDay(Integer.parseInt(map.getOrDefault("cacheDay", "0")));
+            if (map.containsKey("cacheDay")) {
+                loginbean.setCacheDay(Integer.parseInt(map.getOrDefault("cacheDay", "0")));
+            }
             loginbean.setLoginIp(req.getRemoteAddr());
             rr = service.login(loginbean);
         }
         long e = System.currentTimeMillis() - s;
-        if (e > 500) logger.warning("/user/signup cost " + e / 1000.0 + " seconds " + bean);
+        if (e > 500) {
+            logger.warning("/user/signup cost " + e / 1000.0 + " seconds " + bean);
+        }
         resp.finishJson(rr);
     }
 
@@ -262,7 +286,9 @@ public class UserServlet extends BaseServlet {
     public void updatepwd(HttpRequest req, HttpResponse resp) throws IOException {
         UserPwdBean bean = req.getJsonParameter(UserPwdBean.class, "bean");
         UserInfo curr = service.findUserInfo(req.currentUserid(int.class));
-        if (curr != null) bean.setSessionid(req.getSessionid(false));
+        if (curr != null) {
+            bean.setSessionid(req.getSessionid(false));
+        }
         RetResult<UserInfo> result = service.updatePwd(bean);
         if (result.isSuccess() && curr == null) { //找回的密码
             curr = result.getResult();
@@ -314,7 +340,9 @@ public class UserServlet extends BaseServlet {
     @HttpMapping(url = "/user/updateappToken")
     public void updateAppToken(HttpRequest req, HttpResponse resp) throws IOException {
         String s = req.getPathLastParam();
-        if ("updateappToken".equalsIgnoreCase(s)) s = "";
+        if ("updateappToken".equalsIgnoreCase(s)) {
+            s = "";
+        }
         UserInfo user = service.findUserInfo(req.currentUserid(int.class));
         resp.finishJson(service.updateAppToken(user.getUserid(), req.getParameter("appos", req.getPathParam("appos:", "")), req.getParameter("appToken", s)));
     }
@@ -360,10 +388,14 @@ public class UserServlet extends BaseServlet {
         String mobile = req.getPathParam("mobile:", req.getParameter("mobile"));
         if (type == RandomCode.TYPE_SMSODM) { //给原手机号码发送验证短信
             UserInfo user = service.findUserInfo(req.currentUserid(int.class));
-            if (user != null) mobile = user.getMobile();
+            if (user != null) {
+                mobile = user.getMobile();
+            }
         }
         RetResult rr = service.smscode(type, mobile);
-        if (finest) logger.finest(req.getRequestPath() + ", mobile = " + mobile + "---->" + rr);
+        if (finest) {
+            logger.finest(req.getRequestPath() + ", mobile = " + mobile + "---->" + rr);
+        }
         resp.finishJson(rr);
     }
 

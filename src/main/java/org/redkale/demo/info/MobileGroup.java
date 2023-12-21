@@ -30,10 +30,10 @@ public class MobileGroup extends BaseEntity {
     private int mobnet;
 
     @Column(length = 32, comment = "区号")
-    private String areacode = "";
+    private String areaCode = "";
 
     @Column(length = 32, comment = "邮政编码")
-    private String postcode = "";
+    private String postCode = "";
 
     public void setMobprefix(String mobprefix) {
         this.mobprefix = mobprefix;
@@ -67,19 +67,19 @@ public class MobileGroup extends BaseEntity {
         return this.mobnet;
     }
 
-    public void setAreacode(String areacode) {
-        this.areacode = areacode;
+    public void setAreaCode(String areaCode) {
+        this.areaCode = areaCode;
     }
 
-    public String getAreacode() {
-        return this.areacode;
+    public String getAreaCode() {
+        return this.areaCode;
     }
 
-    public void setPostcode(String postcode) {
-        this.postcode = postcode;
+    public void setPostCode(String postCode) {
+        this.postCode = postCode;
     }
 
-    public String getPostcode() {
-        return this.postcode;
+    public String getPostCode() {
+        return this.postCode;
     }
 }

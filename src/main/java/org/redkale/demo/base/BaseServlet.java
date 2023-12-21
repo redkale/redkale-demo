@@ -55,10 +55,14 @@ public class BaseServlet extends HttpServlet {
      */
     @Override
     public void preExecute(final HttpRequest request, final HttpResponse response) throws IOException {
-        if (finer) response.recycleListener((req, resp) -> {  //记录处理时间比较长的请求
+        if (finer) {
+            response.recycleListener((req, resp) -> {  //记录处理时间比较长的请求
                 long e = System.currentTimeMillis() - ((HttpRequest) req).getCreateTime();
-                if (e > 200) logger.finer("http-execute-cost-time: " + e + " ms. request = " + req);
+                if (e > 200) {
+                    logger.finer("http-execute-cost-time: " + e + " ms. request = " + req);
+                }
             });
+        }
         request.setCurrentUserid(currentUserid(service, request));
         response.nextEvent();
     }
@@ -92,14 +96,24 @@ public class BaseServlet extends HttpServlet {
      */
     public static final int currentUserid(UserService service, HttpRequest req) throws IOException {
         int userid = req.currentUserid(int.class);
-        if (userid > 0) return userid;
+        if (userid > 0) {
+            return userid;
+        }
         UserInfo user = null;
         String sessionid = req.getSessionid(false);
-        if (sessionid == null || sessionid.isEmpty()) sessionid = req.getParameter("token");
-        if (sessionid != null && !sessionid.isEmpty()) user = service.current(sessionid);
-        if (user != null) return user.getUserid();
+        if (sessionid == null || sessionid.isEmpty()) {
+            sessionid = req.getParameter("token");
+        }
+        if (sessionid != null && !sessionid.isEmpty()) {
+            user = service.current(sessionid);
+        }
+        if (user != null) {
+            return user.getUserid();
+        }
         String autologin = req.getCookie(UserServlet.COOKIE_AUTOLOGIN);
-        if (autologin == null) return 0;
+        if (autologin == null) {
+            return 0;
+        }
         autologin = autologin.replace('"', ' ').trim();
         LoginBean bean = new LoginBean();
         bean.setCookieInfo(autologin);

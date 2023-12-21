@@ -8,7 +8,6 @@ package org.redkale.demo.file;
 import java.awt.image.*;
 import java.lang.reflect.*;
 import java.util.*;
-import java.util.List;
 import org.redkale.annotation.ConstructorParameters;
 import org.redkale.convert.*;
 import org.redkale.convert.json.JsonConvert;
@@ -43,9 +42,15 @@ public final class ImageRatio {
     static {
         List<ImageRatio> list = new ArrayList<>();
         for (Field field : ImageRatio.class.getFields()) {
-            if (field.getType() != ImageRatio.class) continue;
-            if (!Modifier.isStatic(field.getModifiers())) continue;
-            if (!Modifier.isFinal(field.getModifiers())) continue;
+            if (field.getType() != ImageRatio.class) {
+                continue;
+            }
+            if (!Modifier.isStatic(field.getModifiers())) {
+                continue;
+            }
+            if (!Modifier.isFinal(field.getModifiers())) {
+                continue;
+            }
             try {
                 list.add((ImageRatio) field.get(null));
             } catch (Exception e) {
@@ -65,9 +70,13 @@ public final class ImageRatio {
     }
 
     public static ImageRatio create(int width, int height) {
-        if (width < 1 || height < 1) return null;
+        if (width < 1 || height < 1) {
+            return null;
+        }
         for (ImageRatio ratio : ratios) {
-            if (width == ratio.width && height == ratio.height) return ratio;
+            if (width == ratio.width && height == ratio.height) {
+                return ratio;
+            }
         }
         return new ImageRatio(width, height);
     }
@@ -84,7 +93,9 @@ public final class ImageRatio {
 
     //判断图片是否与当前比例一致，返回false表示不同
     public boolean check(final BufferedImage image) {
-        if (image == null) return false;
+        if (image == null) {
+            return false;
+        }
         return image.getWidth() * this.height == image.getHeight() * this.width;
     }
 
@@ -159,7 +170,9 @@ public final class ImageRatio {
 
             @Override
             public ImageRatio convertFrom(Reader in) {
-                if (in.readObjectB(ImageRatio.class) == null) return null;
+                if (in.readObjectB(ImageRatio.class) == null) {
+                    return null;
+                }
                 int index = 0;
                 final Object[] params = new Object[deMembers.length];
                 while (in.hasNext()) {

@@ -10,7 +10,7 @@ import org.redkale.annotation.Resource;
 import org.redkale.demo.base.BaseServlet;
 import org.redkale.net.http.*;
 import org.redkale.util.AnyValue;
- 
+
 /**
  *
  * 所有静态资源的请求url的根目录为dir，便于nginx进行静动分离
@@ -51,7 +51,9 @@ public class FileDownServlet extends BaseServlet {
         if (!f.isFile()) {  //每个目录下放个默认图片
             String subp = uri.substring(0, pos + 1);
             f = new File(files, subp + "def.jpg");
-            if (!f.isFile()) f = new File(files, subp + "def.png");
+            if (!f.isFile()) {
+                f = new File(files, subp + "def.png");
+            }
         }
         if (f.isFile()) {
             resp.finish(req.getParameter("filename"), f);

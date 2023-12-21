@@ -15,7 +15,7 @@ import org.redkale.service.RetResult;
 import org.redkale.util.*;
 
 /**
- * 
+ *
  *
  * @author zhangjx
  */
@@ -134,7 +134,9 @@ public class FileUploadServlet extends BaseServlet {
         File file;
         for (MultiPart part : req.multiParts()) {
             file = service.storeFile(dir, fileid0, part.getFileName(), max, part.getInputStream());
-            if (file != null) fileid = file.getName();
+            if (file != null) {
+                fileid = file.getName();
+            }
             if (file == null || fileid.isEmpty()) {
                 resp.finishJson(RetCodes.retResult(RET_UPLOAD_FILETOOBIG));
             } else {

@@ -39,14 +39,20 @@ public class FileService extends BaseService {
     @Override
     public void init(AnyValue config) {
         initPath();
-        if (finest) logger.finest("files.root= " + this.files.getPath());
+        if (finest) {
+            logger.finest("files.root= " + this.files.getPath());
+        }
     }
 
     //初始化静态资源的总文件目录
     private void initPath() {
-        if (this.files != null) return;
+        if (this.files != null) {
+            return;
+        }
         String fr = this.filesroot;
-        if (fr != null) fr = fr.trim();
+        if (fr != null) {
+            fr = fr.trim();
+        }
         if (fr != null && fr.toLowerCase().startsWith("http") && fr.indexOf(':') > 0) {
             try {
                 fr = Utility.getHttpContent(fr);
@@ -82,9 +88,13 @@ public class FileService extends BaseService {
     }
 
     private static java.util.List<File> list(File file, java.util.List<File> list, FilenameFilter filter) {
-        if (file == null) return list;
+        if (file == null) {
+            return list;
+        }
         if (file.isFile()) {
-            if (filter == null || filter.accept(file, file.getPath())) list.add(file);
+            if (filter == null || filter.accept(file, file.getPath())) {
+                list.add(file);
+            }
         } else if (file.isDirectory()) {
             for (File f : file.listFiles(filter)) {
                 list(f, list, filter);
@@ -125,7 +135,9 @@ public class FileService extends BaseService {
      * @throws IOException
      */
     public final String storeMultiJPGFile(final String dir, final String fileid0, final String filename, int[] widths, final ImageRatio ratio, byte[] bytes, Runnable runner) throws IOException {
-        if (bytes == null) return "";
+        if (bytes == null) {
+            return "";
+        }
         final boolean webp = (bytes[0] & 0xFF) == 'W' && (bytes[1] & 0xFF) == 'E' && (bytes[2] & 0xFF) == 'B' && (bytes[3] & 0xFF) == 'P'; //WEBP
         final boolean riff = (bytes[0] & 0xFF) == 0x52 && (bytes[1] & 0xFF) == 0x49 && (bytes[2] & 0xFF) == 0x46 && (bytes[3] & 0xFF) == 0x46; //RIFF
         final boolean jpeg = (bytes[0] & 0xFF) == 0xFF && (bytes[1] & 0xFF) == 0xD8 && (bytes[bytes.length - 2] & 0xFF) == 0xFF && (bytes[bytes.length - 1] & 0xFF) == 0xD9;
@@ -154,7 +166,9 @@ public class FileService extends BaseService {
                 imageWriter.write(new IIOImage(newBufferedImage, null, null));
                 out.flush();
                 //ImageIO.write(bufferedImage, "png", file);
-                if (finest) logger.log(Level.FINEST, "png有损压缩: 原大小:" + bytes.length + ", 新大小: " + file.length() + ", 压缩率:" + (file.length() * 10000 / bytes.length) / 100 + "%");
+                if (finest) {
+                    logger.log(Level.FINEST, "png有损压缩: 原大小:" + bytes.length + ", 新大小: " + file.length() + ", 压缩率:" + (file.length() * 10000 / bytes.length) / 100 + "%");
+                }
                 return fileid + postfix;
             } else if (jpeg) {
                 final String fileid = (fileid0 == null || fileid0.isEmpty()) ? randomFileid() : fileid0;
@@ -186,28 +200,40 @@ public class FileService extends BaseService {
                 bufferedImage.flush();
                 out.flush();
                 //ImageIO.write(bufferedImage, "png", file);
-                if (finest) logger.log(Level.FINEST, "jpg有损压缩: 原大小:" + bytes.length + ", 新大小: " + file.length() + ", 压缩率:" + (file.length() * 10000 / bytes.length) / 100 + "%");
+                if (finest) {
+                    logger.log(Level.FINEST, "jpg有损压缩: 原大小:" + bytes.length + ", 新大小: " + file.length() + ", 压缩率:" + (file.length() * 10000 / bytes.length) / 100 + "%");
+                }
                 return fileid + postfix;
             } else if (gif) {
                 final String fileid = (fileid0 == null || fileid0.isEmpty()) ? randomFileid() : fileid0;
-                if (postfix == null) postfix = ".gif";
+                if (postfix == null) {
+                    postfix = ".gif";
+                }
                 final File file = createFile(dir, fileid, postfix);
                 FileOutputStream out = new FileOutputStream(file);
                 out.write(bytes);
                 out.flush();
-                if (finest) logger.log(Level.FINEST, "gif无需压缩: 原大小:" + bytes.length + ", 新大小: " + file.length() + ", 压缩率:" + (file.length() * 10000 / bytes.length) / 100 + "%");
+                if (finest) {
+                    logger.log(Level.FINEST, "gif无需压缩: 原大小:" + bytes.length + ", 新大小: " + file.length() + ", 压缩率:" + (file.length() * 10000 / bytes.length) / 100 + "%");
+                }
                 return fileid + postfix;
             } else if (riff || webp) {
                 final String fileid = (fileid0 == null || fileid0.isEmpty()) ? randomFileid() : fileid0;
-                if (postfix == null) postfix = ".webp";
+                if (postfix == null) {
+                    postfix = ".webp";
+                }
                 final File file = createFile(dir, fileid, postfix);
                 FileOutputStream out = new FileOutputStream(file);
                 out.write(bytes);
                 out.flush();
-                if (finest) logger.log(Level.FINEST, "webp无需压缩: 原大小:" + bytes.length + ", 新大小: " + file.length() + ", 压缩率:" + (file.length() * 10000 / bytes.length) / 100 + "%");
+                if (finest) {
+                    logger.log(Level.FINEST, "webp无需压缩: 原大小:" + bytes.length + ", 新大小: " + file.length() + ", 压缩率:" + (file.length() * 10000 / bytes.length) / 100 + "%");
+                }
                 return fileid + postfix;
             } else {
-                if (!jpeg && !png) logger.log(Level.WARNING, "不支持的图片格式, 头信息: " + Utility.joiningHex(bytes, 0, 8, ',') + ", filename=" + filename);
+                if (!jpeg && !png) {
+                    logger.log(Level.WARNING, "不支持的图片格式, 头信息: " + Utility.joiningHex(bytes, 0, 8, ',') + ", filename=" + filename);
+                }
                 return null;
             }
         } else {
@@ -231,7 +257,9 @@ public class FileService extends BaseService {
     private static final int[] WIDTHS_ONEL = new int[]{0};
 
     public final String storeMultiJPGFile(final String dir, final String fileid0, int[] widths, final ImageRatio ratio, BufferedImage srcImage, Runnable runner) throws IOException {
-        if (widths == null) widths = WIDTHS_ONEL;
+        if (widths == null) {
+            widths = WIDTHS_ONEL;
+        }
         final File[] facefiles = new File[widths.length];
         srcImage = ratio == null ? srcImage : ratio.cut(srcImage);
         final String fileid = (fileid0 == null || fileid0.isEmpty()) ? randomFileid() : fileid0;
@@ -250,7 +278,9 @@ public class FileService extends BaseService {
             } else {
                 target = srcImage;
             }
-            if (facefiles[i].getParentFile().isFile()) facefiles[i].getParentFile().delete();
+            if (facefiles[i].getParentFile().isFile()) {
+                facefiles[i].getParentFile().delete();
+            }
             facefiles[i].getParentFile().mkdirs();
             FileOutputStream out = new FileOutputStream(facefiles[i]);
 //            com.sun.image.codec.jpeg.JPEGImageEncoder encoder = com.sun.image.codec.jpeg.JPEGCodec.createJPEGEncoder(out);
@@ -267,7 +297,9 @@ public class FileService extends BaseService {
             facefiles[i] = newfile;
             rs = newfile.getName();
         }
-        if (runner != null) runner.run();
+        if (runner != null) {
+            runner.run();
+        }
         return rs;
     }
 
@@ -282,7 +314,9 @@ public class FileService extends BaseService {
         File temp = new File(file.getPath() + ".temp");
         try (OutputStream out = new FileOutputStream(temp)) {
             while ((pos = in.read(bytes)) != -1) {
-                if (file == null) continue;
+                if (file == null) {
+                    continue;
+                }
                 if (max < 0) {
                     out.close();
                     temp.delete();
@@ -295,24 +329,34 @@ public class FileService extends BaseService {
                 max -= pos;
             }
         }
-        if (file == null) return file;
+        if (file == null) {
+            return file;
+        }
         Files.move(temp.toPath(), file.toPath(), REPLACE_EXISTING, ATOMIC_MOVE);
         return file;
     }
 
     public final boolean renameTo(String dir, int[] widths, String oldfileid, String newfileid) {
-        if (oldfileid == null || oldfileid.isEmpty()) return false;
-        if (newfileid == null || newfileid.isEmpty()) return false;
+        if (oldfileid == null || oldfileid.isEmpty()) {
+            return false;
+        }
+        if (newfileid == null || newfileid.isEmpty()) {
+            return false;
+        }
         File oldfile = new File(files, dir + "/" + hashPath(oldfileid));
         if (oldfile.isFile()) {
             File newfile = new File(files, dir + "/" + hashPath(newfileid));
             newfile.getParentFile().mkdirs();
             oldfile.renameTo(newfile);
         }
-        if (widths == null) return true;
+        if (widths == null) {
+            return true;
+        }
         for (int i = 0; i < widths.length; i++) {
             oldfile = new File(files, dir + "_" + widths[i] + "/" + hashPath(oldfileid));
-            if (!oldfile.isFile()) continue;
+            if (!oldfile.isFile()) {
+                continue;
+            }
             File newfile = new File(files, dir + "_" + widths[i] + "/" + hashPath(newfileid));
             newfile.getParentFile().mkdirs();
             oldfile.renameTo(newfile);
@@ -332,10 +376,16 @@ public class FileService extends BaseService {
     final File createFile(String dir, String fileNameNoPostfix, String extension) {
         fileNameNoPostfix = fileNameNoPostfix == null ? randomFileid() : fileNameNoPostfix;
         String f = fileNameNoPostfix + "." + (extension.substring(extension.lastIndexOf('.') + 1)).toLowerCase();
-        if (f.indexOf('/') <= 0) f = hashPath(f);
-        if (files == null) initPath();
+        if (f.indexOf('/') <= 0) {
+            f = hashPath(f);
+        }
+        if (files == null) {
+            initPath();
+        }
         File file = new File(files, dir + "/" + f);
-        if (file.getParentFile().isFile()) file.getParentFile().delete();
+        if (file.getParentFile().isFile()) {
+            file.getParentFile().delete();
+        }
         file.getParentFile().mkdirs();
         return file;
     }

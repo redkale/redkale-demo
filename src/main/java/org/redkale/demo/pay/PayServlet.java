@@ -36,7 +36,9 @@ public class PayServlet extends HttpServlet {
 
     @HttpMapping(url = "/pay/check/", auth = false, comment = "根据支付单号检查支付结果") ///pay/check/{payno}
     public void checkPay(HttpRequest req, HttpResponse resp) throws IOException {
-        if (info) logger.info("" + req);
+        if (info) {
+            logger.info("" + req);
+        }
         String payno = req.getPathLastParam();
         resp.finishJson(service.checkPay(payno));
     }
@@ -79,7 +81,9 @@ public class PayServlet extends HttpServlet {
 
         List<String> emptyKeys = new ArrayList<>();
         for (Map.Entry<String, String> en : map.entrySet()) { //去掉空值的参数
-            if (en.getValue().isEmpty()) emptyKeys.add(en.getKey());
+            if (en.getValue().isEmpty()) {
+                emptyKeys.add(en.getKey());
+            }
         }
         emptyKeys.forEach(x -> map.remove(x));
 
@@ -139,7 +143,9 @@ public class PayServlet extends HttpServlet {
 
         List<String> emptyKeys = new ArrayList<>();
         for (Map.Entry<String, String> en : map.entrySet()) { //去掉空值的参数
-            if (en.getValue().isEmpty()) emptyKeys.add(en.getKey());
+            if (en.getValue().isEmpty()) {
+                emptyKeys.add(en.getKey());
+            }
         }
         emptyKeys.forEach(x -> map.remove(x));
 
@@ -147,7 +153,9 @@ public class PayServlet extends HttpServlet {
         if (service != null) {
             try {
                 PayRecord pay = service.findPayRecord(map.get("out_trade_no"));
-                if (pay != null) bean.setAppid(pay.getAppid());
+                if (pay != null) {
+                    bean.setAppid(pay.getAppid());
+                }
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "find appid form payrecord(" + map + ") error", e);
             }
@@ -158,6 +166,6 @@ public class PayServlet extends HttpServlet {
     @HttpMapping(url = "/pay/alipay/notify", auth = false, comment = "支付宝支付异步通知")
     public void alipaynotify(HttpRequest req, HttpResponse resp) throws IOException {
         resp.finish(service.notify(alipayNotifyRequest(service, logger, req)).getRetinfo());
-    } 
+    }
 
 }
