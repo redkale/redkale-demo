@@ -126,32 +126,21 @@ public class AutoClassCreator {
                     + " * @author " + System.getProperty("user.name") + "\r\n"
                     + " */\r\n");
                 //if (classname.contains("Info")) sb.append("@Cacheable\r\n");
-                sb.append("@Table(comment = \"" + tableComment + "\"");
+                String tabname = "";
+                if (!classname.replace("_", "").equals(classname)) {
+                    tabname = "name = \"" + classname.toLowerCase() + "\", ";
+                }
+                sb.append("@Table(" + tabname + "comment = \"" + tableComment + "\")\r\n");
                 if (!uniques.isEmpty()) {
-                    sb.append("\r\n        , uniqueConstraints = {");
-                    boolean first = true;
                     for (Map.Entry<String, String> en : uniques.entrySet()) {
-                        if (!first) {
-                            sb.append(", ");
-                        }
-                        sb.append("@UniqueConstraint(name = \"" + en.getKey() + "\", columnNames = {" + en.getValue().replace('`', '"') + "})");
-                        first = false;
+                        sb.append("@Index(name = \"" + en.getKey() + "\", columns = {" + en.getValue().replace('`', '"') + "}, unique = true)\r\n");
                     }
-                    sb.append("}");
                 }
                 if (!indexs.isEmpty()) {
-                    sb.append("\r\n        , indexes = {");
-                    boolean first = true;
                     for (Map.Entry<String, String> en : indexs.entrySet()) {
-                        if (!first) {
-                            sb.append(", ");
-                        }
-                        sb.append("@Index(name = \"" + en.getKey() + "\", columnList = \"" + en.getValue().replace("`", "") + "\")");
-                        first = false;
+                        sb.append("@Index(name = \"" + en.getKey() + "\", columns = {" + en.getValue().replace('`', '"') + "})\r\n");
                     }
-                    sb.append("}");
                 }
-                sb.append(")\r\n");
                 sb.append("public class " + classname
                     + (superclassname != null && !superclassname.isEmpty() ? (" extends " + superclassname) : (tostring.length() == 0 ? " extends BaseEntity" : " implements java.io.Serializable")) + " {\r\n\r\n");
                 Map<String, StringBuilder> columnMap = new HashMap<>();
