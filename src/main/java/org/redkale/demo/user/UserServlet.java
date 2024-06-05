@@ -12,10 +12,10 @@ import org.redkale.annotation.Resource;
 import org.redkale.convert.json.*;
 import org.redkale.demo.base.*;
 import org.redkale.demo.notice.RandomCode;
+import org.redkale.demo.weixin.WeiXinMPService;
 import org.redkale.net.http.*;
 import org.redkale.service.RetResult;
 import org.redkale.util.AnyValue;
-import org.redkalex.weixin.WeiXinMPService;
 
 /**
  * 用户模块的Servlet

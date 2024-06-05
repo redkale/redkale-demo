@@ -5,6 +5,10 @@
  */
 package org.redkale.demo.user;
 
+import static org.redkale.demo.base.RetCodes.*;
+import static org.redkale.demo.base.UserInfo.*;
+import static org.redkale.demo.user.UserDetail.*;
+
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.security.*;
@@ -19,16 +23,13 @@ import org.redkale.annotation.*;
 import org.redkale.annotation.Comment;
 import org.redkale.convert.json.JsonConvert;
 import org.redkale.demo.base.*;
-import static org.redkale.demo.base.RetCodes.*;
-import static org.redkale.demo.base.UserInfo.*;
 import org.redkale.demo.file.FileService;
 import org.redkale.demo.info.MobileGroupService;
 import org.redkale.demo.notice.*;
-import static org.redkale.demo.user.UserDetail.*;
+import org.redkale.demo.weixin.WeiXinMPService;
 import org.redkale.service.RetResult;
 import org.redkale.source.*;
 import org.redkale.util.*;
-import org.redkalex.weixin.WeiXinMPService;
 
 /**
  *
