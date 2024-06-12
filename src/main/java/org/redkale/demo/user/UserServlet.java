@@ -402,19 +402,19 @@ public class UserServlet extends BaseServlet {
     //检测账号是否有效, 返回t0表示可用.给新用户注册使用
     @HttpMapping(url = "/user/checkaccount/", auth = false)
     public void checkAccount(HttpRequest req, HttpResponse resp) throws IOException {
-        resp.finishJson(RetCodes.retResult(service.checkAccount(req.getPathLastParam())));
+        resp.finishJson(DemoRetCodes.retResult(service.checkAccount(req.getPathLastParam())));
     }
 
     //检测手机号码是否有效, 返回0表示可用.给新用户注册使用
     @HttpMapping(url = "/user/checkmobile/", auth = false)
     public void checkMobile(HttpRequest req, HttpResponse resp) throws IOException {
-        resp.finishJson(RetCodes.retResult(service.checkMobile(req.getPathLastParam())));
+        resp.finishJson(DemoRetCodes.retResult(service.checkMobile(req.getPathLastParam())));
     }
 
     //检测邮箱地址是否有效, 返回0表示可用.给新用户注册使用
     @HttpMapping(url = "/user/checkemail/", auth = false)
     public void checkEmail(HttpRequest req, HttpResponse resp) throws IOException {
-        resp.finishJson(RetCodes.retResult(service.checkEmail(req.getPathLastParam())));
+        resp.finishJson(DemoRetCodes.retResult(service.checkEmail(req.getPathLastParam())));
     }
 
     //验证短信验证码
@@ -423,7 +423,7 @@ public class UserServlet extends BaseServlet {
         String mobile = req.getPathParam("mobile:", req.getParameter("mobile"));
         String verCode = req.getPathParam("verCode:", req.getParameter("verCode"));
         RetResult<RandomCode> ret = service.checkRandomCode(mobile, verCode, (short) 0);
-        resp.finishJson(RetCodes.retResult(ret.getRetcode()));
+        resp.finishJson(DemoRetCodes.retResult(ret.getRetcode()));
     }
 
     //获取当前用户基本信息

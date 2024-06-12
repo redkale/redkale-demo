@@ -5,7 +5,7 @@
  */
 package org.redkale.demo.user;
 
-import static org.redkale.demo.base.RetCodes.*;
+import static org.redkale.demo.base.DemoRetCodes.*;
 import static org.redkale.demo.base.UserInfo.*;
 import static org.redkale.demo.user.UserDetail.*;
 
@@ -211,7 +211,7 @@ public class UserService extends BaseService {
         if (!codes.isEmpty()) {
             RandomCode last = codes.get(codes.size() - 1);
             if (last.getCreateTime() + 60 * 1000 > System.currentTimeMillis()) {
-                return RetCodes.retResult(RET_USER_MOBILE_SMSFREQUENT);
+                return DemoRetCodes.retResult(RET_USER_MOBILE_SMSFREQUENT);
             }
         }
         final int smscode = RandomCode.randomSmsCode();
@@ -245,7 +245,7 @@ public class UserService extends BaseService {
             }
             Map<String, String> jsonmap = convert.convertFrom(JsonConvert.TYPE_MAP_STRING_STRING, json);
             if (!"0".equals(jsonmap.get("ret"))) {
-                return RetCodes.retResult(RET_USER_QQID_INFO_FAIL);
+                return DemoRetCodes.retResult(RET_USER_QQID_INFO_FAIL);
             }
             RetResult<UserInfo> rr;
             UserInfo user = findUserInfoByQqopenid(bean.getOpenid());
@@ -289,7 +289,7 @@ public class UserService extends BaseService {
             return rr;
         } catch (Exception e) {
             logger.log(Level.FINE, "qqlogin failed (" + bean + ")", e);
-            return RetCodes.retResult(RET_USER_LOGIN_FAIL);
+            return DemoRetCodes.retResult(RET_USER_LOGIN_FAIL);
         }
     }
 
@@ -301,7 +301,7 @@ public class UserService extends BaseService {
                 : wxMPService.getMPUserTokenByOpenid(bean.getAccessToken(), bean.getOpenid()).join();
             final String unionid = wxmap.get("unionid");
             if (unionid == null) {
-                return RetCodes.retResult(RET_USER_WXID_ILLEGAL);
+                return DemoRetCodes.retResult(RET_USER_WXID_ILLEGAL);
             }
             RetResult<UserInfo> rr;
             UserInfo user = findUserInfoByWxunionid(unionid);
@@ -350,7 +350,7 @@ public class UserService extends BaseService {
             return rr;
         } catch (Exception e) {
             logger.log(Level.FINE, "wxlogin failed (" + bean + ")", e);
-            return RetCodes.retResult(RET_USER_LOGIN_FAIL);
+            return DemoRetCodes.retResult(RET_USER_LOGIN_FAIL);
         }
     }
 
@@ -391,7 +391,7 @@ public class UserService extends BaseService {
             }
         }
         if (bean == null || bean.emptySessionid() || (user == null && bean.emptyAccount())) {
-            return RetCodes.retResult(RET_USER_ACCOUNT_PWD_ILLEGAL);
+            return DemoRetCodes.retResult(RET_USER_ACCOUNT_PWD_ILLEGAL);
         }
         String key = "";
         if (user == null && !bean.emptyAccount()) {
@@ -409,20 +409,20 @@ public class UserService extends BaseService {
         if (user == null) { //不在缓存内
             UserDetail detail = source.find(UserDetail.class, key, bean.getAccount());
             if (detail == null) {
-                return RetCodes.retResult(RET_USER_ACCOUNT_PWD_ILLEGAL);
+                return DemoRetCodes.retResult(RET_USER_ACCOUNT_PWD_ILLEGAL);
             }
             if (bean.getPassword().isEmpty() && !bean.getVerCode().isEmpty()) { //手机验证码登录
                 RetResult<RandomCode> rr = checkRandomCode(detail.getMobile(), bean.getVerCode(), RandomCode.TYPE_SMSLGN);
                 if (!rr.isSuccess()) {
-                    return RetCodes.retResult(rr.getRetcode());
+                    return DemoRetCodes.retResult(rr.getRetcode());
                 }
                 removeRandomCode(rr.getResult());
             } else if (!detail.getPassword().equals(digestPassword(bean.getPassword()))) {
-                return RetCodes.retResult(RET_USER_ACCOUNT_PWD_ILLEGAL); //用户或密码错误   
+                return DemoRetCodes.retResult(RET_USER_ACCOUNT_PWD_ILLEGAL); //用户或密码错误   
             }
             user = detail.createUserInfo();
             if (user.isFrobid()) {
-                return RetCodes.retResult(RET_USER_FREEZED);
+                return DemoRetCodes.retResult(RET_USER_FREEZED);
             }
 
             result.setRetcode(0);
@@ -433,15 +433,15 @@ public class UserService extends BaseService {
                 if (bean.getPassword().isEmpty() && !bean.getVerCode().isEmpty()) { //手机验证码登录
                     RetResult<RandomCode> rr = checkRandomCode(user.getMobile(), bean.getVerCode(), RandomCode.TYPE_SMSLGN);
                     if (!rr.isSuccess()) {
-                        return RetCodes.retResult(rr.getRetcode());
+                        return DemoRetCodes.retResult(rr.getRetcode());
                     }
                     removeRandomCode(rr.getResult());
                 } else if (!user.getPassword().equals(digestPassword(bean.getPassword()))) {
-                    return RetCodes.retResult(RET_USER_ACCOUNT_PWD_ILLEGAL); //用户或密码错误   
+                    return DemoRetCodes.retResult(RET_USER_ACCOUNT_PWD_ILLEGAL); //用户或密码错误   
                 }
             }
             if (user.isFrobid()) {
-                return RetCodes.retResult(RET_USER_FREEZED);
+                return DemoRetCodes.retResult(RET_USER_FREEZED);
             }
             result.setRetcode(0);
             result.setResult(user);
@@ -460,42 +460,42 @@ public class UserService extends BaseService {
     public RetResult<UserInfo> register(UserDetail user) {
         RetResult<UserInfo> result = new RetResult();
         if (user == null) {
-            return RetCodes.retResult(RET_USER_SIGNUP_ILLEGAL);
+            return DemoRetCodes.retResult(RET_USER_SIGNUP_ILLEGAL);
         }
         if (user.getAccount().isEmpty() && user.getMobile().isEmpty()
             && user.getEmail().isEmpty() && user.getWxunionid().isEmpty()
             && user.getQqopenid().isEmpty()) {
-            return RetCodes.retResult(RET_USER_SIGNUP_ILLEGAL);
+            return DemoRetCodes.retResult(RET_USER_SIGNUP_ILLEGAL);
         }
         short gender = user.getGender();
         if (gender != 0 && gender != GENDER_MALE && gender != GENDER_FEMALE) {
-            return RetCodes.retResult(RET_USER_GENDER_ILLEGAL);
+            return DemoRetCodes.retResult(RET_USER_GENDER_ILLEGAL);
         }
         int retcode = 0;
         if (!user.getAccount().isEmpty() && (retcode = checkAccount(user.getAccount())) != 0) {
-            return RetCodes.retResult(retcode);
+            return DemoRetCodes.retResult(retcode);
         }
         if (!user.getMobile().isEmpty() && (retcode = checkMobile(user.getMobile())) != 0) {
-            return RetCodes.retResult(retcode);
+            return DemoRetCodes.retResult(retcode);
         }
         if (!user.getEmail().isEmpty() && (retcode = checkEmail(user.getEmail())) != 0) {
-            return RetCodes.retResult(retcode);
+            return DemoRetCodes.retResult(retcode);
         }
         if (!user.getWxunionid().isEmpty() && (retcode = checkWxunionid(user.getEmail())) != 0) {
-            return RetCodes.retResult(retcode);
+            return DemoRetCodes.retResult(retcode);
         }
         if (!user.getQqopenid().isEmpty() && (retcode = checkQqopenid(user.getEmail())) != 0) {
-            return RetCodes.retResult(retcode);
+            return DemoRetCodes.retResult(retcode);
         }
         if (!user.getMobile().isEmpty()) {
             user.setRegType(REGTYPE_MOBILE);
             if (user.getPassword().isEmpty()) {
-                return RetCodes.retResult(RET_USER_PASSWORD_ILLEGAL);
+                return DemoRetCodes.retResult(RET_USER_PASSWORD_ILLEGAL);
             }
         } else if (!user.getEmail().isEmpty()) {
             user.setRegType(REGTYPE_EMAIL);
             if (user.getPassword().isEmpty()) {
-                return RetCodes.retResult(RET_USER_PASSWORD_ILLEGAL);
+                return DemoRetCodes.retResult(RET_USER_PASSWORD_ILLEGAL);
             }
         } else if (!user.getWxunionid().isEmpty()) {
             user.setRegType(REGTYPE_WEIXIN);
@@ -504,7 +504,7 @@ public class UserService extends BaseService {
         } else {
             user.setRegType(REGTYPE_ACCOUNT);
             if (user.getPassword().isEmpty()) {
-                return RetCodes.retResult(RET_USER_PASSWORD_ILLEGAL);
+                return DemoRetCodes.retResult(RET_USER_PASSWORD_ILLEGAL);
             }
         }
         user.setCreateTime(System.currentTimeMillis());
@@ -527,7 +527,7 @@ public class UserService extends BaseService {
             }
         }
         if (!ok) {
-            return RetCodes.retResult(RET_PARAMS_ILLEGAL);
+            return DemoRetCodes.retResult(RET_PARAMS_ILLEGAL);
         }
 
         //------------------------扩展信息-----------------------------
@@ -555,15 +555,15 @@ public class UserService extends BaseService {
     public RetResult updateWxunionid(UserInfo user, String code) {
         try {
             if (user == null) {
-                return RetCodes.retResult(RET_USER_NOTEXISTS);
+                return DemoRetCodes.retResult(RET_USER_NOTEXISTS);
             }
             Map<String, String> wxmap = wxMPService.getMPUserTokenByCode(code).join();
             final String wxunionid = wxmap.get("unionid");
             if (wxunionid == null || wxunionid.isEmpty()) {
-                return RetCodes.retResult(RET_USER_WXID_ILLEGAL);
+                return DemoRetCodes.retResult(RET_USER_WXID_ILLEGAL);
             }
             if (checkWxunionid(wxunionid) != 0) {
-                return RetCodes.retResult(RET_USER_WXID_EXISTS);
+                return DemoRetCodes.retResult(RET_USER_WXID_EXISTS);
             }
             source.updateColumn(UserDetail.class, user.getUserid(), "wxunionid", wxunionid);
             source.updateColumn(UserInfo.class, user.getUserid(), "wxunionid", wxunionid);
@@ -571,23 +571,23 @@ public class UserService extends BaseService {
             return RetResult.success();
         } catch (Exception e) {
             logger.log(Level.FINE, "updateWxunionid failed (" + user + ", " + code + ")", e);
-            return RetCodes.retResult(RET_USER_WXID_BIND_FAIL);
+            return DemoRetCodes.retResult(RET_USER_WXID_BIND_FAIL);
         }
     }
 
     public RetResult updateUserName(int userid, String userName) {
         if (userName == null || userName.isEmpty()) {
-            return RetCodes.retResult(RET_USER_USERNAME_ILLEGAL);
+            return DemoRetCodes.retResult(RET_USER_USERNAME_ILLEGAL);
         }
         UserInfo user = findUserInfo(userid);
         if (user == null) {
-            return RetCodes.retResult(RET_USER_NOTEXISTS);
+            return DemoRetCodes.retResult(RET_USER_NOTEXISTS);
         }
         if (user.getUserName().equals(userName)) {
             return RetResult.success();
         }
         if (userName.isEmpty()) {
-            return RetCodes.retResult(RET_USER_USERNAME_ILLEGAL);
+            return DemoRetCodes.retResult(RET_USER_USERNAME_ILLEGAL);
         }
         UserDetail ud = new UserDetail();
         ud.setUserid(userid);
@@ -601,7 +601,7 @@ public class UserService extends BaseService {
     public RetResult updateAppToken(int userid, String appos, String appToken) {
         UserInfo user = findUserInfo(userid);
         if (user == null) {
-            return RetCodes.retResult(RET_USER_NOTEXISTS);
+            return DemoRetCodes.retResult(RET_USER_NOTEXISTS);
         }
         if (appos == null) {
             appos = "";
@@ -619,10 +619,10 @@ public class UserService extends BaseService {
     public RetResult updateGender(int userid, short gender) {
         UserInfo user = findUserInfo(userid);
         if (user == null) {
-            return RetCodes.retResult(RET_USER_NOTEXISTS);
+            return DemoRetCodes.retResult(RET_USER_NOTEXISTS);
         }
         if (gender != GENDER_MALE && gender != GENDER_FEMALE) {
-            return RetCodes.retResult(RET_USER_GENDER_ILLEGAL);
+            return DemoRetCodes.retResult(RET_USER_GENDER_ILLEGAL);
         }
         source.updateColumn(UserDetail.class, user.getUserid(), "gender", gender);
         source.updateColumn(UserInfo.class, user.getUserid(), "gender", gender);
@@ -634,28 +634,28 @@ public class UserService extends BaseService {
     public RetResult updateMobile(int userid, String newmobile, String verCode, String precode) {
         int retcode = checkMobile(newmobile);
         if (retcode != 0) {
-            return RetCodes.retResult(retcode);
+            return DemoRetCodes.retResult(retcode);
         }
         RandomCode code = source.find(RandomCode.class, newmobile + "-" + verCode);
         if (code == null) {
-            return RetCodes.retResult(RET_USER_RANDCODE_ILLEGAL);
+            return DemoRetCodes.retResult(RET_USER_RANDCODE_ILLEGAL);
         }
         if (code.isExpired()) {
-            return RetCodes.retResult(RET_USER_RANDCODE_EXPIRED);
+            return DemoRetCodes.retResult(RET_USER_RANDCODE_EXPIRED);
         }
 
         UserInfo user = findUserInfo(userid);
         if (user == null) {
-            return RetCodes.retResult(RET_USER_NOTEXISTS);
+            return DemoRetCodes.retResult(RET_USER_NOTEXISTS);
         }
         RandomCode rc = null;
         if (!user.getMobile().isEmpty()) {
             rc = source.find(RandomCode.class, user.getMobile() + "-" + precode);
             if (rc == null) {
-                return RetCodes.retResult(RET_USER_RANDCODE_ILLEGAL);
+                return DemoRetCodes.retResult(RET_USER_RANDCODE_ILLEGAL);
             }
             if (rc.isExpired()) {
-                return RetCodes.retResult(RET_USER_RANDCODE_EXPIRED);
+                return DemoRetCodes.retResult(RET_USER_RANDCODE_EXPIRED);
             }
         }
         source.updateColumn(UserDetail.class, user.getUserid(), "mobile", newmobile);
@@ -689,12 +689,12 @@ public class UserService extends BaseService {
                     return retResult(RET_USER_RANDCODE_ILLEGAL);
                 }
                 if (code.isExpired()) {
-                    return RetCodes.retResult(RET_USER_RANDCODE_EXPIRED);
+                    return DemoRetCodes.retResult(RET_USER_RANDCODE_EXPIRED);
                 }
 
                 user = findUserInfo((int) code.getUserid());
                 if (user == null) {
-                    return RetCodes.retResult(RET_USER_NOTEXISTS);
+                    return DemoRetCodes.retResult(RET_USER_NOTEXISTS);
                 }
 
                 source.updateColumn(UserDetail.class, user.getUserid(), "password", newpwd);
@@ -704,11 +704,11 @@ public class UserService extends BaseService {
                 source.delete(RandomCode.class, code.getRandomcode());
                 return new RetResult<>(user);
             }
-            return RetCodes.retResult(RET_USER_NOTEXISTS);
+            return DemoRetCodes.retResult(RET_USER_NOTEXISTS);
         }
         //用户或密码错误
         if (!Objects.equals(user.getPassword(), digestPassword(secondPasswordMD5(bean.getOldpwd())))) {
-            return RetCodes.retResult(RET_USER_ACCOUNT_PWD_ILLEGAL);  //原密码错误
+            return DemoRetCodes.retResult(RET_USER_ACCOUNT_PWD_ILLEGAL);  //原密码错误
         }
         source.updateColumn(UserDetail.class, user.getUserid(), "password", newpwd);
         source.updateColumn(UserInfo.class, user.getUserid(), "password", newpwd);
@@ -722,16 +722,16 @@ public class UserService extends BaseService {
 
     public RetResult<RandomCode> checkRandomCode(String targetid, String randomcode, short type) {
         if (randomcode == null || randomcode.isEmpty()) {
-            return RetCodes.retResult(RET_USER_RANDCODE_ILLEGAL);
+            return DemoRetCodes.retResult(RET_USER_RANDCODE_ILLEGAL);
         }
         if (targetid != null && targetid.length() > 5 && randomcode.length() < 30) {
             randomcode = targetid + "-" + randomcode;
         }
         RandomCode code = source.find(RandomCode.class, randomcode);
         if (code != null && type > 0 && code.getType() != type) {
-            return RetCodes.retResult(RET_USER_RANDCODE_ILLEGAL);
+            return DemoRetCodes.retResult(RET_USER_RANDCODE_ILLEGAL);
         }
-        return code == null ? RetCodes.retResult(RET_USER_RANDCODE_ILLEGAL) : (code.isExpired() ? RetCodes.retResult(RET_USER_RANDCODE_EXPIRED) : new RetResult(code));
+        return code == null ? DemoRetCodes.retResult(RET_USER_RANDCODE_ILLEGAL) : (code.isExpired() ? DemoRetCodes.retResult(RET_USER_RANDCODE_EXPIRED) : new RetResult(code));
     }
 
     public void removeRandomCode(RandomCode code) {

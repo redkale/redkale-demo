@@ -8,7 +8,7 @@ package org.redkale.demo.file;
 import java.io.*;
 import org.redkale.annotation.Resource;
 import org.redkale.demo.base.*;
-import static org.redkale.demo.base.RetCodes.*;
+import static org.redkale.demo.base.DemoRetCodes.*;
 import org.redkale.demo.user.UserService;
 import org.redkale.net.http.*;
 import org.redkale.service.RetResult;
@@ -112,21 +112,21 @@ public class FileUploadServlet extends BaseServlet {
         for (MultiPart part : req.multiParts()) {
             final String mime = MimeType.getByFilename(part.getFileName());
             if (!mime.contains("image/")) { //不是图片
-                resp.finishJson(RetCodes.retResult(RET_UPLOAD_NOTIMAGE));
+                resp.finishJson(DemoRetCodes.retResult(RET_UPLOAD_NOTIMAGE));
                 return;
             }
             String fileid = service.storeMultiJPGFile(dir, fileid0, part.getFileName(), widths, ratio, part.getContentBytes(max), runner);
             if (fileid == null) {
-                resp.finishJson(RetCodes.retResult(RET_UPLOAD_NOTIMAGE));
+                resp.finishJson(DemoRetCodes.retResult(RET_UPLOAD_NOTIMAGE));
             } else if (fileid.isEmpty()) {
-                resp.finishJson(RetCodes.retResult(RET_UPLOAD_FILETOOBIG));
+                resp.finishJson(DemoRetCodes.retResult(RET_UPLOAD_FILETOOBIG));
             } else {
                 FileUploadItem item = new FileUploadItem(fileid, part.getFileName(), part.getReceived());
                 resp.finishJson(RetResult.success(Utility.ofList(item)));
             }
             return;
         }
-        resp.finishJson(RetCodes.retResult(RET_UPLOAD_NOFILE));
+        resp.finishJson(DemoRetCodes.retResult(RET_UPLOAD_NOFILE));
     }
 
     protected void uploadBin(final HttpRequest req, HttpResponse resp, String dir, String fileid0, final long max) throws IOException {
@@ -138,14 +138,14 @@ public class FileUploadServlet extends BaseServlet {
                 fileid = file.getName();
             }
             if (file == null || fileid.isEmpty()) {
-                resp.finishJson(RetCodes.retResult(RET_UPLOAD_FILETOOBIG));
+                resp.finishJson(DemoRetCodes.retResult(RET_UPLOAD_FILETOOBIG));
             } else {
                 FileUploadItem item = new FileUploadItem(fileid, part.getFileName(), part.getReceived());
                 resp.finishJson(RetResult.success(Utility.ofList(item)));
             }
             return;
         }
-        resp.finishJson(RetCodes.retResult(RET_UPLOAD_NOFILE));
+        resp.finishJson(DemoRetCodes.retResult(RET_UPLOAD_NOFILE));
     }
 
 }

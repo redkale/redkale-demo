@@ -10,7 +10,7 @@ import java.util.concurrent.*;
 import org.redkale.annotation.*;
 import org.redkale.annotation.Comment;
 import org.redkale.demo.base.*;
-import static org.redkale.demo.base.RetCodes.*;
+import static org.redkale.demo.base.DemoRetCodes.*;
 import org.redkale.service.RetResult;
 import org.redkale.source.*;
 import org.redkale.util.*;
@@ -76,16 +76,16 @@ public class RandomService extends BaseService {
     @SuppressWarnings("unchecked")
     public RetResult<RandomCode> checkRandomCode(String targetid, String randomcode, short type) {
         if (randomcode == null || randomcode.isEmpty()) {
-            return RetCodes.retResult(RET_USER_RANDCODE_ILLEGAL);
+            return DemoRetCodes.retResult(RET_USER_RANDCODE_ILLEGAL);
         }
         if (targetid != null && targetid.length() > 5 && randomcode.length() < 30) {
             randomcode = targetid + "-" + randomcode;
         }
         RandomCode code = source.find(RandomCode.class, randomcode);
         if (code != null && type > 0 && code.getType() != type) {
-            return RetCodes.retResult(RET_USER_RANDCODE_ILLEGAL);
+            return DemoRetCodes.retResult(RET_USER_RANDCODE_ILLEGAL);
         }
-        return code == null ? RetCodes.retResult(RET_USER_RANDCODE_ILLEGAL) : (code.isExpired() ? RetCodes.retResult(RET_USER_RANDCODE_EXPIRED) : new RetResult(code));
+        return code == null ? DemoRetCodes.retResult(RET_USER_RANDCODE_ILLEGAL) : (code.isExpired() ? DemoRetCodes.retResult(RET_USER_RANDCODE_EXPIRED) : new RetResult(code));
     }
 
     public List<RandomCode> queryRandomCodeByMobile(String mobile) {

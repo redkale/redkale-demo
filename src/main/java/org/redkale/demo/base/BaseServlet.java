@@ -30,9 +30,9 @@ public class BaseServlet extends HttpServlet {
 
     protected final boolean finest = logger.isLoggable(Level.FINEST);
 
-    protected static final RetResult RET_UNLOGIN = RetCodes.retResult(RetCodes.RET_USER_UNLOGIN);
+    protected static final RetResult RET_UNLOGIN = DemoRetCodes.retResult(DemoRetCodes.RET_USER_UNLOGIN);
 
-    protected static final RetResult RET_AUTHILLEGAL = RetCodes.retResult(RetCodes.RET_USER_AUTH_ILLEGAL);
+    protected static final RetResult RET_AUTHILLEGAL = DemoRetCodes.retResult(DemoRetCodes.RET_USER_AUTH_ILLEGAL);
 
     @Resource
     protected JsonConvert convert;
