@@ -120,8 +120,4 @@ public abstract class DemoRetCodes extends RetCodes {
     @RetLabel("用户设备ID无效")
     public static final int RET_USER_APPTOKEN_ILLEGAL = 30020030;
 
-    // -----------------------------------------------------------------------------------------------------------
-    static {
-        load(DemoRetCodes.class);
-    }
 }
