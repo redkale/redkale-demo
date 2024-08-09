@@ -5,14 +5,14 @@
  */
 package org.redkale.demo.base;
 
-import org.redkale.annotation.Bean;
 import org.redkale.convert.json.*;
+import org.redkale.annotation.Serial;
 
 /**
  *
  * @author zhangjx
  */
-@Bean
+@Serial
 public abstract class BaseBean {
 
     @Override
