@@ -81,17 +81,17 @@ public final class ImageRatio {
         return new ImageRatio(width, height);
     }
 
-    //根据高计算等比的宽度
+    // 根据高计算等比的宽度
     public int width(int h) {
         return h * this.width / this.height;
     }
 
-    //根据宽计算等比的高度
+    // 根据宽计算等比的高度
     public int height(int w) {
         return w * height / this.width;
     }
 
-    //判断图片是否与当前比例一致，返回false表示不同
+    // 判断图片是否与当前比例一致，返回false表示不同
     public boolean check(final BufferedImage image) {
         if (image == null) {
             return false;
@@ -99,13 +99,13 @@ public final class ImageRatio {
         return image.getWidth() * this.height == image.getHeight() * this.width;
     }
 
-    //将图片按比例从中间裁剪
+    // 将图片按比例从中间裁剪
     public BufferedImage cut(final BufferedImage image) {
         final int oheight = image.getHeight();
         final int nheight = height(image.getWidth());
-        if (oheight > nheight) { //太高了
+        if (oheight > nheight) { // 太高了
             return image.getSubimage(0, (oheight - nheight) / 2, image.getWidth(), nheight);
-        } else if (oheight < nheight) { //太宽了
+        } else if (oheight < nheight) { // 太宽了
             int nwidth = width(image.getHeight());
             return image.getSubimage((image.getWidth() - nwidth) / 2, 0, nwidth, image.getHeight());
         }
@@ -122,28 +122,38 @@ public final class ImageRatio {
             @Override
             @ConstructorParameters({"width", "height"})
             public ImageRatio create(Object... params) {
-                return new ImageRatio((params[0] == null ? 0 : (Integer) params[0]), (params[1] == null ? 0 : (Integer) params[1]));
+                return new ImageRatio(
+                        (params[0] == null ? 0 : (Integer) params[0]), (params[1] == null ? 0 : (Integer) params[1]));
             }
         };
     }
 
-    private static SimpledCoder<Reader, Writer, ImageRatio> createConvertCoder(final org.redkale.convert.ConvertFactory factory) {
+    private static SimpledCoder<Reader, Writer, ImageRatio> createConvertCoder(
+            final org.redkale.convert.ConvertFactory factory) {
         return new SimpledCoder<Reader, Writer, ImageRatio>() {
+
+            private DeMemberNode deMemberFieldNode;
 
             private Map<String, DeMember> deMemberFieldMap;
 
             private Map<Integer, DeMember> deMemberTagMap;
 
-            //必须与EnMember[] 顺序一致
-            private final DeMember[] deMembers = new DeMember[]{
+            // 必须与EnMember[] 顺序一致
+            private final DeMember[] deMembers = new DeMember[] {
                 DeMember.create(factory, ImageRatio.class, "width", int.class),
                 DeMember.create(factory, ImageRatio.class, "height", int.class)
             };
 
-            //必须与DeMember[] 顺序一致
-            private final EnMember[] enMembers = new EnMember[]{
-                EnMember.create(Attribute.create(ImageRatio.class, "width", int.class, (t) -> t == null ? 0 : t.width, null), factory, int.class),
-                EnMember.create(Attribute.create(ImageRatio.class, "height", int.class, (t) -> t == null ? 0 : t.height, null), factory, int.class)
+            // 必须与DeMember[] 顺序一致
+            private final EnMember[] enMembers = new EnMember[] {
+                EnMember.create(
+                        Attribute.create(ImageRatio.class, "width", int.class, (t) -> t == null ? 0 : t.width, null),
+                        factory,
+                        int.class),
+                EnMember.create(
+                        Attribute.create(ImageRatio.class, "height", int.class, (t) -> t == null ? 0 : t.height, null),
+                        factory,
+                        int.class)
             };
 
             {
@@ -153,6 +163,7 @@ public final class ImageRatio {
                     this.deMemberFieldMap.put(member.getAttribute().field(), member);
                     this.deMemberTagMap.put(member.getTag(), member);
                 }
+                this.deMemberFieldNode = DeMemberNode.create(deMembers);
             }
 
             @Override
@@ -176,16 +187,17 @@ public final class ImageRatio {
                 int index = 0;
                 final Object[] params = new Object[deMembers.length];
                 while (in.hasNext()) {
-                    DeMember member = in.readFieldName(deMembers, deMemberFieldMap, deMemberTagMap); //读取字段名
-                    in.readBlank(); //读取字段名与字段值之间的间隔符，JSON则是跳过冒号:
+                    DeMember member = in.readFieldName(deMemberFieldNode, deMemberFieldMap, deMemberTagMap); // 读取字段名
+                    in.readBlank(); // 读取字段名与字段值之间的间隔符，JSON则是跳过冒号:
                     if (member == null) {
-                        in.skipValue(); //跳过不存在的字段的值, 一般不会发生
+                        in.skipValue(); // 跳过不存在的字段的值, 一般不会发生
                     } else {
                         params[index++] = member.read(in);
                     }
                 }
                 in.readObjectE(ImageRatio.class);
-                return ImageRatio.create(params[0] == null ? 0 : (Integer) params[0], params[1] == null ? 0 : (Integer) params[1]);
+                return ImageRatio.create(
+                        params[0] == null ? 0 : (Integer) params[0], params[1] == null ? 0 : (Integer) params[1]);
             }
         };
     }
