@@ -153,7 +153,7 @@ public final class ImageRatio {
             };
 
             {
-                this.memberInfo = DeMemberInfo.create(deMembers); 
+                this.memberInfo = DeMemberInfo.create(deMembers);
             }
 
             @Override
@@ -164,14 +164,14 @@ public final class ImageRatio {
                 }
                 out.writeObjectB(value);
                 for (EnMember member : enMembers) {
-                    out.writeObjectField(member, value);
+                    out.writeFieldValue(member, value);
                 }
                 out.writeObjectE(value);
             }
 
             @Override
             public ImageRatio convertFrom(Reader in) {
-                if (in.readObjectB(ImageRatio.class) == null) {
+                if (!in.readObjectB(this)) {
                     return null;
                 }
                 int index = 0;
@@ -185,7 +185,7 @@ public final class ImageRatio {
                         params[index++] = member.read(in);
                     }
                 }
-                in.readObjectE(ImageRatio.class);
+                in.readObjectE();
                 return ImageRatio.create(
                         params[0] == null ? 0 : (Integer) params[0], params[1] == null ? 0 : (Integer) params[1]);
             }
